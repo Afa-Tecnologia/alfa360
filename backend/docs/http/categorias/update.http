@@ -1,0 +1,8 @@
+PUT http://localhost:8000/api/categorias/1 HTTP/1.1
+content-type: application/json
+Authorization: Bearer 2|lCQNaOcbfGi9G8UbwrMJvoNfn3rJ4bh5VgtLRhZ69abf9dd2
+
+{
+    "name": "Produto Teste",
+
+}

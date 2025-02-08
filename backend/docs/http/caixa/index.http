@@ -1,0 +1,9 @@
+POST http://localhost:8000/api/caixa/open HTTP/1.1
+content-type: application/json
+Authorization: Bearer 2|dqdONtRW6lJrj6yRXvJ7YGErNJQSe7wfqctTQD522ec02817
+
+{
+    "saldo_inicial": 2000,
+    "observations": "N/a"
+
+}

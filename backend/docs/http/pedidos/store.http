@@ -1,0 +1,12 @@
+POST http://localhost:8000/api/pedidos HTTP/1.1
+content-type: application/json
+Authorization: Bearer 7|GKGKoxhmf9Cu4sazGmsjg4sLuzYEBGF4VMXVqpCE3c7a7098
+
+{
+    "vendedor_id": "1", // UUID válido existente na tabela users
+    "cliente_id": "1", // UUID válido existente na tabela clientes
+    "produto_id": "1", // UUID válido existente na tabela produtos
+    "categoria_id": "1", // UUID válido existente na tabela categoria
+    "type": "venda", // Tipo de operação (ex: venda, orçamento, etc)
+    "total": 199.99 // Valor decimal com duas casas
+}

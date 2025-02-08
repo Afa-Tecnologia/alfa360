@@ -1,0 +1,11 @@
+POST http://localhost:8000/api/produtos HTTP/1.1
+content-type: application/json
+Authorization: Bearer 2|OyFp30kc8johuaSXLB8uGhZd1dcZgYmwOqwUbbPLcd858e80
+
+{
+    "name": "Produto Teste",
+    "description": "Descrição do produto",
+    "purchase_price": 10.5,
+    "selling_price": 15.0,
+    "quantity": 100,
+}

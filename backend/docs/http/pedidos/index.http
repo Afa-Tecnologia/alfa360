@@ -1,0 +1,3 @@
+GET http://localhost:8000/api/pedidos HTTP/1.1
+content-type: application/json
+Authorization: Bearer 7|GKGKoxhmf9Cu4sazGmsjg4sLuzYEBGF4VMXVqpCE3c7a7098

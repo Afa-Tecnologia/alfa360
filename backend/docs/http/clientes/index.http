@@ -1,0 +1,3 @@
+GET http://localhost:8000/api/clientes HTTP/1.1
+content-type: application/json
+Authorization: Bearer 5|XQnwFzBxtjkJDATNTIfvqr5i2rdKoydPTIPz47Coe75545c2

@@ -1,0 +1,8 @@
+POST http://localhost:8000/api/categorias HTTP/1.1
+content-type: application/json
+Authorization: Bearer 3|uSnthhb7afqw4M6cN7P0U96g7HKvpipyfYf8YlpU595383df
+
+{
+    "name": "Categoria teste",
+    "description": "Descrição da categoria",
+}

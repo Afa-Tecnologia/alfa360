@@ -15,7 +15,7 @@ export function CarouselProducts() {
         <div className="flex flex-col justify-center py-4 px-6 h-auto">
         <span className="text-1xl mb-1">Categorias dos Produtos</span>
        
-      <Carousel className="w-full max-w-[45rem]">
+      <Carousel className="w-full max-w-[38rem]">
         <CarouselContent className="-ml-1">
           {categories.map((category, index) => (
             <CarouselItem key={index} className="pl-1 md:basis-1/2 lg:basis-1/3">

@@ -15,9 +15,9 @@ return new class extends Migration
             $table->id();
             $table->foreignId('vendedor_id')->constrained('users');
             $table->foreignId('cliente_id')->constrained('clientes');
-            // $table->foreignId('produto_id')->constrained('produtos');
             $table->foreignId('categoria_id')->constrained('categorias');
-            $table->string('type');
+            $table->enum('type',['ecommerce', 'loja']);
+            $table->enum('forma_pagamento', ['dinheiro', 'cartao', 'pix', 'condicional']);
             $table->decimal('desconto', 8, 2)->default(0);
             $table->decimal('total', 8, 2);
             $table->timestamps();

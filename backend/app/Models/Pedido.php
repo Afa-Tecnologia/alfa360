@@ -18,6 +18,7 @@ class Pedido extends Model
         'type',
         'total',
         'desconto',
+        'forma_pagamento',
     ];
 
     // Relacionamento com Produtos (via tabela pivô)

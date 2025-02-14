@@ -43,7 +43,7 @@ class ProdutoController extends Controller
             $produto = $this->produtoService->create($data);
 
             //Mapeamento dos campos do wocoommerce
-            $woocommerceData = [
+           $woocommerceData = [
                 'name' => $data['name'], 
                 'description' => $data['description'],
                 'regular_price' => $data['selling_price'],

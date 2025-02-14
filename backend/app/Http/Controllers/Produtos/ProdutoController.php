@@ -44,10 +44,10 @@ class ProdutoController extends Controller
 
             //Mapeamento dos campos do wocoommerce
             $woocommerceData = [
-                'name' => $data->name,
-                'description' => $data->description,
-                'regular_price' => $data->selling_price,
-                'stock_quantity'=> $data->quantity
+                'name' => $data['name'], 
+                'description' => $data['description'],
+                'regular_price' => $data['selling_price'],
+                'stock_quantity'=> $data['quantity']
             ];
 
 

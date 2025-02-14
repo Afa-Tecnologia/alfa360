@@ -28,6 +28,7 @@ class PedidoService
                 'cliente_id' => $data['cliente_id'],
                 'categoria_id' => $data['categoria_id'],
                 'type' => $data['type'],
+                'forma_pagamento' => $data['forma_pagamento'],
                 'total' => 0,
                 'desconto' => $data['desconto'] ?? 0,
             ]);

@@ -37,6 +37,7 @@ class PedidosController extends Controller
                 'produto_id.*.quantity' => 'required|integer|min:1', // Valida a quantidade
                 'categoria_id' => 'required|string|exists:categorias,id',
                 'type' => 'required|string',
+                'forma_pagamento' => 'required|string|in:dinheiro,cartao,pix,condicional',
                 'desconto' => 'nullable|numeric|min:0|max:100'
             ]);
 
@@ -120,7 +121,8 @@ class PedidosController extends Controller
                 'quantities' => 'nullable|array',
                 'quantities.*' => 'nullable|integer|min:1',
                 'selling_prices' => 'nullable|array',
-                'selling_prices.*' => 'nullable|numeric|min:0.01'
+                'selling_prices.*' => 'nullable|numeric|min:0.01',
+                'forma_pagamento' => 'nullable|string|in:dinheiro,cartao,pix,condicional',
             ], [
                 // Mensagens de erro (mesmas que já havia)
             ]);

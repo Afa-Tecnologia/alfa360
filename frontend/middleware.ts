@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import useAuthStore from './stores/authStore';
 import { cookies } from 'next/headers';
 // This function can be marked `async` if using `await` inside
 export async function middleware(request: NextRequest) {

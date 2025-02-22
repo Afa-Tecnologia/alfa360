@@ -13,7 +13,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { format } from 'date-fns';
 import { useCaixaStore } from '@/stores/caixaStore';
-import { Console } from 'console';
 
 interface IMovimentacoesTable {
   movimentacoes: any[];
@@ -29,9 +28,9 @@ interface IMovimentacoesTable {
 // ]
 
 export default function MovimentacoesTable(props: IMovimentacoesTable) {
-  // const { movimentacoes } = useCaixaStore()
+  const { movimentacoes } = useCaixaStore()
 
-  const movimentacoes = props.movimentacoes;
+  // const movimentacoes = props.movimentacoes;
   const [data, setData] = useState(movimentacoes);
   const [filteredData, setFilteredData] = useState(movimentacoes);
   const [currentPage, setCurrentPage] = useState(1);

@@ -24,9 +24,7 @@ import { Product } from '@/types/product';
 import NoData from '../Semdados/NoData';
 import CategoriaListing from './CategoriasListing';
 import { DialogDescription, DialogTitle } from '@radix-ui/react-dialog';
-import { Categoria } from '@/types/categoria';
 import { Spinner } from '../spinner/Spinner';
-import EstoqueHeader from './EstoqueHeadet';
 
 export default function EstoqueListing() {
   const [products, setProducts] = useState<Product[]>([]);

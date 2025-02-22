@@ -6,11 +6,12 @@ import { OpenCaixaForm } from '@/components/caixa/OpenCaixaForm';
 import { CloseCaixaForm } from '@/components/caixa/CloseCaixaForm';
 import { MovimentacaoForm } from '@/components/caixa/MovimentacaoForm';
 import { CaixaReport } from '../caixa/CaixaReport';
-import { PedidosList } from '../pedidos/PedidosList';
 import { caixaService as api } from '@/utils/caixaService';
 import { useCaixaStore } from '@/stores/caixaStore';
-import MovimentacoesTable from '../caixa/ReportListing';
+import MovimentacoesTable from '../caixa/MovimentacoesTable';
 import { IStatus } from '@/types/auth';
+import CardMin from '../card/Card-min';
+import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 
 interface ICaixa {
   status?: IStatus[];
@@ -107,22 +108,55 @@ export default function Caixa() {
   const { status } = useCaixaStore();
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-row gap-4">
-        <CaixaStatus />
-        {status.isOpen && <CloseCaixaForm onCloseCaixa={handleCloseCaixa} />}
-      </div>
+    <Card className='w-full '> 
+      <CardHeader>
+        <CardTitle className=" text-2xl">Caixa</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-6">
+          <div className="flex flex-col  lg:flex-row gap-4">
+            <div className=" flex flex-col lg:flex-row gap-4 ">
+              <CaixaStatus />
+              <CardMin
+                title="Valor atual"
+                value={1000}
+                valueStyle=" text-green-600"
+              />
+              <CardMin
+                title="Total de entradas"
+                value={500}
+                valueStyle=" text-green-600"
+              />
+              <CardMin
+                title="Total de saídas"
+                value={500}
+                valueStyle=" text-red-600"
+              />
+            </div>
+          </div>
+          <Card>
+            <CardHeader>
+              <CardTitle>Movimentações</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <MovimentacoesTable movimentacoes={movimentacoes} />
+            </CardContent>
+          </Card>
+          {!status.isOpen && <OpenCaixaForm onOpenCaixa={handleOpenCaixa} />}
 
-      {!status.isOpen && <OpenCaixaForm onOpenCaixa={handleOpenCaixa} />}
-
-      {status.isOpen && (
-        <div className=" flex flex-row gap-4">
-          <MovimentacaoForm onCreateMovimentacao={handleCreateMovimentacao} />
-          {/* <PedidosList onRegistrarPedido={handleRegistrarPedido} /> */}
-          <CaixaReport />
-          <MovimentacoesTable movimentacoes={movimentacoes} />
+          {status.isOpen && (
+            <div className=" flex flex-row gap-4">
+              <MovimentacaoForm
+                onCreateMovimentacao={handleCreateMovimentacao}
+              />
+              {/* <PedidosList onRegistrarPedido={handleRegistrarPedido} /> */}
+              <CaixaReport />
+            </div>
+          )}
         </div>
-      )}
-    </div>
+
+        {status.isOpen && <CloseCaixaForm onCloseCaixa={handleCloseCaixa} />}
+      </CardContent>
+    </Card>
   );
 }

@@ -1,5 +1,5 @@
 'use client';
-import React, { useEffect, useState } from 'react';
+import React, { use, useEffect, useState } from 'react';
 import { api } from '@/app/api/api';
 import { Button } from '@/components/ui/button';
 import {
@@ -10,11 +10,12 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { useForm } from 'react-hook-form';
-import { toast } from 'react-toastify';
 import { Spinner } from '../spinner/Spinner';
 import EstoqueHeader from '../estoque/EstoqueHeadet';
-import { ProductEdit } from '../estoque/ProductSheet';
-import { Product, Variant, ImageData, IEstoque } from '@/types/estoque';
+import { ProductEdit } from '../estoque/ProductEdit';
+import { Variant, IEstoque } from '@/types/estoque';
+import { Product } from '@/types/product';
+import { Product as ProducWithVariants } from '@/types/estoque';
 import { Input } from '../ui/input';
 import {
   Select,
@@ -22,26 +23,33 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@radix-ui/react-select';
+} from '../ui/select';
 import { MdOutlineImageNotSupported } from 'react-icons/md';
 import Image from 'next/image';
 
-import { CldUploadWidget } from 'next-cloudinary';
-import DropDownEditImage from '../imageUploader/DropDownEditImage';
+import { Label } from '../ui/label';
+import { useProductStore } from '@/stores/createProductStore';
+import { useUtilStore } from '@/stores/utilStore';
 
 export default function EstoquePage(props: IEstoque) {
-  const [products, setProducts] = useState<Product[]>([]);
-  const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
+  const [products, setProducts] = useState<ProducWithVariants[]>([]);
+  const [mockProducts, setMockProducts] = useState<ProducWithVariants[]>([]);
+  const [filteredProducts, setFilteredProducts] = useState<ProducWithVariants[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [isSheetOpen, setIsSheetOpen] = useState(false);
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  // const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [isLoading, setIsloading] = useState(true);
-  const [editingProduct, setEditingProduct] = useState<Product | null | any>(
+
+  const [editingProduct, setEditingProduct] = useState<ProducWithVariants | null | any>(
     null
   );
   const [searchQuery, setSearchQuery] = useState('');
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
+
+  const { _setProducts, productStore, productsStore, setProductStore, setProductsStore, size, tipoProduto } =
+    useProductStore();
+
+  const {setIsSheetOpen, isSheetOpen} = useUtilStore();
 
   const { register, handleSubmit, reset, setValue } = useForm<Variant>({
     defaultValues: {
@@ -49,64 +57,135 @@ export default function EstoquePage(props: IEstoque) {
       type: '',
       color: '',
       size: '',
-      stock: 0,
+      quantity: 0,
       active: true,
-      price: 0,
+      selling_price: 0,
     },
   });
 
+  // useEffect(() => {
+  //   fetchProducts();
+  //   console.log('produtos'+ mockProducts)
+  // }, []);
+
+  useEffect(() => {
+    console.log('Tipo de produto:', tipoProduto);
+    console.log('Tamanho:', size);
+    
+  }, [tipoProduto, size]);
+
+  // useEffect(() => {
+  //   filterProducts();
+  // }, [searchQuery, mockProducts]);
+
+  async function fetchProducts() {
+    const mock:ProducWithVariants[] = [
+      {
+        id:23,
+        name: 'Vestido de ceda longo',
+        description: 'Apenas um vestido longo de ceda',
+        total_stock: 14,
+        brand: 'Lesamis',
+        categoria_id: '1',
+        type: 'roupa',
+        variantes: [
+          {
+            id: 1740021023531,
+            id_product:23,
+            name: 'Vestido de ceda longo Verde P',
+            type: 'roupa',
+            quantity: 7,
+            color: 'Verde',
+            size: 'P',
+            selling_price: 233,
+            image_url:
+              'https://res.cloudinary.com/delwujvnn/image/upload/v1740020978/sxb1vwzatkatfefqhlb9.jpg',
+          },
+        ],
+
+      },
+      {
+        id:24,
+        name: 'Vestido de cetim',
+        description: 'Apenas um vestido longo de cetim',
+        categoria_id: '1',
+        type: 'roupa',
+        variantes: [
+          {
+            id_product:24,
+            id: 1740021023533,
+            name: 'Vestido de ceda longo Verde P',
+            type: 'roupa',
+            quantity: 7,
+            color: 'Verde',
+            size: 'P',
+            selling_price: 233,
+            image_url:
+              'https://res.cloudinary.com/delwujvnn/image/upload/v1740020978/sxb1vwzatkatfefqhlb9.jpg',
+          },
+          {
+            id: 1740021023539,
+            name: 'Vestido de ceda longo Verde G',
+            type: 'roupa',
+            quantity: 7,
+            color: 'Azul',
+            size: 'G',
+            selling_price: 233,
+            image_url:
+              'https://res.cloudinary.com/delwujvnn/image/upload/v1740020978/sxb1vwzatkatfefqhlb9.jpg',
+          }
+        ],
+
+      }
+    ];
+    // _setProducts(mock);
+    // setMockProducts(mock)
+    setProductsStore(mock);
+    setIsloading(false);
+    // try {
+    //   const response = await api.get('/produtos');
+    //   setProducts(response.data);
+    //   _setProducts(response.data);
+    //   setIsloading(false);
+    // } catch (error) {
+    //   toast.error('Erro ao carregar produtos.');
+    //   setIsloading(false);
+    // }
+  }
+
   useEffect(() => {
     fetchProducts();
-  }, []);
+  }, []);  // Chama a função de mock apenas uma vez quando o componente monta
+
+  // Log no console para verificar se mockProducts foi atualizado corretamente
+  useEffect(() => {
+    console.log('mockProducts atualizados:', mockProducts);
+    console.log('mockProducts filtrados', filteredProducts);
+    console.log('produtos setados na store'+products)
+  }, [productsStore, filteredProducts]); 
 
   useEffect(() => {
     filterProducts();
-  }, [searchQuery, products]);
-
-  async function fetchProducts() {
-    try {
-      const response = await api.get('/produtos');
-      setProducts(response.data);
-      setIsloading(false);
-    } catch (error) {
-      toast.error('Erro ao carregar produtos.');
-      setIsloading(false);
-    }
-  }
+  }, [searchQuery, productsStore]);
 
   const filterProducts = () => {
-    const filtered = products.filter((product) =>
-      product.name.toLowerCase().includes(searchQuery.toLowerCase())
+    const filtered = productsStore.filter((product) =>
+      product.name?.toLowerCase().includes(searchQuery.toLowerCase())
     );
-    setFilteredProducts(filtered);
+    setFilteredProducts(filtered)
+    
   };
 
-  const handleCreateOrUpdateProduct = async (data: Omit<Product, 'id'>) => {
-    try {
-      if (editingProduct) {
-        await api.put(`/produtos/${editingProduct.id}`, data);
-        toast.success('Produto atualizado com sucesso!');
-      } else {
-        await api.post('/produtos', data);
-        toast.success('Produto criado com sucesso!');
-      }
-      setIsDialogOpen(false);
-      reset();
-      fetchProducts();
-    } catch (error) {
-      toast.error('Erro ao salvar produto.');
-    }
-  };
-
-  const handleSheet = (product: Product | null) => {
+  const handleSheet = (product: ProducWithVariants | any) => {
+    setIsSheetOpen(true);
     if (product === null) {
       // Se for para criar um novo produto, limpa o produto editado
-      setEditingProduct(null);
+      setProductStore({});
+      setEditingProduct({});
     } else {
-      // Caso contrário, define o produto a ser editado
+      setProductStore(product);
       setEditingProduct(product);
     }
-    setIsSheetOpen(true);
   };
 
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -115,7 +194,7 @@ export default function EstoquePage(props: IEstoque) {
 
   const handleItemsPerPageChange = (value: number) => {
     setItemsPerPage(value);
-    setCurrentPage(1); // Reset to the first page when changing items per page
+    setCurrentPage(1);
   };
 
   const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
@@ -128,28 +207,6 @@ export default function EstoquePage(props: IEstoque) {
     <div className="container mx-auto p-4">
       <Card>
         <EstoqueHeader />
-        <div className="flex p-4 space-x-4 sm:w-full">
-          <Input
-            type="text"
-            placeholder="Pesquisar por nome do produto..."
-            value={searchQuery}
-            onChange={handleSearchChange}
-            className="w-1/3"
-          />
-          <Select
-            value={itemsPerPage.toString()}
-            onValueChange={(value) => handleItemsPerPageChange(Number(value))}
-          >
-            <SelectTrigger className="w-1/3 text-slate-700">
-              <SelectValue placeholder="Itens por página" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="10">10</SelectItem>
-              <SelectItem value="20">20</SelectItem>
-              <SelectItem value="30">30</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
         <div className="flex p-4">
           <Button
             onClick={() => handleSheet(null)} // Passar null para criar um novo produto
@@ -158,6 +215,31 @@ export default function EstoquePage(props: IEstoque) {
           >
             Criar Produto
           </Button>
+        </div>
+        <div className="w-full flex p-4 justify-between sm:w-full gap-4">
+          <Input
+            type="text"
+            placeholder="Pesquisar por nome do produto..."
+            value={searchQuery}
+            onChange={handleSearchChange}
+            className="w-full"
+          />
+          <div className="flex flex-col w-full justify-end">
+            <Select
+              value={itemsPerPage.toString()}
+              onValueChange={(value) => handleItemsPerPageChange(Number(value))}
+            >
+              <SelectTrigger className="w-16 text-slate-700">
+                <SelectValue placeholder="Itens por página" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="10">10</SelectItem>
+                <SelectItem value="20">20</SelectItem>
+                <SelectItem value="30">30</SelectItem>
+              </SelectContent>
+            </Select>
+            <Label className=" text-xs text-slate-400"> Itens por página</Label>
+          </div>
         </div>
         <CardHeader>
           <CardTitle className="text-xl font-bold">
@@ -170,17 +252,18 @@ export default function EstoquePage(props: IEstoque) {
           <CardContent className="cursor-pointer">
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-8 gap-4">
               {paginatedProducts.length > 0 ? (
-                paginatedProducts.map((product) => (
+                paginatedProducts.map((product, index) => (
+                  
                   <Card
-                    key={product.id}
+                    key={index}
                     className={`p-4 text-wrap hover:bg-slate-50 flex flex-col justify-center items-center`}
                   >
                     <div className=" w-full flex flex-col text-center break-words whitespace-normal justify-center items-center">
-                      {product.variantes?.[0]?.imagens?.[0]?.url ? (
+                      {product?.variantes[0]?.image_url ? (
                         <div>
                           <Image
-                            src={product.variantes[0].imagens[0].url}
-                            alt={product.name}
+                            src={product?.variantes[0]?.image_url}
+                            alt={product?.name}
                             width={100}
                             height={100}
                             className="h-6/12 object-cover mb-4 rounded-lg"
@@ -189,12 +272,6 @@ export default function EstoquePage(props: IEstoque) {
                       ) : (
                         <MdOutlineImageNotSupported size={100} />
                       )}
-                      <DropDownEditImage
-                        className={`relative mt-[-20px]`}
-                        key={product.id}
-                        onClick={() => {}}
-                      />
-
                       <CardTitle
                         className=" hover:underline"
                         onClick={() => handleSheet(product)}
@@ -206,9 +283,9 @@ export default function EstoquePage(props: IEstoque) {
                       <CardTitle
                         className={`
                          text-sm font-thin
-                        ${product.quantity > 2 ? 'text-blue-700' : 'text-red-600'}`}
+                        ${product?.total_stock > 2 ? 'text-blue-700' : 'text-red-600'}`}
                       >
-                        {product.quantity} em estoque
+                        {product.total_stock} em estoque
                       </CardTitle>
                     </div>
                   </Card>
@@ -236,7 +313,7 @@ export default function EstoquePage(props: IEstoque) {
           </Button>
         </div>
       </Card>
-      <ProductEdit product={editingProduct} isOpen={isSheetOpen} />
+      <ProductEdit product={productStore} isOpen={isSheetOpen} />
     </div>
   );
 }

@@ -5,5 +5,10 @@ export type Product = {
   purchase_price: number;
   selling_price: number;
   quantity: number;
-  categoria_id?: number;
+  color?: string;
+  size?: string[];
+  type: string;
+  brand?: string;
+  categoria_id?: number | string;
+  image_url?: string;
 };

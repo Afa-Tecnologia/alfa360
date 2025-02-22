@@ -21,8 +21,8 @@ return new class extends Migration
             $table->enum('type', ['roupa', 'sapato', 'acessorio']);
             $table->string('image')->nullable();
             $table->string('marca');
-            $table->string('size');
-            $table->string('color');
+            $table->array('size');
+            $table->array('color');
             $table->string('code');
             $table->foreignId('categoria_id')->nullable()->constrained('categorias')->onDelete('set null');
             $table->timestamps();

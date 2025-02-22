@@ -18,9 +18,10 @@ return new class extends Migration
             $table->string('type');
             $table->string('color');
             $table->string('size');
-            $table->integer('stock');
+            $table->integer('quantity');
             $table->boolean('active');
             $table->decimal('price', 8, 2);
+            $table->string('image_url');
             $table->timestamps();
         });
     }

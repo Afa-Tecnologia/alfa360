@@ -43,45 +43,47 @@ export function OpenCaixaForm({ onOpenCaixa }: OpenCaixaFormProps) {
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Abrir Caixa</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <FormField
-              control={form.control}
-              name="saldoInicial"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Saldo Inicial</FormLabel>
-                  <FormControl>
-                    <Input type="number" step="0.01" {...field} required />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="observation"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Observação</FormLabel>
-                  <FormControl>
-                    <Input {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <Button type="submit" disabled={isLoading}>
-              {isLoading ? 'Abrindo...' : 'Abrir Caixa'}
-            </Button>
-          </form>
-        </Form>
-      </CardContent>
-    </Card>
+    <div className=' w-6/12'>
+      <Card>
+        <CardHeader>
+          <CardTitle>Abrir Caixa</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <FormField
+                control={form.control}
+                name="saldoInicial"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Saldo Inicial</FormLabel>
+                    <FormControl>
+                      <Input type="number" step="0.01" {...field} required />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="observation"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Observação</FormLabel>
+                    <FormControl>
+                      <Input {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <Button type="submit" disabled={isLoading}>
+                {isLoading ? 'Abrindo...' : 'Abrir Caixa'}
+              </Button>
+            </form>
+          </Form>
+        </CardContent>
+      </Card>
+    </div>
   );
 }

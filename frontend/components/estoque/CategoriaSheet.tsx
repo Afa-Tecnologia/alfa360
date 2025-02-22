@@ -13,8 +13,8 @@ import React, { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'react-toastify';
 import CategoriaListing from './CategoriasListing';
-import { ImageUploader } from '../imageUploader/imageUploader';
-import { CldUploadWidget } from 'next-cloudinary';
+import SizeSelectors from './SelectSize';
+import SelectTipoProduto from './SelectTipo';
 
 interface IProductEdit {
   product?: Product;
@@ -23,6 +23,8 @@ interface IProductEdit {
 
 export function ProductEdit(props: IProductEdit) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [selectedtipoProduto, setSelectedtipoProduto] = useState(null);
+  const [variantes, setVariantes] = useState([]);
   const [selectedCategoria, setSelectedCategoria] = useState<any>(null);
   const { register, handleSubmit, reset, setValue } = useForm<
     Omit<Product, 'id'>
@@ -73,18 +75,12 @@ export function ProductEdit(props: IProductEdit) {
     console.log('Categoria selecionada:', categoria);
   };
 
-  const handleUploadComplete = (imagesData: VariantImages) => {
-    // Salve imagesData no seu banco de dados
-    console.log('Imagens carregadas:', imagesData);
+  const handleSelectTipoProduto = (tipo: string) => {
+    setSelectedtipoProduto(tipo);
+    console.log('Tipo selecionada:', tipo);
   };
-
-  const clickUpload = (open: () => void) => {
-    open();
-    setIsDialogOpen(true);
-  };
-
   return (
-    <>
+    <div>
       <Sheet open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <SheetTrigger asChild>
           {/* <Button variant="outline" onClick={() => setIsDialogOpen(true)}>
@@ -95,8 +91,15 @@ export function ProductEdit(props: IProductEdit) {
           <SheetHeader>
             <SheetTitle>Editar / Criar - Produtos</SheetTitle>
           </SheetHeader>
-          <form onSubmit={handleSubmit(handleCreateOrUpdateProduct)}>
-            <ImageUploader onUpload={handleUploadComplete} />
+          <form
+            onSubmit={handleSubmit(handleCreateOrUpdateProduct)}
+            className=" flex flex-col gap-4"
+          >
+            {/* <ImageUploader onUpload={handleUploadComplete} /> */}
+            <SelectTipoProduto selectTipoProduto={handleSelectTipoProduto} />
+            {selectedtipoProduto && (
+              <SizeSelectors tipo_produto={selectedtipoProduto} />
+            )}
             <div className="mb-4">
               <label className="block font-medium mb-1">Nome do produto</label>
               <input
@@ -153,6 +156,6 @@ export function ProductEdit(props: IProductEdit) {
           </form>
         </SheetContent>
       </Sheet>
-    </>
+    </div>
   );
 }

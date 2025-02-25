@@ -80,7 +80,7 @@ class CaixaService
                 'value' => $value,
                 'description' => $description,
                 'payment_method' => $paymentMethod,
-                'status' => 'confirmed',
+                'status' => 'completed',
                 'additional_data' => $additionalData
             ]);
         });

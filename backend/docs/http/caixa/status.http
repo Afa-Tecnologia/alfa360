@@ -1,4 +1,4 @@
-POST http://localhost:8000/api/caixa/open HTTP/1.1
+GET http://localhost:8000/api/caixa/status HTTP/1.1
 content-type: application/json
 Authorization: Bearer 29|0WAZYsAPuYtgKOtC0Xqqv6VQ57YrPBzh0NEAGdy853ceb6c3
 

@@ -6,16 +6,14 @@ use Illuminate\Database\Eloquent\Model;
 
 class Variantes extends Model
 {
-    protected $fillable = [
-        'produto_id',
-        'name',
-        'type',
-        'color',
-        'size',
-        'price',
-        'stock',
-        'active',
-    ];
+    
+        protected $fillable = [
+            'produto_id', 'name', 'type', 'color', 'size', 'quantity', 'active', 'images'
+        ];
+    
+        protected $casts = [
+            'images' => 'array' // ✅ Laravel converte automaticamente JSON para array ao recuperar do banco!
+        ];
 
     public function produto()
     {
@@ -26,6 +24,7 @@ class Variantes extends Model
     {
         return $this->hasMany(Imagens::class, 'variante_id');
     }
+
 
     protected function serializeDate(\DateTimeInterface $date)
     {

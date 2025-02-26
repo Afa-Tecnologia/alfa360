@@ -14,8 +14,8 @@ interface ProductStore {
   setProductStore: (product: ProducWithVariants) => void;
   resetProduct: () => void;
 
-  size: string[] | null;
-  setSize: (size: string[] | null) => void;
+  size: string | null;
+  setSize: (size: string | null) => void;
 
   tipoProduto: string | null;
   setTipoProduto: (tipoProduto: string) => void;
@@ -84,7 +84,7 @@ export const useProductStore = create<ProductStore>((set) => ({
   productsStore: [],
   setProductsStore: (productsStore) => set({ productsStore }),
 
-  size: [],
+  size: '',
   setSize: (size) => set({ size }),
 
   imageUrl: null,

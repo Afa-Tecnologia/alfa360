@@ -20,9 +20,7 @@ return new class extends Migration
             $table->integer('quantity');
             $table->enum('type', ['roupa', 'sapato', 'acessorio']);
             $table->string('image')->nullable();
-            $table->string('marca');
-            $table->array('size');
-            $table->array('color');
+            $table->string('brand');
             $table->string('code');
             $table->foreignId('categoria_id')->nullable()->constrained('categorias')->onDelete('set null');
             $table->timestamps();

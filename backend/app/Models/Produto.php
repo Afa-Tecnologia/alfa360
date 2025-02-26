@@ -13,6 +13,9 @@ class Produto extends Model
         'selling_price',
         'quantity',
         'categoria_id',
+        'type',
+        'brand', 
+        'code'
     ];
 
 
@@ -37,7 +40,7 @@ class Produto extends Model
     /**
      * Relação com as variantes dos produtos um produto tem muitas variantes
      */
-    public function variantes()
+    public function variants()
     {
         return $this->hasMany(Variantes::class, 'produto_id');
     }

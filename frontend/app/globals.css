@@ -86,6 +86,6 @@ body {
     @apply bg-background text-foreground;
   }
   .max-w-margin\!{
-    max-width: 30rem !important;
+    max-width: 35rem !important;
   }
 }

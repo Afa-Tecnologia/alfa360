@@ -104,6 +104,10 @@ export default function ProductList() {
     console.log(JSON.stringify(fetchProdutos()))
   },[])
 
+  useEffect(() =>{
+    console.log(products)
+  },[products])
+
   return (
     <div className="space-y-4">
       <div className="flex gap-2">

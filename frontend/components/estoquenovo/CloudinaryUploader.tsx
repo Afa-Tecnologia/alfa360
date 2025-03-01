@@ -19,6 +19,12 @@ export default function ImageUploader({ images = [], onUpload }: IImageUploaderP
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [productImages, setProductImages] = useState(images)
+
+  
+  useEffect(() =>{
+    console.log('images'+images)
+  },[images])
 
   useEffect(() => {
     // Cleanup preview URL when component unmounts or when selected image changes
@@ -96,7 +102,7 @@ export default function ImageUploader({ images = [], onUpload }: IImageUploaderP
       </div>
 
       <div className="grid grid-cols-4 gap-2">
-        {JSON.parse(images).map((imageUrl, index) => (
+        {JSON.parse(productImages).map((imageUrl:string, index:string) => (
           <div key={index} className="relative group">
             <Image
               src={imageUrl}

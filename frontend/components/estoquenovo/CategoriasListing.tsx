@@ -77,3 +77,4 @@ export default function CategoriaListing(props: ICategoriaListing) {
     </div>
   );
 }
+

@@ -1,14 +1,10 @@
-import { api } from '@/app/api/api';
-import { fetchApi } from '@/app/api/fetch';
-import EstoquePage from '@/components/pages/EstoquePage';
+import ProductList from "@/components/estoquenovo/ProductListing";
 
-import { produtosService } from '@/utils/produtosService';
-import { toast } from 'react-toastify';
-
-export default async function Page() {
+export default function Page() {
   return (
-    <>
-      <EstoquePage />
-    </>
+    <main className="container mx-auto py-8">
+      <h1 className="text-2xl font-bold mb-4">Gerenciamento de Produtos</h1>
+      <ProductList />
+    </main>
   );
 }

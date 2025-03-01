@@ -42,7 +42,10 @@ class DatabaseSeeder extends Seeder
             "purchase_price" => 50,
             "selling_price" => 87.89,
             "quantity" => 10,
-            "categoria_id" => 1
+            "categoria_id" => 1,
+            "type" => "roupa",
+            "brand"=> "lesamis",
+            "code"=> 1232
         ]);
         Cliente::create([
             "name" => "João",

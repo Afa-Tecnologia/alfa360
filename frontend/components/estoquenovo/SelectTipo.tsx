@@ -10,15 +10,19 @@ import {
 } from '@/components/ui/select';
 import { Label } from '../ui/label';
 import { useProductStore } from '@/stores/productStore';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 // import { useProductStore } from '@/stores/createProductStore';
 
 export default function SelectTipoProduto({
   onChange,
+  initialValue
 }: {
-  onChange: (value?: number | string) => void;
+  onChange: (value: string) => void;
+  initialValue: string;
 }) {
   const { setTipoProduto, tipoProduto, product } = useProductStore();
+
+  const [tipoInicial, setTipoInicial] = useState<string>(initialValue)
 
   const handleTipoProduto = (value: string) => {
     onChange(value);
@@ -32,14 +36,14 @@ export default function SelectTipoProduto({
   };
 
   useEffect(() => {
-    setTipoProduto(product.type);
+    setTipoProduto(product?.type);
   }, [product]);
 
   return (
     <div className="flex flex-col gap-4 mb-4">
       <Label className="text-base font-semibold">Tipo de Produto</Label>
       <Select
-        value={tipoProduto || ''}
+        value={tipoInicial}
         onValueChange={(value) => handleTipoProduto(value)}
       >
         <SelectTrigger className="w-[180px]">

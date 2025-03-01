@@ -1,61 +1,130 @@
 <?php
-
 namespace App\Services\Produtos;
 
 use App\Models\Produto;
 use App\Models\Variantes;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
 
 class ProdutoService
 {
-    // Método para criar um novo Produto
-    public function create(array $data)
-    {
-        return Produto::create($data);
-    }
-
-    // Método para obter todos os usuários
     public function getAll()
     {
-        return Produto::with(['categoria', 'variantes.imagens'])->get();
+        return Produto::with('variants')->get();
     }
 
-    // Método para obter um usuário por ID
     public function getById($id)
     {
-        return Produto::with(['variantes.imagens'])->findOrFail($id);
+        return Produto::with('variants')->find($id);
     }
 
-    public function getProdutoPorCategoria($id)
+    public function create(array $data)
     {
-        return Produto::where('categoria_id', '=', $id)->get();
+        return DB::transaction(function () use ($data) {
+            $produto = Produto::create($data);
+
+            if (isset($data['variants']) && is_array($data['variants'])) {
+                foreach ($data['variants'] as $variantData) {
+                    $this->createVariant($produto->id, $variantData);
+                }
+            }
+
+            return $produto->load('variants');
+        });
     }
 
-    public function getVariantesProdutos($id)
+    public function createVariant($productId, array $data)
     {
-        return Variantes::where('produto_id', '=', $id)->get();
-    }
+        $data['product_id'] = $productId;
 
-    public function update($id, $data)
-    {
-        $produto = Produto::find($id);
+        if (isset($data['images']) && is_array($data['images'])) {
+            $imageUrls = [];
 
-        if (!$produto) {
-            return null; // Produto não encontrado
+            foreach ($data['images'] as $image) {
+                if ($image instanceof \Illuminate\Http\UploadedFile) {
+                    $path = $image->store('variants', 'public');
+                    $imageUrls[] = asset("storage/{$path}");
+                } else {
+                    $imageUrls[] = $image;
+                }
+            }
+
+            $data['images'] = json_encode($imageUrls);
         }
 
-        // Atualizando apenas os campos passados na requisição
-        $produto->update($data);
-
-        return $produto;
+        return Variantes::create($data);
     }
 
-    // Método para excluir um usuário
+    public function update($id, array $data)
+    {
+        return DB::transaction(function () use ($id, $data) {
+            $produto = Produto::findOrFail($id);
+            $produto->update($data);
+
+            if (isset($data['variants']) && is_array($data['variants'])) {
+                foreach ($data['variants'] as $variantData) {
+                    if (isset($variantData['id'])) {
+                        $this->updateVariant($variantData['id'], $variantData);
+                    } else {
+                        $this->createVariant($produto->id, $variantData);
+                    }
+                }
+            }
+
+            return $produto->load('variants');
+        });
+    }
+
+    public function updateVariant($variantId, array $data)
+    {
+        $variant = Variantes::findOrFail($variantId);
+
+        if (isset($data['images']) && is_array($data['images'])) {
+            $imageUrls = [];
+
+            foreach ($data['images'] as $image) {
+                if ($image instanceof \Illuminate\Http\UploadedFile) {
+                    $path = $image->store('variants', 'public');
+                    $imageUrls[] = asset("storage/{$path}");
+                } else {
+                    $imageUrls[] = $image;
+                }
+            }
+
+            $data['images'] = json_encode($imageUrls);
+        }
+
+        $variant->update($data);
+        return $variant;
+    }
+
     public function delete($id)
     {
-        $produto = Produto::find($id);
-        if ($produto) {
+        return DB::transaction(function () use ($id) {
+            $produto = Produto::findOrFail($id);
+
+            // Deleta variantes e imagens associadas
+            foreach ($produto->variants as $variant) {
+                $this->deleteVariant($variant->id);
+            }
+
             $produto->delete();
+            return true;
+        });
+    }
+
+    public function deleteVariant($variantId)
+    {
+        $variant = Variantes::findOrFail($variantId);
+
+        if ($variant->images) {
+            $images = json_decode($variant->images, true);
+            foreach ($images as $image) {
+                $imagePath = str_replace(asset('storage/'), '', $image);
+                Storage::disk('public')->delete($imagePath);
+            }
         }
-        return $produto;
+
+        $variant->delete();
     }
 }

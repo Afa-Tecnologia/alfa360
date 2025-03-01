@@ -31,7 +31,10 @@ export default function LoginPage() {
           </div>
         </div>
       </div>
-      <div className="relative hidden bg-muted lg:block bg-[url('@/components/images/loginimage.jpg')] lg:bg-cover"></div>
+      <div
+        className="relative hidden bg-muted lg:block lg:bg-cover"
+        style={{ backgroundImage: "url('/images/loginimage.jpg')" }}
+      ></div>
     </div>
   );
 }

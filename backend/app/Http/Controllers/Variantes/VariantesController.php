@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Variantes;
 
 use App\Http\Controllers\Controller;
+use App\Models\Variantes;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 use App\Services\Variantes\VariantesService;
@@ -19,42 +20,48 @@ class VariantesController extends Controller
     // Método para obter todos os variantes
     public function index()
     {
-        $variantes = $this->varianteService->getAll();
-        return response()->json($variantes);
+        $variants = Variantes::all()->map(function ($variant) {
+            $variant->images = json_decode($variant->images, true); // ✅ Transforma JSON de volta para array
+            return $variant;
+        });
+
+        return response()->json($variants);
     }
 
-    // Método para criar clientes
     public function store(Request $request)
     {
-        try {
-            $data = $request->validate([
-                'produto_id' => 'required|exists:produtos,id',
-                'name' => 'required|string|max:100',
-                'color' => 'required|string',
-                'size' => 'required|string',
-                'price' => 'required',
-                'stock'=> 'required',
-                'active'=> 'required|boolean',
-                'type' => 'required|string'
+        $request->validate([
+            'produto_id' => 'required|exists:produtos,id',
+            'name' => 'required|string',
+            'type' => 'required|string',
+            'color' => 'required|string',
+            'size' => 'required|string',
+            'quantity' => 'required|integer',
+            'active' => 'boolean',
+            'images' => 'array',  // ✅ Confirma que images é um array
+            'images.*' => 'url'   // ✅ Confirma que cada imagem é uma URL válida
+        ]);
 
+        $variant = Variantes::create([
+            'produto_id' => $request->produto_id,
+            'name' => $request->name,
+            'type' => $request->type,
+            'color' => $request->color,
+            'size' => $request->size,
+            'quantity' => $request->quantity,
+            'active' => $request->active ?? true,
+            'images' => json_encode($request->images) // ✅ Salva o array como JSON
+        ]);
 
-            ]); // Obtém dados validados
-            $variante = $this->varianteService->create($data);
-            return response()->json($variante, Response::HTTP_CREATED);
-        } catch (\Exception $e) {
-            return response()->json([
-                'error' => 'Erro ao criar variante',
-                'message' => $e->getMessage(), // Exibe o erro original
-                'trace' => $e->getTraceAsString(), // Opcional: exibe o rastreamento
-            ], Response::HTTP_INTERNAL_SERVER_ERROR);
-        }
+        return response()->json($variant, 201);
     }
+
 
     // Método para obter um cliente por ID
     public function show($id)
     {
         $variante = $this->varianteService->getById($id);
-
+        $variante->images = json_decode($variante->images, true);
         if (!$variante) {
             return response()->json(
                 ['error' => 'Variante não encontrado'],
@@ -68,32 +75,32 @@ class VariantesController extends Controller
 
     public function update(Request $request, $id)
     {
-        try {
-            $validatedData = $request->validate([
-                'produto_id' => 'nullable|exists:produtos,id',
-                'name' => 'nullable|string|max:100',
-                'color' => 'nullable|string',
-                'size' => 'nullable|string',
-                'price' => 'nullable|decimal',
-                'stock'=> 'nullable',
-                'active'=> 'nullable|boolean',
-                'type' => 'nullable|string'
-            ]);
-
-            $variante = $this->varianteService->update($id, $validatedData);
-
-            if (!$variante) {
-                return response()->json(['error' => 'Variante não encontrado'], 404);
-            }
-
-            return response()->json($variante, 200);
-        } catch (\Exception $e) {
-            return response()->json(
-                ['error' => 'Erro ao atualizar variante'],
-                Response::HTTP_INTERNAL_SERVER_ERROR
-            );
-        }
+        $variant = Variantes::findOrFail($id);
+    
+        $request->validate([
+            'name' => 'sometimes|string',
+            'type' => 'sometimes|string',
+            'color' => 'sometimes|string',
+            'size' => 'sometimes|string',
+            'quantity' => 'sometimes|integer',
+            'active' => 'boolean',
+            'images' => 'sometimes|array',
+            'images.*' => 'url'
+        ]);
+    
+        $variant->update([
+            'name' => $request->name ?? $variant->name,
+            'type' => $request->type ?? $variant->type,
+            'color' => $request->color ?? $variant->color,
+            'size' => $request->size ?? $variant->size,
+            'quantity' => $request->quantity ?? $variant->quantity,
+            'active' => $request->active ?? $variant->active,
+            'images' => $request->has('images') ? json_encode($request->images) : $variant->images
+        ]);
+    
+        return response()->json($variant);
     }
+    
 
     // Método para deletar um variante
     public function delete(string $id)

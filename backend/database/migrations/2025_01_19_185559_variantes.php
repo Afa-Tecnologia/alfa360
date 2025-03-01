@@ -20,8 +20,7 @@ return new class extends Migration
             $table->string('size');
             $table->integer('quantity');
             $table->boolean('active');
-            $table->decimal('price', 8, 2);
-            $table->string('image_url');
+            $table->json('images')->nullable();
             $table->timestamps();
         });
     }

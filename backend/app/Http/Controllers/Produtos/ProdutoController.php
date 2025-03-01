@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Http\Controllers\Produtos;
 
 use App\Http\Controllers\Controller;
@@ -8,154 +7,110 @@ use Symfony\Component\HttpFoundation\Response;
 use App\Services\Produtos\ProdutoService;
 use App\Http\Requests\StoreProdutoRequest;
 
-use App\Jobs\SyncProductToWooCommerce;
-use App\Services\Woocommerce\WoocommerceService;
-
 class ProdutoController extends Controller
 {
     protected $produtoService;
-    protected $woocommerceService;
 
-    public function __construct(ProdutoService $produtoService, WoocommerceService $woocommerceService)
+    public function __construct(ProdutoService $produtoService)
     {
-        
         $this->produtoService = $produtoService;
-        $this->woocommerceService = $woocommerceService;
     }
 
-    // Método para obter todos os produtos
     public function index()
     {
-        $produtos = $this->produtoService->getAll();
-        return response()->json(
-            $produtos, 
-            Response::HTTP_OK, 
-            [], 
-            JSON_UNESCAPED_SLASHES
-        );
+        return response()->json($this->produtoService->getAll(), Response::HTTP_OK);
     }
 
-    // Método para criar produtos
     public function store(StoreProdutoRequest $request)
     {
         try {
-            $data = $request->validated(); // Obtém dados validados
-            $produto = $this->produtoService->create($data);
+            $productValidated = $request->validate([
+                'name' => 'required|string',
+                'description' => 'required|string',
+                'type' => 'required|in:roupa,sapato,acessorio',
+                'categoria_id' => 'required|exists:categorias,id',
+                'brand' => 'nullable|string',
+                'selling_price' => 'required|numeric',
+                'purchase_price' => 'required|numeric',
+                'quantity' => 'required|integer',
+                'code' => 'required|string'
+            ],
+            [
+                'name.required' => 'O nome do produto é obrigatório.',
+                'description.required' => 'A descrição do produto é obrigatória.',
+                'type.required' => 'O tipo do produto é obrigatório.',
+                'type.in' => 'O tipo deve ser: roupa, sapato ou acessório.',
+                'categoria_id.required' => 'A categoria é obrigatória.',
+                'categoria_id.exists' => 'A categoria selecionada não existe.',
+                'selling_price.required' => 'O preço de venda é obrigatório.',
+                'selling_price.numeric' => 'O preço de venda deve ser um número.',
+                'purchase_price.required' => 'O preço de compra é obrigatório.',
+                'purchase_price.numeric' => 'O preço de compra deve ser um número.',
+                'quantity.required' => 'A quantidade é obrigatória.',
+                'quantity.integer' => 'A quantidade deve ser um número inteiro.'
+            ]);
+            
+            $produto = $this->produtoService->create($productValidated);
 
-            //Mapeamento dos campos do wocoommerce
-           $woocommerceData = [
-                'name' => $data['name'], 
-                'description' => $data['description'],
-                'regular_price' => $data['selling_price'],
-                'stock_quantity'=> $data['quantity']
-            ];
-
-
+        // Se houver variantes na requisição, salvar cada uma
+        if ($request->has('variants')) {
+            foreach ($request->input('variants') as $variant) {
+                $produto->variants()->create($variant);
+            }
+        }
+        
             return response()->json($produto, Response::HTTP_CREATED);
         } catch (\Exception $e) {
-            return response()->json([
-                'error' => 'Erro ao criar produto',
-                'message' => $e->getMessage(), // Exibe o erro original
-                'trace' => $e->getTraceAsString(), // Opcional: exibe o rastreamento
-            ], Response::HTTP_INTERNAL_SERVER_ERROR);
+            return response()->json(['error' => 'Erro ao criar produto', 'message' => $e->getMessage()], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
 
-    // Método para obter um produto por ID
     public function show($id)
     {
         $produto = $this->produtoService->getById($id);
 
         if (!$produto) {
-            return response()->json(
-                ['error' => 'Produto não encontrado'],
-                Response::HTTP_NOT_FOUND
-            );
+            return response()->json(['error' => 'Produto não encontrado'], Response::HTTP_NOT_FOUND);
         }
 
         return response()->json($produto);
     }
 
-    // Método para obter um produto pelo nome
-    public function findByCategory($id)
-    {
-
-        $produtos = $this->produtoService->getProdutoPorCategoria($id);
-        if (!$produtos) {
-            return response()->json(
-                ['error' => 'O parâmetro "id" é obrigatório ou categoria inexistente'],
-                Response::HTTP_BAD_REQUEST
-            );
-        }
-
-        return response()->json($produtos);
-    }
-
-    // Método para obter um produto pelo nome
-    public function indexVariantes($id)
-    {
-
-        $produtos = $this->produtoService->getProdutoPorCategoria($id);
-        if (!$produtos) {
-            return response()->json(
-                ['error' => 'O parâmetro "id" é obrigatório ou categoria inexistente'],
-                Response::HTTP_BAD_REQUEST
-            );
-        }
-
-        return response()->json($produtos);
-    }
-
-
     public function update(Request $request, $id)
     {
         try {
-            $validatedData = $request->validate([
-                'name' => 'nullable|string|max:255',
-                'description' => 'nullable|string|max:255',
-                'purchase_price' => 'nullable|numeric',
-                'selling_price' => 'nullable|numeric',
-                'quantity' => 'nullable|integer',
+            $productValidated = $request->validate([
+                'name' => 'nullable|string',
+                'description' => 'nullable|string',
+                'type' => 'nullable|in:roupa,sapato,acessorio',
                 'categoria_id' => 'nullable|exists:categorias,id',
+                'brand' => 'nullable|string',
+                'selling_price' => 'nullable|numeric',
+                'purchase_price' => 'nullable|numeric',
+                'quantity' => 'nullable|integer',
+                'code' => 'nullable|string',
+                'variants'=> 'nullable'
             ]);
 
-            $produto = $this->produtoService->update($id, $validatedData);
+            $produto = $this->produtoService->update($id, $productValidated);
 
             if (!$produto) {
-                return response()->json(['error' => 'Produto não encontrado'], 404);
+                return response()->json(['error' => 'Produto não encontrado'], Response::HTTP_NOT_FOUND);
             }
 
-            return response()->json($produto, 200);
+            return response()->json($produto, Response::HTTP_OK);
         } catch (\Exception $e) {
-            return response()->json(
-                ['error' => 'Erro ao atualizar produto'],
-                Response::HTTP_INTERNAL_SERVER_ERROR
-            );
+            return response()->json(['error' => 'Erro ao atualizar produto'], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
 
-    // Método para deletar um produto
-    public function delete(string $id)
+    public function delete($id)
     {
         try {
-            $produto = $this->produtoService->delete($id);
-
-            if (!$produto) {
-                return response()->json(
-                    ['error' => 'Produto não encontrado'],
-                    Response::HTTP_NOT_FOUND
-                );
-            }
-
-            return response()->json(
-                ['message' => 'Produto deletado com sucesso'],
-                Response::HTTP_OK
-            );
+            $this->produtoService->delete($id);
+            return response()->json(['message' => 'Produto deletado com sucesso'], Response::HTTP_OK);
         } catch (\Exception $e) {
-            return response()->json(
-                ['error' => 'Erro ao deletar produto'],
-                Response::HTTP_INTERNAL_SERVER_ERROR
-            );
+            return response()->json(['error' => 'Erro ao deletar produto'], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
 }

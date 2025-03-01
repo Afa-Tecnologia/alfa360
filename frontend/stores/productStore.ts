@@ -6,28 +6,36 @@ export type Variant = {
   color: string;
   size: string;
   stock: number;
+  quantity: number;
   images: string[];
+  [key: string]: any;
 };
 
 export type Product = {
-  id: number | string;
+  id?: number | string;
   name: string;
   description: string;
   type: string,
+  code?: string,
   categoria_id: number | string;
-  purchase_price: number;
-  selling_price: number;
-  quantity: number;
+  purchase_price: number | string;
+  selling_price: number | string;
+  quantity: number | string;
   brand: string;
   variants: Variant[];
+  [key: string]: any;
 };
 
 type ProductStore = {
   products: Product[];
+  setProducts: (products: Product[]) => void
+  
   product: Product;
   setCurrentProduct: (product: Product) => void;
+
   addProduct: (product: Product) => void;
-  updateProduct: (id: number, updatedProduct: Product) => void;
+  
+  updateProduct: (updatedProduct: Product) => void;
   deleteProduct: (id: number | string) => void;
 
   tipoProduto: string | null;
@@ -55,6 +63,7 @@ export const mockProducts = [
     brand: 'Lesamis',
     type: 'sapato',
     categoria_id:1,
+    code: "1928",
     variants: [
       {
         id: '1-1',
@@ -83,6 +92,7 @@ export const mockProducts = [
     quantity: 200,
     brand: 'Lesamis',
     type: 'roupa',
+    code: "19283",
     categoria_id:1,
     variants: [
       {
@@ -115,6 +125,7 @@ export const mockProducts = [
     brand: 'Lesamis',
     type: 'roupa',
     categoria_id:1,
+    code: "19284",
     variants: [
       {
         id: '3-1',
@@ -138,12 +149,13 @@ export const mockProducts = [
     id: '4',
     name: 'Mochila de Couro',
     description: 'Mochila espaçosa e resistente',
-    purchase_price: 100,
-    selling_price: 150,
+    purchase_price: 133,
+    selling_price: 122,
     quantity: 200,
     brand: 'Lesamis',
     type: 'roupa',
     categoria_id:1,
+    code: "192844",
     variants: [
       {
         id: '4-1',
@@ -167,7 +179,8 @@ export const mockProducts = [
 ];
 
 export const useProductStore = create<ProductStore>((set) => ({
-  products: mockProducts,
+  products: [],
+  setProducts: (products: Product[]) => set({ products }),
 
   product: {
     id: '',
@@ -211,7 +224,7 @@ export const useProductStore = create<ProductStore>((set) => ({
     })),
 
   // 🔥 Função para adicionar uma variante a um produto existente
-  addVariant: (productId, variant) =>
+  addVariant: (productId:number | string , variant:Variant) =>
     set((state) => ({
       products: state.products.map((p) =>
         p.id === productId ? { ...p, variants: [...p.variants, variant] } : p
@@ -219,7 +232,7 @@ export const useProductStore = create<ProductStore>((set) => ({
     })),
 
   // 🔥 Função para editar uma variante específica
-  updateVariant: (productId, variantId, updatedVariant) =>
+  updateVariant: (productId:number | string , variantId:number | string, updatedVariant:Variant) =>
     set((state) => ({
       products: state.products.map((p) =>
         p.id === productId

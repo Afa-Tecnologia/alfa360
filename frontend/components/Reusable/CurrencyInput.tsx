@@ -1,5 +1,6 @@
 import { use, useEffect, useState } from 'react';
 import { Input } from '../ui/input';
+import { Label } from '../ui/label';
 
 // Componente reutilizável para valores monetários
 export function CurrencyInput({
@@ -27,7 +28,7 @@ export function CurrencyInput({
 
   return (
     <div className="flex flex-col gap-1">
-      <label className="text-sm font-medium">{label}</label>
+      <Label className="text-base font-semibold">{label}</Label>
       {description && <p className="text-xs text-gray-500">{description}</p>}
       <div className="relative">
         <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">

@@ -43,7 +43,9 @@ export function LoginForm({
       }
     } catch (error: any) {
       const { response } = error;
-      console.log(response?.data?.message);
+      if(error.code == 'ERR_NETWORK') {
+        gerarNotificacao('error', 'Ops!! Parece que você está offline ou o servidor está fora do ar');
+      }
       gerarNotificacao('error', response?.data?.message);
       setIsActive(false);
     }

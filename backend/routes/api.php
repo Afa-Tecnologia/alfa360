@@ -12,7 +12,7 @@ use App\Http\Controllers\Variantes\VariantesController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Commissions\CommissionsController;
-use Illuminate\Support\Facades\Http;
+use App\Http\Controllers\Woocommerce\ProductController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -101,14 +101,6 @@ Route::get('/test', function () {
     return response()->json(['message' => 'API Funcionando!']);
 });
 
-Route::get('/woocommerce', function() {
-    $response = Http::withBasicAuth(
-        config('services.woocommerce.key'),
-        config('services.woocommerce.secret')
-    )->get(config('services.woocommerce.url').'/wp-json/wc/v3/products');
-
-    return $response->json();
-});
 
 Route::options('/{any}', function () {
     return response('', 200)
@@ -116,5 +108,3 @@ Route::options('/{any}', function () {
         ->header('Access-Control-Allow-Methods', 'POST, GET, OPTIONS')
         ->header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 })->where('any', '.*');
-
-

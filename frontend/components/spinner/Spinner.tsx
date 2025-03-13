@@ -35,7 +35,7 @@ interface SpinnerContentProps
   children?: React.ReactNode;
 }
 
-export function Spinner({
+export function Loader({
   size,
   show,
   children,

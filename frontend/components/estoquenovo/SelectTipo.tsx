@@ -18,11 +18,11 @@ export default function SelectTipoProduto({
   initialValue
 }: {
   onChange: (value: string) => void;
-  initialValue: string;
+  initialValue?: string;
 }) {
   const { setTipoProduto, tipoProduto, product } = useProductStore();
 
-  const [tipoInicial, setTipoInicial] = useState<string>(initialValue)
+  const [tipoInicial, setTipoInicial] = useState<string | any>(initialValue)
 
   const handleTipoProduto = (value: string) => {
     onChange(value);

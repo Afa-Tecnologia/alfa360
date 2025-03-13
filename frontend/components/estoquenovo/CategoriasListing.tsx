@@ -19,7 +19,7 @@ interface ICategoriaListing {
   produto?: string | any;
   selectCategoria?: (value: string | number) => any;
   onChange: (categoria_id: number | string) => void;
-  initialValue?: string;
+  initialValue?: string | any;
 }
 
 export default function CategoriaListing(props: ICategoriaListing) {
@@ -59,11 +59,11 @@ export default function CategoriaListing(props: ICategoriaListing) {
       <Label className="text-base font-semibold mb-4">
         Categoria do Produto
       </Label>
-      <Select value={selectedCategoria} onValueChange={handleChange}>
+      <Select value={selectedCategoria.toString()} onValueChange={handleChange}>
         <SelectTrigger className="w-[180px]">
           <SelectValue placeholder="Selecione..." />
         </SelectTrigger>
-        <SelectContent>
+        <SelectContent >
           <SelectGroup>
             {categories.length > 0 &&
               categories.map((item) => (

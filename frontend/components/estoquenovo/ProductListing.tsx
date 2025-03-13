@@ -24,6 +24,9 @@ import {
 import { DialogHeader } from '../ui/dialog';
 import { gerarNotificacao } from '@/utils/toast';
 import { api } from '@/app/api/api';
+import NoData from '../Semdados/NoData';
+import { revalidatePath } from 'next/cache';
+
 
 export default function ProductList() {
   const {
@@ -41,7 +44,9 @@ export default function ProductList() {
   const [searchTerm, setSearchTerm] = useState('');
   const [itemsPerPage, setItemsPerPage] = useState(5);
   const [currentPage, setCurrentPage] = useState(1);
+  const [localProducts, setLocalProducts] = useState(products || []);
   const [isOpen, setIsOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   const filteredProducts = products.filter((product) =>
     product.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -86,27 +91,35 @@ export default function ProductList() {
     openForm(product.id);
   };
 
-  const handleDeleteProduct = (id: number | string) => {
+  const handleDeleteProduct = async (id: number | string) => {
     deleteProduct(id);
+    try {
+      const response = await api.delete(`/produtos/${id}`);
+      // const products = response?.data;
+      // setProducts(products)
+      gerarNotificacao('success', response.data.message);
+    } catch (e) {
+      gerarNotificacao('error', 'Erro ao deletar produto');
+    }
   };
 
-  const fetchProdutos = async () =>{
-    try{
+  const fetchProdutos = async () => {
+    try {
       const response = await api.get('/produtos');
       const products = response?.data;
-      setProducts(products)
-    } catch (e){
-      gerarNotificacao('error', 'Erro ao buscar produtos')
+      setProducts(products);
+    } catch (e) {
+      gerarNotificacao('error', 'Erro ao buscar produtos');
     }
-  }
+  };
 
-  useEffect(() =>{
-    console.log(JSON.stringify(fetchProdutos()))
-  },[])
+  useEffect(() => {
+    console.log(JSON.stringify(fetchProdutos()));
+  }, []);
 
-  useEffect(() =>{
-    console.log(products)
-  },[products])
+  // useEffect(() =>{
+  //   console.log(products)
+  // },[products])
 
   return (
     <div className="space-y-4">
@@ -120,53 +133,57 @@ export default function ProductList() {
           + Novo Produto
         </Button>
       </div>
+      <div>
+   
+        <div>{paginatedProducts.length == 0 && <NoData name="Produto" />}</div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {paginatedProducts.length > 0 &&
+            paginatedProducts.map((product, index) => (
+              <Card key={product.id || index}>
+                <CardHeader>
+                  <CardTitle>{product.name}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p>{product.description}</p>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {paginatedProducts.map((product) => (
-          <Card key={product.id}>
-            <CardHeader>
-              <CardTitle>{product.name}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p>{product.description}</p>
+                  <div className="flex flex-row gap-4 justify-end">
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <FaRegTrashAlt
+                            size={24}
+                            className=" text-red-700 cursor-pointer"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteProduct(product.id || 0);
+                            }}
+                          />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Excluir Permanentemente o Produto</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
 
-              <div className="flex flex-row gap-4 justify-end">
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <FaRegTrashAlt
-                        size={24}
-                        className=" text-red-700 cursor-pointer"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          deleteProduct(product.id || 0);
-                        }}
-                      />
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Excluir Permanentemente o Produto</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <HiOutlinePencilSquare
-                        size={26}
-                        className="cursor-pointer text-green-800"
-                        onClick={() => handleEditProduct(product)}
-                      />
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Editar Produto</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <HiOutlinePencilSquare
+                            size={26}
+                            className="cursor-pointer text-green-800"
+                            onClick={() => handleEditProduct(product)}
+                          />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Editar Produto</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+        </div>
       </div>
 
       {/* Paginação */}
@@ -200,7 +217,7 @@ export default function ProductList() {
         </select>
       </div>
 
-      <CreateProductForm />
+      <CreateProductForm fetchProducts={fetchProdutos} />
       <EditProductForm />
     </div>
   );

@@ -44,7 +44,7 @@ export function NavProjects({
   return (
     perfil == 'admin' && (
       <SidebarGroup className="group-data-[collapsible=icon]:hidden">
-        <SidebarGroupLabel>Projects</SidebarGroupLabel>
+        <SidebarGroupLabel className='font-bold text-sm text-gray-950'>Configurações</SidebarGroupLabel>
         <SidebarMenu>
           {projects.map((item) => (
             <SidebarMenuItem key={item.name}>

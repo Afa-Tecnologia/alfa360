@@ -4,8 +4,10 @@ import { create } from "zustand";
 interface Product {
   id: string;
   name: string;
-  description: string;
-  selling_price: string;
+  description?: string;
+  image: string;
+  category?: string;
+  selling_price: number;
   quantity: number;
 }
 

@@ -16,6 +16,7 @@ import {
   SidebarMenuSub,
   SidebarMenuSubButton,
   SidebarMenuSubItem,
+  SidebarTrigger,
 } from '@/components/ui/sidebar';
 
 export function NavMain({
@@ -34,7 +35,9 @@ export function NavMain({
 }) {
   return (
     <SidebarGroup>
-      <SidebarGroupLabel>Loja fisica</SidebarGroupLabel>
+      <SidebarGroupLabel className="font-bold text-sm text-gray-950">
+        Loja Fisica
+      </SidebarGroupLabel>
       <SidebarMenu>
         {items.map((item) => (
           <Collapsible
@@ -46,7 +49,9 @@ export function NavMain({
             <SidebarMenuItem>
               <CollapsibleTrigger asChild>
                 <SidebarMenuButton tooltip={item.title}>
-                  {item.icon && <item.icon />}
+                  {item.icon && (
+                    <item.icon className="w-5 h-5" />
+                  )}
                   <span>{item.title}</span>
                   <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
                 </SidebarMenuButton>

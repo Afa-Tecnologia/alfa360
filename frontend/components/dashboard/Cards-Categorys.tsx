@@ -1,28 +1,53 @@
-import { Card, CardContent } from "../ui/card";
 
-interface Category {
-    emoji: string;
-    name: string;
-  }
+import React, { useState } from 'react';
+import { cn } from "@/lib/utils";
+
+type Category = {
+  id: string;
+  name: string;
+};
+
+interface CategoryTabsProps {
+  onSelectCategory: (categoryId: string) => void;
+}
+
+const CategoryTabs: React.FC<CategoryTabsProps> = ({ onSelectCategory }) => {
+  const [activeCategory, setActiveCategory] = useState<string>('all');
   
-  export const categories: Category[] = [
-    { emoji: "🍞", name: "Pães" },
-    { emoji: "🥨", name: "Salgados" },
-    { emoji: "🥤", name: "Bebidas" },
-    { emoji: "🍬", name: "Doces" },
-    { emoji: "🍦", name: "Sorvete" },
+  const categories: Category[] = [
+    { id: 'all', name: 'Todos' },
+    { id: 'masculino', name: 'Masculino' },
+    { id: 'feminino', name: 'Feminino' },
+    { id: 'infantil', name: 'Infantil' },
+    { id: 'acessorios', name: 'Acessórios' },
+    { id: 'calcados', name: 'Calçados' },
+    { id: 'ofertas', name: 'Ofertas' },
   ];
   
-  export function CardsCategorys({ emoji, name }: Category) {
-    return (
-      <Card>
-        <CardContent className="flex aspect-square items-center justify-center p-6">
-          <div className="flex flex-col items-center py-4 px-6 h-auto">
-            <span className="text-2xl mb-1">{emoji}</span>
-            <span className="text-sm">{name}</span>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
+  const handleCategoryClick = (categoryId: string) => {
+    setActiveCategory(categoryId);
+    onSelectCategory(categoryId);
+  };
   
+  return (
+    <div className="w-full overflow-x-auto py-1">
+      <div className="flex space-x-2 min-w-max">
+        {categories.map((category, index) => (
+          <button
+            key={category.id}
+            className={cn(
+              "category-button",
+              activeCategory === category.id && "active",
+              `animate-fade-in [animation-delay:${index * 50}ms]`
+            )}
+            onClick={() => handleCategoryClick(category.id)}
+          >
+            {category.name}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+export default CategoryTabs;

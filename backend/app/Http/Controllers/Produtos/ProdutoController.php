@@ -6,14 +6,18 @@ use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 use App\Services\Produtos\ProdutoService;
 use App\Http\Requests\StoreProdutoRequest;
+use App\Services\Variantes\VariantesService;
 
 class ProdutoController extends Controller
 {
     protected $produtoService;
+    protected $varianteService;
 
-    public function __construct(ProdutoService $produtoService)
+    public function __construct(ProdutoService $produtoService, VariantesService $variantService)
     {
         $this->produtoService = $produtoService;
+        $this->varianteService = $variantService;
+
     }
 
     public function index()
@@ -49,17 +53,9 @@ class ProdutoController extends Controller
                 'quantity.required' => 'A quantidade é obrigatória.',
                 'quantity.integer' => 'A quantidade deve ser um número inteiro.'
             ]);
-            
             $produto = $this->produtoService->create($productValidated);
 
-        // Se houver variantes na requisição, salvar cada uma
-        if ($request->has('variants')) {
-            foreach ($request->input('variants') as $variant) {
-                $produto->variants()->create($variant);
-            }
-        }
-        
-            return response()->json($produto, Response::HTTP_CREATED);
+            return response()->json(['message' => 'Produto CRIADO com sucesso', 'produto'=> $produto], Response::HTTP_CREATED);
         } catch (\Exception $e) {
             return response()->json(['error' => 'Erro ao criar produto', 'message' => $e->getMessage()], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
@@ -91,26 +87,26 @@ class ProdutoController extends Controller
                 'code' => 'nullable|string',
                 'variants'=> 'nullable'
             ]);
-
             $produto = $this->produtoService->update($id, $productValidated);
+            // $produto = $this->variantesService->update($id, $productValidated['variants']);
 
             if (!$produto) {
                 return response()->json(['error' => 'Produto não encontrado'], Response::HTTP_NOT_FOUND);
             }
-
-            return response()->json($produto, Response::HTTP_OK);
+            
+            return response()->json(['message' => 'Produto ATUALIZADO com sucesso', 'produto'=> $produto], Response::HTTP_OK);
         } catch (\Exception $e) {
-            return response()->json(['error' => 'Erro ao atualizar produto'], Response::HTTP_INTERNAL_SERVER_ERROR);
+            return response()->json(['error' => 'Erro ao atualizar produto', 'message' => $e->getMessage()], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
 
     public function delete($id)
     {
         try {
-            $this->produtoService->delete($id);
-            return response()->json(['message' => 'Produto deletado com sucesso'], Response::HTTP_OK);
+            return $this->produtoService->delete($id);
+            return response()->json(['message' => 'Produto DELETADO com sucesso'], Response::HTTP_OK);
         } catch (\Exception $e) {
-            return response()->json(['error' => 'Erro ao deletar produto'], Response::HTTP_INTERNAL_SERVER_ERROR);
+            return response()->json(['error' => 'Erro ao deletar produto', 'message' => $e->getMessage()], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
 }

@@ -3,9 +3,7 @@
 namespace App\Http\Controllers\Categorias;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Categorias\StoreCategoriaRequest;
 use App\Services\Categorias\CategoriaService;
-use App\Services\Woocommerce\WoocommerceService;
 use Illuminate\Http\Response;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -14,12 +12,10 @@ use Exception;
 class CategoriasController extends Controller
 {
     protected $categoriaService;
-    protected $woocommerceService;
 
-    public function __construct(CategoriaService $categoriaService, WoocommerceService $woocommerceService)
+    public function __construct(CategoriaService $categoriaService)
     {
         $this->categoriaService = $categoriaService;
-        $this->woocommerceService = $woocommerceService;
     }
 
     //Trazer todas as categorias 
@@ -55,17 +51,7 @@ class CategoriasController extends Controller
 
             $categoria = $this->categoriaService->create($data);
 
-
-            //Passo o ID do produto no pdv para a tabela de sync com woocommerce
-            $woocommerceData = [
-                'name' => $request->name,
-                'description' => $request->description,
-                'pdv_id' => $categoria->id
-            ];
-            //Replica os dados no ecommerce
-            $categoriaWocommerce = $this->woocommerceService->createCategory($woocommerceData);
-
-            return response()->json([$categoria, $categoriaWocommerce], Response::HTTP_CREATED);
+            return response()->json([$categoria], Response::HTTP_CREATED);
         } catch (\Exception $e) {
 
             return response()->json([
@@ -94,17 +80,6 @@ class CategoriasController extends Controller
 
             ]);
 
-            //Busco a existencia da categoria no woocommerce
-            $categoriaNoWoocommerce = DB::table('woocommerce_sync')
-                ->where('pdv_id', "=", $id)
-                ->first();
-
-            if ($categoriaNoWoocommerce) {
-                $woocommerceId = $categoriaNoWoocommerce->woocommerce_id;
-                $categoriaWoocommerce = $this->woocommerceService->updateCategory($woocommerceId, $validatedData);
-                // return response()->json($categoriaWoocommerce);
-            }
-
 
             $categoria = $this->categoriaService->update($id, $validatedData);
 
@@ -112,7 +87,7 @@ class CategoriasController extends Controller
                 return response()->json(['error' => 'Categoria não encontrado'], 404);
             }
 
-            return response()->json([$categoria, $categoriaWoocommerce], 200);
+            return response()->json([$categoria], 200);
         } catch (\Exception $e) {
             return response()->json(
                 ['error' => 'Erro ao atualizar categoria'],
@@ -123,17 +98,6 @@ class CategoriasController extends Controller
     public function delete(string $id)
     {
         try {
-            //Busco se a categoria esta sincronizada com woocommerce
-            $categoriaNoWoocommerce = DB::table('woocommerce_sync')
-                ->where('pdv_id', "=", $id)
-                ->first();
-
-
-            if ($categoriaNoWoocommerce) {
-                $woocommerceId = $categoriaNoWoocommerce->woocommerce_id;
-                $categoriaWoocommerce = $this->woocommerceService->deleteCategory($woocommerceId);
-            }
-
             $categoria = $this->categoriaService->delete($id);
 
             if (!$categoria) {
@@ -144,7 +108,7 @@ class CategoriasController extends Controller
             }
 
             return response()->json(
-                ['message' => 'Categoria deletada com sucesso', $categoriaWoocommerce],
+                ['message' => 'Categoria deletada com sucesso'],
                 Response::HTTP_OK
             );
         } catch (\Exception $e) {

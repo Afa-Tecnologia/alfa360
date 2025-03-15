@@ -13,28 +13,29 @@ import {
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { caixaService } from '@/utils/caixaService';
 
 interface OpenCaixaFormProps {
-  onOpenCaixa: (saldoInicial: number, observation?: string) => Promise<void>;
+  // onOpenCaixa: (saldoInicial: number, observation?: string) => Promise<void>;
 }
 
-export function OpenCaixaForm({ onOpenCaixa }: OpenCaixaFormProps) {
+export function OpenCaixaForm() {
   const [isLoading, setIsLoading] = useState(false);
 
   const form = useForm({
     defaultValues: {
-      saldoInicial: '',
+      saldo_inicial: '',
       observation: '',
     },
   });
 
   const onSubmit = async (values: {
-    saldoInicial: string;
-    observation: string;
+    saldo_inicial: string;
+    observation: string 
   }) => {
     setIsLoading(true);
     try {
-      await onOpenCaixa(Number(values.saldoInicial), values.observation);
+      await caixaService.openCaixa(Number(values.saldo_inicial), values.observation);
     } catch (error) {
       console.error('Erro ao abrir o caixa:', error);
     } finally {
@@ -53,7 +54,7 @@ export function OpenCaixaForm({ onOpenCaixa }: OpenCaixaFormProps) {
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <FormField
                 control={form.control}
-                name="saldoInicial"
+                name="saldo_inicial"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Saldo Inicial</FormLabel>

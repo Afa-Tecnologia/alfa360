@@ -13,16 +13,17 @@ import {
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useCaixaStore } from '@/stores/caixaStore';
 import { gerarNotificacao } from '@/utils/toast';
+import { IStatus } from '@/types/caixa';
+import { caixaService } from '@/utils/caixaService';
 
 interface CloseCaixaFormProps {
-  onCloseCaixa: (caixaId: number, observation?: string) => Promise<void>;
+  onCloseCaixa: (caixaId: string, observation?: string) => Promise<void>,
+  status: IStatus
 }
 
-export function CloseCaixaForm({ onCloseCaixa }: CloseCaixaFormProps) {
+export function CloseCaixaForm({ onCloseCaixa, status }: CloseCaixaFormProps) {
   const [isLoading, setIsLoading] = useState(false);
-  const caixaId = useCaixaStore((state) => state.status.id);
 
   const form = useForm({
     defaultValues: {
@@ -30,11 +31,11 @@ export function CloseCaixaForm({ onCloseCaixa }: CloseCaixaFormProps) {
     },
   });
 
-  const onSubmit = async (values: { observation: string }) => {
-    if (!caixaId) return;
+  const onSubmit = async (values: { observation: string | any }) => {
+    if (!status.id) return;
     setIsLoading(true);
     try {
-      await onCloseCaixa(caixaId, values.observation);
+      await caixaService.closeCaixa(+status.id, values.observation);
 
       gerarNotificacao('success', 'Caixa fechado com sucesso');
     } catch (error) {
@@ -66,7 +67,7 @@ export function CloseCaixaForm({ onCloseCaixa }: CloseCaixaFormProps) {
                 </FormItem>
               )}
             />
-            <Button type="submit" variant="destructive" disabled={isLoading}>
+            <Button type="submit" variant="outline" disabled={isLoading}>
               {isLoading ? 'Fechando...' : 'Fechar Caixa'}
             </Button>
           </form>

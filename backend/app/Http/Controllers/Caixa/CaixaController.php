@@ -78,7 +78,8 @@ class CaixaController extends Controller
             'value' => 'required|numeric|min:0.01',
             'description' => 'required|string|max:200',
             'payment_method' => 'nullable|string',
-            'additional_data' => 'nullable|array'
+            'additional_data' => 'nullable|array',
+            'local'=> 'required|in:loja,ecommerce'
         ]);
 
         $movimentacao = $this->caixaService->createMovimentacao(
@@ -87,7 +88,8 @@ class CaixaController extends Controller
             $validated['value'],
             $validated['description'],
             $validated['payment_method'] ?? null,
-            $validated['additional_data'] ?? null
+            $validated['additional_data'] ?? null,
+            $validated['local'] ?? null
         );
 
         return response()->json($movimentacao, 201);

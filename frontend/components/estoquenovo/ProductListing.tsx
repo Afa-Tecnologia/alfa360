@@ -25,7 +25,6 @@ import { DialogHeader } from '../ui/dialog';
 import { gerarNotificacao } from '@/utils/toast';
 import { api } from '@/app/api/api';
 import NoData from '../Semdados/NoData';
-import { revalidatePath } from 'next/cache';
 
 
 export default function ProductList() {

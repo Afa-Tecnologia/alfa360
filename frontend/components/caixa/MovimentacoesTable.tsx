@@ -11,41 +11,45 @@ import {
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { format } from 'date-fns';
-import { useCaixaStore } from '@/stores/caixaStore';
+import { format, parse } from 'date-fns';
+import { IMovimentacoes, IStatus } from '@/types/caixa';
+import { caixaService } from '@/utils/caixaService';
 
-interface IMovimentacoesTable {
-  movimentacoes: any[];
+interface IMovimentacoesTable{
+  status:IStatus
 }
-
-// Dados simulados para teste
-// const mockData = [
-//   { id: 1, tipo: "Entrada", valor: 100, data: "2025-01-20" },
-//   { id: 2, tipo: "Saída", valor: 50, data: "2025-01-19" },
-//   { id: 3, tipo: "Entrada", valor: 200, data: "2025-01-18" },
-//   { id: 4, tipo: "Saída", valor: 80, data: "2025-01-17" },
-//   // Adicione mais registros conforme necessário
-// ]
-
-export default function MovimentacoesTable(props: IMovimentacoesTable) {
-  const { movimentacoes } = useCaixaStore()
-
-  // const movimentacoes = props.movimentacoes;
-  const [data, setData] = useState(movimentacoes);
-  const [filteredData, setFilteredData] = useState(movimentacoes);
+export default function MovimentacoesTable({status}:IMovimentacoesTable) {
+  const [movimentacoes, setMovimentacoes] = useState<IMovimentacoes[]>([]);
+  const [filteredData, setFilteredData] = useState<IMovimentacoes[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
-  const [rowsPerPage] = useState(5);
-
+  const rowsPerPage = 5;
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
 
-  // Filtro por intervalo de data
+  // Buscar movimentações na API
+  const fetchMovimentacoes = async () => {
+    try {
+      const response = await caixaService.getMovimentacoesById(status.id);
+      setMovimentacoes(response);
+      setFilteredData(response); // Atualiza os dados filtrados com os dados recebidos
+    } catch (error) {
+      console.error('Erro ao buscar movimentações:', error);
+    }
+  };
+
+  useEffect(() => {
+    fetchMovimentacoes();
+  }, []);
+
+  // Filtro por intervalo de datas
   const handleFilter = () => {
+    if (!startDate || !endDate) return;
+
     const start = new Date(startDate);
     const end = new Date(endDate);
 
     const filtered = movimentacoes.filter((row) => {
-      const rowDate = new Date(row.created_at);
+      const rowDate = parse(row.created_at, 'dd-MM-yyyy HH:mm:ss', new Date());
       return rowDate >= start && rowDate <= end;
     });
 
@@ -53,17 +57,13 @@ export default function MovimentacoesTable(props: IMovimentacoesTable) {
     setCurrentPage(1); // Resetar para a primeira página ao filtrar
   };
 
-  // Dados paginados
-  const paginatedData = filteredData.slice(
-    (currentPage - 1) * rowsPerPage,
-    currentPage * rowsPerPage
-  );
+ // Paginação segura
+const paginatedData = (filteredData || []).slice(
+  (currentPage - 1) * rowsPerPage,
+  currentPage * rowsPerPage
+);
 
   const totalPages = Math.ceil(filteredData.length / rowsPerPage);
-
-  useEffect(() => {
-    setFilteredData(data);
-  }, [data]);
 
   return (
     <div className="space-y-6">
@@ -87,7 +87,7 @@ export default function MovimentacoesTable(props: IMovimentacoesTable) {
         <TableHeader>
           <TableRow>
             <TableHead>ID</TableHead>
-            <TableHead>Tipo de Movimentação</TableHead>
+            <TableHead>Tipo</TableHead>
             <TableHead>Descrição</TableHead>
             <TableHead>Valor</TableHead>
             <TableHead>Data</TableHead>
@@ -100,16 +100,13 @@ export default function MovimentacoesTable(props: IMovimentacoesTable) {
                 <TableCell>{row.id}</TableCell>
                 <TableCell>{row.type}</TableCell>
                 <TableCell>{row.description}</TableCell>
-                <TableCell>{row.payment_method}</TableCell>
-                {/* <TableCell>R$ {row.value.toFixed(2)}</TableCell> */}
-                <TableCell>
-                  {format(new Date(row.data), 'dd-MM-yyyy')}
-                </TableCell>
+                <TableCell>R$ {parseFloat(row.value.toString()).toFixed(2)}</TableCell>
+                <TableCell>{format(parse(row.created_at, 'dd-MM-yyyy HH:mm:ss', new Date()), 'dd/MM/yyyy HH:mm')}</TableCell>
               </TableRow>
             ))
           ) : (
             <TableRow>
-              <TableCell colSpan={4} className="text-center">
+              <TableCell colSpan={5} className="text-center">
                 Nenhuma movimentação encontrada.
               </TableCell>
             </TableRow>
@@ -128,9 +125,7 @@ export default function MovimentacoesTable(props: IMovimentacoesTable) {
           Página {currentPage} de {totalPages}
         </span>
         <Button
-          onClick={() =>
-            setCurrentPage((prev) => Math.min(prev + 1, totalPages))
-          }
+          onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
           disabled={currentPage === totalPages}
         >
           Próxima

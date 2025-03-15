@@ -9,7 +9,6 @@ use Carbon\Carbon;
 use DateTime;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Date;
 
 class CaixaService
 {
@@ -66,13 +65,14 @@ class CaixaService
         float $value,
         string $description,
         ?string $paymentMethod = null,
-        ?array $additionalData = null
+        ?array $additionalData = null,
+        ?string $local = null
     ): MovimentacaoCaixa {
         if ($caixa->status !== 'open') {
             throw new \Exception('Não é possível criar movimentações em um caixa fechado.');
         }
 
-        return DB::transaction(function () use ($caixa, $type, $value, $description, $paymentMethod, $additionalData) {
+        return DB::transaction(function () use ($caixa, $type, $value, $description, $paymentMethod, $additionalData, $local) {
             return MovimentacaoCaixa::create([
                 'caixa_id' => $caixa->id,
                 'user_id' => Auth::id(),
@@ -81,7 +81,8 @@ class CaixaService
                 'description' => $description,
                 'payment_method' => $paymentMethod,
                 'status' => 'completed',
-                'additional_data' => $additionalData
+                'additional_data' => $additionalData,
+                'local'=> $local
             ]);
         });
     }
@@ -122,7 +123,7 @@ class CaixaService
     public function generateReport(Caixa $caixa): array
     {
         $movimentacoes = $caixa->movimentacoes()
-            ->where('status', 'confirmed')
+            ->where('status', 'completed')
             ->get();
 
         $entradas = $movimentacoes->where('type', 'entrada')->sum('value');

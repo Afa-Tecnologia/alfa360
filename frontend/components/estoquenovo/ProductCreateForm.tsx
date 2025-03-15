@@ -21,7 +21,6 @@ import ImageUploader from './CloudinaryUploader';
 import { Label } from '../ui/label';
 import { api } from '@/app/api/api';
 import { gerarNotificacao } from '@/utils/toast';
-import { revalidatePath } from 'next/cache';
 
 interface ICreateProductForm {
   fetchProducts?: () => void

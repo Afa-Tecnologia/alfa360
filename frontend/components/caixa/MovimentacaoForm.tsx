@@ -20,24 +20,26 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { useCaixaStore } from '@/stores/caixaStore';
+import { IStatus } from '@/types/caixa';
+import { gerarNotificacao } from '@/utils/toast';
 
 interface MovimentacaoFormProps {
-  onCreateMovimentacao: (caixaId: number, data: any) => Promise<void>;
+  status?: IStatus;
+  onCreateMovimentacao: (caixaId: string, data: any) => Promise<void>;
 }
 
 export function MovimentacaoForm({
   onCreateMovimentacao,
+  status,
 }: MovimentacaoFormProps) {
   const [isLoading, setIsLoading] = useState(false);
-  const caixaId = useCaixaStore((state) => state.status.id);
-
   const form = useForm({
     defaultValues: {
       type: 'entrada',
       value: '',
       description: '',
-      paymentMethod: '',
+      payment_method: '',
+      local: '',
     },
   });
 
@@ -45,12 +47,13 @@ export function MovimentacaoForm({
     type: string;
     value: string;
     description: string;
-    paymentMethod: string;
+    payment_method: string;
+    local: string;
   }) => {
-    if (!caixaId) return;
+    if (!status?.id) return;
     setIsLoading(true);
     try {
-      await onCreateMovimentacao(caixaId, {
+      await onCreateMovimentacao(status?.id, {
         ...values,
         value: Number(values.value),
       });
@@ -122,12 +125,13 @@ export function MovimentacaoForm({
             />
             <FormField
               control={form.control}
-              name="paymentMethod"
+              name="payment_method"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Método de Pagamento</FormLabel>
                   <Select
-                    onValueChange={field.onChange}
+                    onValueChange={(value) => field.onChange(value)}
+                    value={field.value} // Garante que o valor seja mantido corretamente
                     defaultValue={field.value}
                   >
                     <FormControl>
@@ -136,20 +140,47 @@ export function MovimentacaoForm({
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="cash">Dinheiro</SelectItem>
-                      <SelectItem value="credit_card">
+                      <SelectItem value="MONEY">Dinheiro</SelectItem>
+                      <SelectItem value="CREDIT_CARD">
                         Cartão de Crédito
                       </SelectItem>
-                      <SelectItem value="debit_card">
+                      <SelectItem value="DEBIT_CARD">
                         Cartão de Débito
                       </SelectItem>
-                      <SelectItem value="pix">PIX</SelectItem>
+                      <SelectItem value="PIX">PIX</SelectItem>
+                      <SelectItem value="TRANSFER">Transferência</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />
                 </FormItem>
               )}
             />
+            <FormField
+              control={form.control}
+              name="local"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Local da Movimentação</FormLabel>
+                  <Select
+                    onValueChange={(value) => field.onChange(value)}
+                    value={field.value} // Garante que o valor seja mantido corretamente
+                    defaultValue={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione o Local " />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="loja">Loja Fisica</SelectItem>
+                      <SelectItem value="ecommerce">Ecommerce</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
             <Button type="submit" disabled={isLoading}>
               {isLoading ? 'Registrando...' : 'Registrar Movimentação'}
             </Button>

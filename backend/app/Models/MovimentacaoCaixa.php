@@ -19,7 +19,8 @@ class MovimentacaoCaixa extends Model
         'description',
         'payment_method',
         'status',
-        'additional_data'
+        'additional_data',
+        'local'
     ];
 
     public function pedido(): BelongsTo

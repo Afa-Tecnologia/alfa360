@@ -11,7 +11,6 @@ import { gerarNotificacao } from '@/utils/toast';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import useAuthStore from '@/stores/authStore';
-import { revalidatePath } from 'next/cache';
 import { ButtonLoading } from './ui/button-spinner';
 
 export function LoginForm({

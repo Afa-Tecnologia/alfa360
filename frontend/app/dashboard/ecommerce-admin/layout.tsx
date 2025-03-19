@@ -1,7 +1,6 @@
 'use client';
 import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
-import '../globals.css';
 import { AppSidebar } from '@/components/app-sidebar';
 
 import { Separator } from '@/components/ui/separator';
@@ -41,12 +40,10 @@ export default function RootLayout({
   }, []);
   const user = useAuthStore.getState().user;
   return (
-    <SidebarProvider>
-      {isClient && <AppSidebar />}
-      <SidebarInset>
-      <Header/>
-        <div className="flex flex-col h-full w-full">{children}</div>
-      </SidebarInset>
-    </SidebarProvider>
+    <div>
+
+        <div className=" w-full p-4">{children}</div>
+    </div>
+   
   );
 }

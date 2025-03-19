@@ -13,6 +13,8 @@ import {
   PieChart,
   Settings2,
   SquareTerminal,
+  Store,
+  House,
 } from 'lucide-react';
 
 import { NavMain } from '@/components/nav-main';
@@ -38,7 +40,7 @@ const data = {
     {
       name: 'LesAmis',
       logo: GalleryVerticalEnd,
-      plan: 'Enterprise',
+      plan: 'Premium',
     },
    
   ],
@@ -46,7 +48,7 @@ const data = {
     {
       title: 'Loja',
       url: '/dashboard',
-      icon: PackageSearch,
+      icon: House,
       isActive: true,
       items: [
         {
@@ -68,16 +70,56 @@ const data = {
       ],
     },
     {
-      title: "Settings",
+      title: 'Ecommerce',
+      url: '/dashboard/ecommerce-admin',
+      icon: Store,
+      isActive: true,
+      items: [
+        {
+          title: 'Dashboard',
+          url: '/dashboard/ecommerce-admin',
+        },
+        {
+          title: 'Pedidos',
+          url: '/dashboard/ecommerce-admin/pedidos',
+        },
+        {
+          title: 'Produtos',
+          url: '/dashboard/ecommerce-admin/produtos',
+        },
+        {
+          title: 'Estoque',
+          url: '/dashboard/ecommerce-admin/estoque',
+        },
+        {
+          title: 'Envios',
+          url: '/dashboard/ecommerce-admin/envios',
+        },
+        {
+          title: 'Clientes',
+          url: '/dashboard/ecommerce-admin/clientes',
+        },
+        {
+          title: 'Relatórios',
+          url: '/dashboard/ecommerce-admin/relatorios',
+        },
+        {
+          title: 'Configurações',
+          url: '/dashboard/ecommerce-admin/configuracoes',
+        },
+      ],
+    },
+    {
+      title: "Configurações",
       url: "#",
       icon: Settings2,
       items: [
         {
-          title: "General",
+          title: "Configurações da loja",
           url: "#",
         },
         {
-          title: "Team",
+          title: "Usuários do Sistema",
           url: "#",
         },
         {

@@ -1,30 +1,30 @@
-// // import { create } from 'zustand'
+import { create } from 'zustand'
 
-// // interface CaixaStatus {
-// //   isOpen: boolean
-// //   id: number | null
-// // }
+interface CaixaStatus {
+  isOpen: boolean
+  id: number | null
+}
 
-// // interface CaixaState {
-// //   status: CaixaStatus
-// //   report: any | null
-// //   pedidosPendentes: any[]
-// //   setStatus: (status: CaixaStatus) => void
-// //   setReport: (report: any | null) => void
-// //   setPedidosPendentes: (pedidos: any[]) => void
-// // }
+interface CaixaState {
+  status: CaixaStatus
+  report: any | null
+  pedidosPendentes: any[]
+  setStatus: (status: CaixaStatus) => void
+  setReport: (report: any | null) => void
+  setPedidosPendentes: (pedidos: any[]) => void
+}
 
-// // export const useCaixaStore = create<CaixaState>((set) => ({
-// //   status: {
-// //     isOpen: false,
-// //     id: null,
-// //   },
-// //   report: null,
-// //   pedidosPendentes: [],
-// //   setStatus: (status) => set({ status }),
-// //   setReport: (report) => set({ report }),
-// //   setPedidosPendentes: (pedidos) => set({ pedidosPendentes: pedidos }),
-// // }))
+export const useCaixaStore = create<CaixaState>((set) => ({
+  status: {
+    isOpen: false,
+    id: null,
+  },
+  report: null,
+  pedidosPendentes: [],
+  setStatus: (status) => set({ status }),
+  setReport: (report) => set({ report }),
+  setPedidosPendentes: (pedidos) => set({ pedidosPendentes: pedidos }),
+}))
 
 // import { create } from 'zustand';
 // import { persist } from 'zustand/middleware';

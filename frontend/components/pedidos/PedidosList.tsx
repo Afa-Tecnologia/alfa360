@@ -31,7 +31,7 @@ export function PedidosList({ onRegistrarPedido }: PedidosListProps) {
           <p>Não há pedidos pendentes.</p>
         ) : (
           <ul className="space-y-2">
-            {pedidosPendentes.map((pedido) => (
+            {pedidosPendentes.map((pedido:any) => (
               <li key={pedido.id} className="flex justify-between items-center">
                 <span>
                   Pedido #{pedido.id} - R$ {pedido.total.toFixed(2)}

@@ -247,7 +247,7 @@ export const useProductStore = create<ProductStore>((set) => ({
     })),
 
   // 🔥 Função para remover uma variante específica
-  deleteVariant: (productId, variantId) =>
+  deleteVariant: (productId:number | any, variantId:number | any) =>
     set((state) => ({
       products: state.products.map((p) =>
         p.id === productId

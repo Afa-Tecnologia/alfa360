@@ -38,7 +38,6 @@ export function LoginForm({
         setUser(user);
         setToken(access_token);
         gerarNotificacao('success', message);
-        revalidatePath('/login');
       }
     } catch (error: any) {
       const { response } = error;

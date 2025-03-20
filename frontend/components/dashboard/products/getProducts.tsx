@@ -2,9 +2,9 @@
 import { api } from "@/app/api/api";
 import { gerarNotificacao } from "@/utils/toast";
 
-export default function GetProducts() {
+export default async function GetProducts() {
  
-    async function productsGetService() {
+    
         try {
             const response = await api.get("/produtos"); // Alterado para GET
           
@@ -15,6 +15,6 @@ export default function GetProducts() {
             gerarNotificacao("error", error.response?.data?.message || "Erro desconhecido");
             return "Erro ao buscar produtos veja a API"
         }
-    }
+    
 
 }

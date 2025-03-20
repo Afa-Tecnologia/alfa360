@@ -34,15 +34,15 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const [isClient, setIsClient] = useState(false);
+  // const [isClient, setIsClient] = useState(false);
 
-  useEffect(() => {
-    setIsClient(true); // Defina que estamos no cliente
-  }, []);
-  const user = useAuthStore.getState().user;
+  // useEffect(() => {
+  //   setIsClient(true); // Defina que estamos no cliente
+  // }, []);
+  // const user = useAuthStore.getState().user;
   return (
     <SidebarProvider>
-      {isClient && <AppSidebar />}
+      <AppSidebar />
       <SidebarInset>
       <Header/>
         <div className="flex flex-col h-full w-full">{children}</div>

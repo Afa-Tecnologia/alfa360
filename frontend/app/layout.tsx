@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { Geist, Geist_Mono } from 'next/font/google';
+import { Geist, Geist_Mono, Inter } from 'next/font/google';
 import './globals.css';
 import { ToastContainer } from 'react-toastify';
 import { ThemeProvider } from '@/components/theme-provider';
@@ -17,6 +17,7 @@ export const metadata: Metadata = {
   title: 'Alfa Manager - Alfa Tecnologia',
   description: 'Software de gestão de vendas desenvolvido por alfa tecnologia',
 };
+const inter = Inter({ subsets: ["latin"] })
 
 export default function RootLayout({
   children,
@@ -25,10 +26,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-        suppressHydrationWarning={true}
-      >     
+             <body className={inter.className}>  
       {/* <ThemeProvider
       attribute="class"
       defaultTheme="system"

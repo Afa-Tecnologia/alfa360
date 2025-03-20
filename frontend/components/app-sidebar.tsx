@@ -29,6 +29,7 @@ import {
   SidebarRail,
 } from '@/components/ui/sidebar';
 import { useSearchParams } from 'next/navigation';
+import { url } from 'inspector';
 
 const data = {
   user: {
@@ -41,6 +42,7 @@ const data = {
       name: 'LesAmis',
       logo: GalleryVerticalEnd,
       plan: 'Premium',
+      url: '/dashboard'
     },
    
   ],
@@ -52,8 +54,8 @@ const data = {
       isActive: true,
       items: [
         {
-          title: 'Venda',
-          url: '/dashboard',
+          title: 'Vendas',
+          url: '/dashboard/vendas',
         },
         {
           title: 'Estoque',

@@ -18,6 +18,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from '@/components/ui/sidebar';
+import Link from 'next/link';
 
 export function TeamSwitcher({
   teams,
@@ -26,6 +27,7 @@ export function TeamSwitcher({
     name: string;
     logo: React.ElementType;
     plan: string;
+    url: string;
   }[];
 }) {
   const { isMobile } = useSidebar();
@@ -45,9 +47,16 @@ export function TeamSwitcher({
               </div>
               <div className="grid flex-1 text-left text-sm leading-tight">
                 <span className="truncate font-semibold">
+                  <Link href={activeTeam.url}>
                   {activeTeam.name}
+                  </Link>
                 </span>
-                <span className="truncate text-xs">{activeTeam.plan}</span>
+                <span className="truncate text-xs">
+                  <Link href={activeTeam.url}>
+                  {activeTeam.plan}
+                  </Link>
+                 
+                  </span>
               </div>
               <ChevronsUpDown className="ml-auto" />
             </SidebarMenuButton>

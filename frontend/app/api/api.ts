@@ -25,3 +25,17 @@ api.interceptors.request.use(
   },
   (error) => Promise.reject(error)
 );
+
+// Interceptor de resposta para capturar erro 401 e redirecionar para login
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('auth-storage');
+        window.location.href = '/login'; // Redireciona para a página de login
+      }
+    }
+    return Promise.reject(error);
+  }
+);

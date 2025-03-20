@@ -12,7 +12,7 @@ class Variantes extends Model
         ];
     
         protected $casts = [
-            'images' => 'array' // ✅ Laravel converte automaticamente JSON para array ao recuperar do banco!
+            'images' => 'array' 
         ];
 
     public function produto()

@@ -35,13 +35,11 @@ class VariantesService
     }
 
 
-    // Método para obter todos os usuários
     public function getAll()
     {
         return Variantes::all();
     }
 
-    // Método para obter um usuário por ID
     public function getById($id)
     {
         return Variantes::with('imagens')->findOrFail($id);

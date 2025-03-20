@@ -37,7 +37,8 @@ class ProdutoController extends Controller
                 'selling_price' => 'required|numeric',
                 'purchase_price' => 'required|numeric',
                 'quantity' => 'required|integer',
-                'code' => 'required|string'
+                'code' => 'required|string',
+                'variants' => 'nullable'
             ],
             [
                 'name.required' => 'O nome do produto é obrigatório.',

@@ -25,7 +25,7 @@ class VariantesController extends Controller
             return $variant;
         });
 
-        return response()->json($variants);
+        return response()->json(["variante" => $variants]);
     }
 
     public function store(Request $request)

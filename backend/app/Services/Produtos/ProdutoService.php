@@ -25,8 +25,9 @@ class ProdutoService
 
     public function create(array $data)
     {
+        // echo response()->json($data['variants']);
         return DB::transaction(function () use ($data) {
-            // echo response()->json($data);
+            
             $produto = Produto::create($data);
 
             if (!empty($data['variants']) && is_array($data['variants'])) {

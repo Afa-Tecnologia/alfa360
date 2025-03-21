@@ -1,7 +1,8 @@
 import { Badge } from "@/components/ui/badge";
 import { SidebarTrigger } from "../ui/sidebar";
 import { Separator } from "../ui/separator";
-import { SidebarCheckout } from "../dashboard/checkout/Sidebar-Checkout";
+
+import { ThemeToggle } from "../theme-toggle";
 
 
 export const Header = () => {
@@ -19,6 +20,7 @@ export const Header = () => {
         </div>
 
         <div className="flex items-center space-x-4">
+        <ThemeToggle/>
           <Badge
             variant="outline"
             className="status-badge bg-green-50 text-green-600 border-green-200"
@@ -26,7 +28,7 @@ export const Header = () => {
             <span className="h-2 w-2 rounded-full bg-green-500 animate-pulse-subtle"></span>
             CAIXA ABERTO
           </Badge>
-          <SidebarCheckout/>
+        
         </div>
       </div>
     </header>

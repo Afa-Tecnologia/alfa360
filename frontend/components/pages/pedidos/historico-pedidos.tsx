@@ -38,7 +38,7 @@ const paymentMethods = {
 
 type PaymentMethod = keyof typeof paymentMethods;
 
-export default function VendasPage() {
+export default function PedidosPage() {
   const { sales, deleteSale } = useSaleStore();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedSale, setSelectedSale] = useState<any>(null);

@@ -66,9 +66,17 @@ const data = {
           url: '/dashboard/caixa',
         },
         {
-          title: 'Sangria',
-          url: '#',
+          title: 'Pedidos',
+          url: '/dashboard/pedidos',
         },
+        {
+          title: 'Clientes',
+          url: '/dashboard/clientes',
+        },
+        {
+          title: 'Relatórios',
+          url: '/dashboard/relatorios',
+        }
       ],
     },
     {

@@ -20,7 +20,8 @@ import { Search, ShoppingCart, Plus, Minus, Trash2 } from "lucide-react"
 import { useProductStore } from "@/stores/product-store"
 import { useCartStore } from "@/stores/cart-store"
 import { useSaleStore } from "@/stores/sale-store"
-import GetProducts from "@/components/dashboard/products/getProducts"
+import GetProducts from "@/services/products/getProducts"
+import GetCategorys from "@/services/products/getCategorys"
 
 interface Product {
   id: number
@@ -39,7 +40,6 @@ interface Product {
   variants: any[]
 }
 
-
 // Métodos de pagamento mockados
 const paymentMethods = {
   dinheiro: "Dinheiro",
@@ -50,10 +50,9 @@ const paymentMethods = {
 
 type PaymentMethod = keyof typeof paymentMethods
 
-
 export default function VendasPage() {
-  const { products ,setProducts} = useProductStore()
-  // const [products, setProducts] = useState<Product[]>([]) 
+  const { products, setProducts } = useProductStore()
+  // const [products, setProducts] = useState<Product[]>([])
   const { items, addItem, removeItem, updateQuantity, clearCart, total } = useCartStore()
   const { addSale } = useSaleStore()
   const [searchTerm, setSearchTerm] = useState("")
@@ -62,37 +61,52 @@ export default function VendasPage() {
   const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false)
   const [isReceiptDialogOpen, setIsReceiptDialogOpen] = useState(false)
   const [receiptData, setReceiptData] = useState<any>(null)
+  const [categories, setCategories] = useState<any[]>([])
+  const [selectedCategory, setSelectedCategory] = useState<number | null>(null)
 
   useEffect(() => {
-
     const fetchProducts = async () => {
-      const data = await GetProducts();
-  
-      const formattedData: Product[] = data.map((product: Product) => ({
-        ...product, // Mantém todos os campos do produto
-        purchasePrice: parseFloat(product.purchase_price),
-        sellingPrice: parseFloat(product.selling_price),
-        stock: product.quantity,
-        category: product.categoria_id,
-      }));
-  
-      setProducts(formattedData);
-    };
-  
-    fetchProducts();
-   }, [])
- 
-  const filteredProducts = products.filter(
-    (product) =>
+      try {
+        
+         const categoriesData = await GetCategorys()
+         setCategories(categoriesData)
+        const data = await GetProducts()
+
+        const formattedData: Product[] = data.map((product: Product) => ({
+          ...product,
+          purchasePrice: product.purchase_price,
+          sellingPrice: product.selling_price,
+          stock: product.quantity,
+          category: product.categoria_id,
+        }))
+
+        setProducts(formattedData)
+
+      } catch (error) {
+        console.error("Erro ao buscar produtos:", error)
+      }
+    }
+
+    fetchProducts()
+  }, [])
+
+  const filteredProducts = products.filter((product) => {
+    // Filtro por termo de busca
+    const matchesSearch =
       product?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       product.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      product.brand.toLowerCase().includes(searchTerm.toLowerCase()),
-  )
+      product.brand.toLowerCase().includes(searchTerm.toLowerCase())
+
+    // Filtro por categoria
+    const matchesCategory = selectedCategory ? product.category_id === selectedCategory : true
+
+    return matchesSearch && matchesCategory
+  })
 
   const handleAddToCart = (productId: number) => {
     const product = products.find((p) => p.id === productId)
     if (product) {
-      addItem(product, 1);
+      addItem(product, 1)
     }
   }
 
@@ -164,7 +178,7 @@ export default function VendasPage() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 h-[calc(100vh-180px)]">
         <div className="md:col-span-2 space-y-4">
           <div className="flex items-center space-x-2 relative">
-          <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
             <Input
               placeholder="Buscar produtos..."
               value={searchTerm}
@@ -172,8 +186,33 @@ export default function VendasPage() {
               className="flex-1 pl-8"
             />
           </div>
+          <div className="flex overflow-x-auto space-x-2 pb-2">
+            <Button
+              variant={searchTerm === "" && !selectedCategory ? "default" : "outline"}
+              className="whitespace-nowrap"
+              onClick={() => {
+                setSearchTerm("")
+                setSelectedCategory(null)
+              }}
+            >
+              Todos
+            </Button>
+            {categories.map((category) => (
+              <Button
+                key={category.id}
+                variant={selectedCategory === category.id ? "default" : "outline"}
+                className="whitespace-nowrap"
+                onClick={() => {
+                  setSelectedCategory(category.id)
+                  setSearchTerm("")
+                }}
+              >
+                {category.name}
+              </Button>
+            ))}
+          </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 overflow-y-auto h-[calc(100vh-280px)]">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 overflow-y-auto h-[calc(100vh-280px)] pr-2">
             {filteredProducts.map((product) => (
               <Card key={product.id} className="flex flex-col justify-between max-h-[300px] ">
                 <CardHeader className="pb-2">
@@ -181,13 +220,15 @@ export default function VendasPage() {
                   <CardDescription className="line-clamp-2">{product.brand}</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-2xl font-bold">
-                    {`${product.sellingPrice} R$`}
-                  </p>
+                  <p className="text-2xl font-bold">{`${product.sellingPrice} R$`}</p>
                   <p className="text-sm text-muted-foreground">Estoque: {product.quantity} unidades</p>
                 </CardContent>
                 <CardFooter>
-                  <Button className="w-full" onClick={() => handleAddToCart(product.id)} disabled={product.quantity <= 0}>
+                  <Button
+                    className="w-full"
+                    onClick={() => handleAddToCart(product.id)}
+                    disabled={product.quantity <= 0}
+                  >
                     <ShoppingCart className="mr-2 h-4 w-4" /> Adicionar
                   </Button>
                 </CardFooter>
@@ -378,10 +419,10 @@ export default function VendasPage() {
                 </span>
               </div>
               <div className="text-sm">
-              <p className="text-sm text-muted-foreground">Método de Pagamento</p>
-                  <p className="font-medium">
-                    {paymentMethods[receiptData.paymentMethod as PaymentMethod] || "Desconhecido"}
-                  </p>
+                <p className="text-sm text-muted-foreground">Método de Pagamento</p>
+                <p className="font-medium">
+                  {paymentMethods[receiptData.paymentMethod as PaymentMethod] || "Desconhecido"}
+                </p>
               </div>
             </div>
           )}

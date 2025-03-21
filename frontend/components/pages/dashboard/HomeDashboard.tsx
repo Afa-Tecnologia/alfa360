@@ -26,7 +26,7 @@ export default function WelcomeScreenDashboard() {
   const dataFormatada = dataAtual.charAt(0).toUpperCase() + dataAtual.slice(1)
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-background">
     
       {/* Main Content */}
       <main className="p-6">
@@ -42,8 +42,8 @@ export default function WelcomeScreenDashboard() {
           <CardContent className="pt-6">
             <div className="flex flex-col md:flex-row items-center gap-6">
               <div className="flex-1">
-                <h2 className="text-2xl font-bold mb-2">Olá, Usuário!</h2>
-                <p className="text-muted-foreground mb-4">
+                <h2 className="text-2xl font-bold mb-2 text-muted">Olá, Usuário!</h2>
+                <p className="text-muted mb-4">
                   Bem-vindo de volta ao sistema LesAmis. Aqui você pode gerenciar sua loja, acompanhar vendas e muito
                   mais. O que você gostaria de fazer hoje?
                 </p>
@@ -62,7 +62,7 @@ export default function WelcomeScreenDashboard() {
                   </Button>
                   <Button variant="outline" className="gap-2">
                     <Users className="h-4 w-4" />
-                    <Link href={'/dashboard/ecommerce-admin/clientes'}>
+                    <Link href={'/dashboard/clientes'}>
                     Ver Clientes
                     </Link>
                   </Button>
@@ -111,7 +111,7 @@ export default function WelcomeScreenDashboard() {
             <CardContent className="flex-1 flex flex-col">
               <CardDescription className="mb-3">Gerencie seu catálogo de produtos e estoque.</CardDescription>
               <Button variant="outline" size="sm" className="w-full  mt-auto">
-              <Link href={'/dashboard/ecommerce-admin/produtos'}>
+              <Link href={'/dashboard/estoque'}>
                 Acessar
                 </Link>
               </Button>
@@ -128,7 +128,7 @@ export default function WelcomeScreenDashboard() {
             <CardContent className="flex-1 flex flex-col">
               <CardDescription className="mb-3">Visualize e gerencie sua base de clientes.</CardDescription>
               <Button variant="outline" size="sm" className="w-full  mt-auto">
-              <Link href={'/dashboard/ecommerce-admin/clientes'}>
+              <Link href={'/dashboard/clientes'}>
                 Acessar
                 </Link>
               </Button>
@@ -145,7 +145,7 @@ export default function WelcomeScreenDashboard() {
             <CardContent className="flex-1 flex flex-col">
               <CardDescription className="mb-3">Acesse relatórios e análises de desempenho.</CardDescription>
               <Button variant="outline" size="sm" className="w-full  mt-auto">
-                <Link href={'/dashboard/ecommerce-admin/relatorios'}>
+                <Link href={'/dashboard/relatorios'}>
                   Acessar
                 </Link>
               

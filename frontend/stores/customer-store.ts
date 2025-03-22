@@ -1,96 +1,83 @@
-import { create } from "zustand"
-import { persist } from "zustand/middleware"
+import { create } from "zustand";
 
 export type Customer = {
-  id: number
-  name: string
-  last_name: string
-  email: string
-  phone: string
-  cpf: string
-  adress: string
-  city: string
-  state: string
-  cep: string
-  date_of_birth: string
-  created_at: Date
-  updated_at: Date
-  status: "ativo" | "inativo"
-  orders_count?: number
-  total_spent?: number
-}
+  id: number;
+  name: string;
+  last_name: string;
+  email: string;
+  phone: string;
+  cpf: string;
+  adress: string;
+  city: string;
+  state: string;
+  cep: string;
+  date_of_birth: string;
+  created_at: Date;
+  updated_at: Date;
+  orders_count?: number;
+  total_spent?: number;
+};
+
+
 
 type CustomerStore = {
-  customers: Customer[]
-  addCustomer: (customer: Omit<Customer, "id" | "created_at" | "updated_at" | "status">) => void
-  updateCustomer: (id: number, customer: Partial<Omit<Customer, "id" | "created_at" | "updated_at">>) => void
-  deleteCustomer: (id: number) => void
-  getCustomer: (id: number) => Customer | undefined
-  setCustomerStatus: (id: number, status: "ativo" | "inativo") => void
-}
+  customers: Customer[];
+  setCustomers: (customers: Customer[]) => void;
+  addCustomer: (customer: Omit<Customer, "id" | "created_at" | "updated_at">) => void;
+  updateCustomer: (id: number, customer: Partial<Omit<Customer, "id" | "created_at" | "updated_at">>) => void;
+  deleteCustomer: (id: number) => void;
+  getCustomer: (id: number) => Customer | undefined;
+};
 
-export const useCustomerStore = create<CustomerStore>()(
-  persist(
-    (set, get) => ({
-      customers: [],
+export const useCustomerStore = create<CustomerStore>((set, get) => ({
+  customers: [],
 
-      addCustomer: (customer) => {
-        const newCustomer: Customer = {
-          ...customer,
-          id: Date.now(),
-          created_at: new Date(),
-          updated_at: new Date(),
-          status: "ativo",
-          orders_count: 0,
-          total_spent: 0,
-        }
+  setCustomers: (customers) => {
+    const parsedCustomers = customers.map((customer) => ({
+      ...customer,
+      created_at: customer.created_at,
+      updated_at: customer.updated_at,
+    }));
 
-        set((state) => ({
-          customers: [...state.customers, newCustomer],
-        }))
-      },
+    set({ customers: parsedCustomers });
+  },
 
-      updateCustomer: (id, updatedCustomer) => {
-        set((state) => ({
-          customers: state.customers.map((customer) =>
-            customer.id === id
-              ? {
-                  ...customer,
-                  ...updatedCustomer,
-                  updated_at: new Date(),
-                }
-              : customer,
-          ),
-        }))
-      },
+  addCustomer: (customer) => {
+    const newCustomer: Customer = {
+      ...customer,
+      id: Date.now(),
+      created_at: new Date(),
+      updated_at: new Date(),
+      orders_count: 0,
+      total_spent: 0,
+    };
 
-      deleteCustomer: (id) => {
-        set((state) => ({
-          customers: state.customers.filter((customer) => customer.id !== id),
-        }))
-      },
+    set((state) => ({
+      customers: [...state.customers, newCustomer],
+    }));
+  },
 
-      getCustomer: (id) => {
-        return get().customers.find((customer) => customer.id === id)
-      },
+  updateCustomer: (id, updatedCustomer) => {
+    set((state) => ({
+      customers: state.customers.map((customer) =>
+        customer.id === id
+          ? {
+              ...customer,
+              ...updatedCustomer,
+              updated_at: new Date(),
+            }
+          : customer
+      ),
+    }));
+  },
 
-      setCustomerStatus: (id, status) => {
-        set((state) => ({
-          customers: state.customers.map((customer) =>
-            customer.id === id
-              ? {
-                  ...customer,
-                  status,
-                  updated_at: new Date(),
-                }
-              : customer,
-          ),
-        }))
-      },
-    }),
-    {
-      name: "customer-storage",
-    },
-  ),
-)
+  deleteCustomer: (id) => {
+    set((state) => ({
+      customers: state.customers.filter((customer) => customer.id !== id),
+    }));
+  },
 
+  getCustomer: (id) => {
+    return get().customers.find((customer) => customer.id === id);
+  },
+}));

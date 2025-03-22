@@ -206,7 +206,10 @@ interface EditModalProps {
             </div>
           )}
           <DialogFooter>
-            <DialogClose asChild>Cancelar</DialogClose>
+            <DialogClose asChild><Button>
+              Cancelar
+              </Button>
+              </DialogClose>
             <Button onClick={handleEditCustomer}>Salvar Alterações</Button>
           </DialogFooter>
         </DialogContent>

@@ -184,7 +184,9 @@ export function CreateClient() {
                 Cancelar
               </Button>
             </DialogClose>
-            <Button onClick={handleAddCustomer}>Salvar</Button>
+            <DialogClose asChild>
+              <Button onClick={handleAddCustomer}>Salvar</Button>
+            </DialogClose>
           </DialogFooter>
         </DialogContent>
       </Dialog>

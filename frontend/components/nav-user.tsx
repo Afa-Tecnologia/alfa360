@@ -30,16 +30,15 @@ import useAuthStore from '@/stores/authStore';
 import { deleteServerCookie } from '@/app/api/auth';
 import { api } from '@/app/api/api';
 import { gerarNotificacao } from '@/utils/toast';
+import { useEffect, useState } from 'react';
 
-export function NavUser({
-  user,
-}: {
-  user: {
-    name: string;
-    email: string;
-    avatar: string;
-  };
-}) {
+export function NavUser({ user }: { user: { name: string; email: string; avatar: string } }) {
+  const [userStore, setUserStore] = useState<{ name: string; email: string } | null>(null);
+
+  useEffect(() => {
+    setUserStore(useAuthStore.getState().user);
+  }, []);
+
   const { isMobile } = useSidebar();
   const { deleteAuthStorage } = useAuthStore();
 
@@ -49,7 +48,6 @@ export function NavUser({
     deleteServerCookie();
     gerarNotificacao('success', 'Deslogado com sucesso!');
   };
-  const userStore = useAuthStore.getState().user;
 
   return (
     <SidebarMenu>

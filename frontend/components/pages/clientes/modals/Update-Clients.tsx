@@ -13,7 +13,9 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { updateClient } from '@/services/clientes/UpdateClients';
 import { Customer, useCustomerStore } from '@/stores/customer-store';
+import { gerarNotificacao } from '@/utils/toast';
 import { useEffect, useState } from 'react';
 
 interface EditModalProps {
@@ -31,22 +33,18 @@ interface EditModalProps {
     setCurrentCustomer(customer);
   }, [customer]);
 
-  const handleEditCustomer = () => {
+
+  const handleEditCustomer = async () => {
     if (currentCustomer) {
-      updateCustomer(currentCustomer.id, {
-        name: currentCustomer.name,
-        last_name: currentCustomer.last_name,
-        email: currentCustomer.email,
-        phone: currentCustomer.phone,
-        cpf: currentCustomer.cpf,
-        adress: currentCustomer.adress,
-        city: currentCustomer.city,
-        state: currentCustomer.state,
-        cep: currentCustomer.cep,
-        date_of_birth: currentCustomer.date_of_birth,
-      });
-      onOpenChange(false);
-      setCurrentCustomer(null);
+      try {
+        await updateClient(currentCustomer); // Chama a API de atualização
+        gerarNotificacao("success", "Cliente atualizado com sucesso!");
+        updateCustomer(currentCustomer.id, currentCustomer); // Atualiza no estado global
+        onOpenChange(false);
+        setCurrentCustomer(null);
+      } catch (error) {
+        gerarNotificacao("error", "Erro ao atualizar cliente");
+      }
     }
   };
   return (

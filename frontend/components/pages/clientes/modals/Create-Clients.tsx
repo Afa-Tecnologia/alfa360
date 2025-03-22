@@ -12,7 +12,9 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { createClient } from '@/services/clientes/CreateClient';
 import { useCustomerStore } from '@/stores/customer-store';
+import { gerarNotificacao } from '@/utils/toast';
 import { useState } from 'react';
 
 export function CreateClient() {
@@ -30,21 +32,29 @@ export function CreateClient() {
     date_of_birth: '',
   });
 
-  const handleAddCustomer = () => {
-    addCustomer(newCustomer);
-    setNewCustomer({
-      name: '',
-      last_name: '',
-      email: '',
-      phone: '',
-      cpf: '',
-      adress: '',
-      city: '',
-      state: '',
-      cep: '',
-      date_of_birth: '',
-    });
-  };
+  const handleAddCustomer = async () => {
+    try {
+      const response = await createClient(newCustomer);
+      addCustomer(response); // Atualiza o estado com o cliente criado na API
+      setNewCustomer({
+        name: '',
+        last_name: '',
+        email: '',
+        phone: '',
+        cpf: '',
+        adress: '',
+        city: '',
+        state: '',
+        cep: '',
+        date_of_birth: '',
+      });
+      gerarNotificacao("success", "Cliente criado com sucesso!");
+    } catch (error: any) {
+      console.error("Erro ao criar cliente:", error);
+      gerarNotificacao("error", error.response?.data?.message || "Erro ao criar cliente");
+      throw new Error(error.response?.data?.message || "Erro ao criar cliente");
+    }
+  }
 
   return (
     <>

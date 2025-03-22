@@ -3,7 +3,8 @@
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
-import GetCategorys from "@/services/products/getCategorys"
+import GetCategorys from "@/services/products/GetCategorys"
+
 
 interface CategoryFilterProps {
   onCategorySelect: (categoryId: number | null) => void

@@ -19,7 +19,7 @@ return new class extends Migration
             $table->enum('local',['loja', 'ecommerce']);
             $table->decimal('value', 10, 2);
             $table->string('description', 200);
-            $table->enum('payment_method', ['PIX', 'CREDIT_CARD', 'DEBIT_CARD', 'MONEY', 'TRANSFER']);
+            $table->enum('payment_method', ['PIX', 'CREDIT_CARD', 'DEBIT_CARD', 'MONEY', 'TRANSFER', 'CONDITIONAL']);
             $table->enum('status', ['pending', 'completed', 'canceled'])->default('pending');
             $table->json('additional_data')->nullable();
             $table->foreignId('pedido_id')->nullable()->constrained('pedidos')->onDelete('set null');

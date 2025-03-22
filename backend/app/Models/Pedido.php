@@ -14,18 +14,17 @@ class Pedido extends Model
         'vendedor_id',
         'cliente_id',
         'produto_id',
-        'categoria_id',
         'type',
         'total',
         'desconto',
-        'forma_pagamento',
+        'payment_method',
     ];
 
     // Relacionamento com Produtos (via tabela pivô)
     public function produtos()
     {
         return $this->belongsToMany(Produto::class, 'pedidos_produtos')
-            ->withPivot('quantity', 'selling_price')
+            ->withPivot('quantidade', 'preco_unitario')
             ->withTimestamps();
     }
 

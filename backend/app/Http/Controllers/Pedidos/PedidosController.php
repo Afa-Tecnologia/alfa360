@@ -3,7 +3,12 @@
 namespace App\Http\Controllers\Pedidos;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Pedidos\StorePedidoRequest;
+use App\Http\Requests\Pedidos\UpdatePedidoRequest;
+use App\Models\Pedido;
+use App\Models\Produto;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Symfony\Component\HttpFoundation\Response;
 use App\Services\Pedidos\Pedidos;
 use App\Services\Pedidos\PedidoService;
@@ -25,27 +30,55 @@ class PedidosController extends Controller
     }
 
     // Método para criar pedidos
-    public function store(Request $request)
+    public function store(StorePedidoRequest $request)
     {
+        // Adiciona logs para debug
+        Log::info('Recebeu requisição de criação de pedido');
+        Log::info('Dados recebidos: ', $request->all());
+        
         try {
-            // Validação dos dados
-            $data = $request->validate([
-                'vendedor_id' => 'required|string|exists:users,id',
-                'cliente_id' => 'required|string|exists:clientes,id',
-                'produto_id' => 'required|array',
-                'produto_id.*.id' => 'required|integer|exists:produtos,id', // Valida cada produto
-                'produto_id.*.quantity' => 'required|integer|min:1', // Valida a quantidade
-                'categoria_id' => 'required|string|exists:categorias,id',
-                'type' => 'required|string',
-                'forma_pagamento' => 'required|string|in:dinheiro,cartao,pix,condicional',
-                'desconto' => 'nullable|numeric|min:0|max:100'
+            $dataValidated = $request->validated();
+            Log::info('Dados validados: ', $dataValidated);
+            
+            // Garantindo que payment_method esteja em maiúsculas
+            $dataValidated['payment_method'] = strtoupper($dataValidated['payment_method']);
+            
+            // Criando pedido
+            $pedido = Pedido::create([
+                'vendedor_id' => $dataValidated['vendedor_id'],
+                'cliente_id' => $dataValidated['cliente_id'],
+                'type' => $dataValidated['type'],
+                'payment_method' => $dataValidated['payment_method'],
+                'desconto' => $dataValidated['desconto'] ?? 0,
+                'total' => 0,
             ]);
-
-            // Cria o pedido
-            $pedido = $this->pedidoService->create($data);
-
-            return response()->json($pedido, Response::HTTP_CREATED);
+            
+            Log::info('Pedido criado: ' . $pedido->id);
+            
+            $total = 0;
+            foreach ($dataValidated['produtos'] as $item) {
+                $produto = Produto::findOrFail($item['produto_id']);
+                $subtotal = $produto->selling_price * $item['quantidade'];
+    
+                $pedido->produtos()->attach($produto->id, [
+                    'quantidade' => $item['quantidade'],
+                    'preco_unitario' => $produto->selling_price,
+                ]);
+    
+                $total += $subtotal;
+            }
+    
+            $pedido->update(['total' => $total - ($dataValidated['desconto'] ?? 0)]);
+    
+            return response()->json([
+                'message' => 'Pedido criado com sucesso!',
+                'pedido' => $pedido->load('produtos'),
+            ], 201);
+        
         } catch (\Exception $e) {
+            Log::error('Erro ao criar pedido: ' . $e->getMessage());
+            Log::error($e->getTraceAsString());
+            
             return response()->json([
                 'error' => 'Erro ao criar pedido',
                 'message' => $e->getMessage(),
@@ -53,9 +86,6 @@ class PedidosController extends Controller
             ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
-
-
-
 
     // Método para obter um produto por ID
     public function show($id)
@@ -75,11 +105,9 @@ class PedidosController extends Controller
         return response()->json($pedido);
     }
 
-
     // Método para obter um produto pelo nome
     public function findByCategory($id)
     {
-
         $pedidos = $this->pedidoService->getProdutoPorCategoria($id);
         if (!$pedidos) {
             return response()->json(
@@ -94,7 +122,6 @@ class PedidosController extends Controller
     // Método para obter um pedidos por tipo
     public function findByType($tipo)
     {
-
         $pedidos = $this->pedidoService->getPedidosPorTipo($tipo);
         if (!$pedidos) {
             return response()->json(
@@ -106,57 +133,65 @@ class PedidosController extends Controller
         return response()->json($pedidos);
     }
 
-
-
-    public function update(Request $request, $id)
+    public function update(UpdatePedidoRequest $request, $id)
     {
         try {
-            $validatedData = $request->validate([
-                'vendedor_id' => 'nullable|integer|exists:users,id',
-                'cliente_id' => 'nullable|integer|exists:clientes,id',
-                'produto_id' => 'nullable|array|exists:produtos,id',
-                'categoria_id' => 'nullable|integer|exists:categorias,id',
-                'type' => 'nullable|string',
-                'total' => 'nullable|numeric',
-                'quantities' => 'nullable|array',
-                'quantities.*' => 'nullable|integer|min:1',
-                'selling_prices' => 'nullable|array',
-                'selling_prices.*' => 'nullable|numeric|min:0.01',
-                'forma_pagamento' => 'nullable|string|in:dinheiro,cartao,pix,condicional',
-            ], [
-                // Mensagens de erro (mesmas que já havia)
-            ]);
-
+            $dataValidated = $request->validated();
+            Log::info('Atualizando pedido ID: ' . $id);
+            Log::info('Dados validados: ', $dataValidated);
+            
+            // Garantindo que payment_method esteja em maiúsculas se estiver presente
+            if (isset($dataValidated['payment_method'])) {
+                $dataValidated['payment_method'] = strtoupper($dataValidated['payment_method']);
+            }
+            
             // Atualiza o pedido
-            $pedido = $this->pedidoService->update($id, $validatedData);
+            $pedido = $this->pedidoService->update($id, $dataValidated);
 
             if (!$pedido) {
                 return response()->json(['error' => 'Pedido não encontrado'], 404);
             }
 
-            // Atualiza os produtos do pedido
-            if (isset($validatedData['produto_id'])) {
+            // Atualiza os produtos do pedido se fornecidos
+            if (isset($dataValidated['produtos'])) {
                 // Remover todos os produtos antigos
                 $pedido->produtos()->detach();
 
+                $total = 0;
                 // Adiciona os novos produtos
-                foreach ($validatedData['produto_id'] as $index => $produtoId) {
-                    $pedido->produtos()->attach($produtoId, [
-                        'quantity' => $validatedData['quantities'][$index],
-                        'selling_price' => $validatedData['selling_prices'][$index],
+                foreach ($dataValidated['produtos'] as $item) {
+                    $produto = Produto::findOrFail($item['produto_id']);
+                    $subtotal = $produto->selling_price * $item['quantidade'];
+    
+                    $pedido->produtos()->attach($produto->id, [
+                        'quantidade' => $item['quantidade'],
+                        'preco_unitario' => $produto->selling_price,
                     ]);
+    
+                    $total += $subtotal;
                 }
+                
+                // Atualiza o total do pedido
+                $pedido->update([
+                    'total' => $total - ($dataValidated['desconto'] ?? $pedido->desconto)
+                ]);
             }
 
-            return response()->json($pedido, 200);
+            return response()->json([
+                'message' => 'Pedido atualizado com sucesso',
+                'pedido' => $pedido->load('produtos')
+            ], 200);
         } catch (\Exception $e) {
-            return response()->json(
-                ['error' => 'Erro ao atualizar pedido'],
-                Response::HTTP_INTERNAL_SERVER_ERROR
-            );
+            Log::error('Erro ao atualizar pedido: ' . $e->getMessage());
+            Log::error($e->getTraceAsString());
+            
+            return response()->json([
+                'error' => 'Erro ao atualizar pedido',
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
-
 
     // Método para deletar um produto
     public function delete(string $id)

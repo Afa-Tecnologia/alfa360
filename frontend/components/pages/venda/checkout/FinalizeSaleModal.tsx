@@ -1,118 +1,177 @@
-// 'use client';
+'use client';
 
-// import { useState } from 'react';
-// import {
-//   Dialog,
-//   DialogContent,
-//   DialogFooter,
-//   DialogHeader,
-//   DialogTitle,
-// } from '@/components/ui/dialog';
-// import { Button } from '@/components/ui/button';
-// import {
-//   Select,
-//   SelectContent,
-//   SelectItem,
-//   SelectTrigger,
-//   SelectValue,
-// } from '@/components/ui/select';
-// import { Input } from '@/components/ui/input';
-// import { useCartStore } from '@/stores/cart-store';
-// import { createPedido } from '@/services/pedidos/CreatePedidos';
-// import { gerarNotificacao } from '@/utils/toast';
+import { useEffect, useState } from 'react';
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { CartItem, useCartStore } from '@/stores/cart-store';
+import { createPedido } from '@/services/pedidos/CreatePedidos';
+import { gerarNotificacao } from '@/utils/toast';
+import { Sale, useSaleStore } from '@/stores/sale-store';
 
-// interface FinalizeSaleModalProps {
-//   isOpen: boolean;
-//   onClose: () => void;
-//   onSuccess: () => void;
-// }
+import useAuthStore from '@/stores/authStore';
+import { SearchClients } from './SearchClients';
+import { Label } from '@/components/ui/label';
+import { SalesNotes } from './SalesNotes';
 
-// const paymentMethods = {
-//   dinheiro: 'Dinheiro',
-//   cartao: 'Cartão',
-//   pix: 'PIX',
-//   condicional: 'Condicional',
-// } as const;
+export type SaleItems = {
+  desconto: number;
+  total: number;
+  produtos: CartItem[];
+};
 
-// export default function FinalizeSaleModal({
-//   isOpen,
-//   onClose,
-//   onSuccess,
-// }: FinalizeSaleModalProps) {
-//   const { items, total, clearCart, addItem } = useCartStore();
-//   const [customerName, setCustomerName] = useState('');
-//   const [paymentMethod, setPaymentMethod] =
-//     useState<keyof typeof paymentMethods>('dinheiro');
-//   const [loading, setLoading] = useState(false);
+interface FinalizeSaleModalProps {
+  open: boolean;
+  onOpenChange: (isOpen: boolean) => void;
+  reqPedidos: SaleItems;
+}
 
-//   const handleSubmit = async () => {
-//     if (items.length === 0) return alert('Carrinho vazio');
+const paymentMethods = {
+  dinheiro: 'Dinheiro',
+  cartao: 'Cartão',
+  pix: 'PIX',
+  condicional: 'Condicional',
+} as const;
 
-//     setLoading(true);
+export default function FinalizeSaleModal({
+  open,
+  onOpenChange,
+  reqPedidos,
+}: FinalizeSaleModalProps) {
+  const [paymentMethod, setPaymentMethod] =
+    useState<keyof typeof paymentMethods>('dinheiro');
+  const [loading, setLoading] = useState(false);
+  const user = useAuthStore.getState().user;
+  const {  clearCart } =
+  useCartStore();
+  const [cliente, setCliente] = useState<{ id: number; name: string } | null>(null);
+  const [openNotesModal, setOpenNotesModal] = useState(false);
+  const [saleNotesData, setSaleNotesData] = useState<any | null>(null);
 
-//     try {
-//       const response = await createPedido();
-//       addItem(response); // Atualiza o estado com o cliente criado na API
-
-//       gerarNotificacao('success', 'Pedido criado com sucesso!');
-
-//       clearCart();
-//       onSuccess();
-//       onClose();
-//     } catch (error) {
-//       console.error('Erro ao finalizar venda:', error);
-//       alert('Erro ao finalizar venda');
-//     } finally {
-//       setLoading(false);
-//     }
-//   };
-
-//   return (
-//     <Dialog open={isOpen} onOpenChange={onClose}>
-//       <DialogContent>
-//         <DialogHeader>
-//           <DialogTitle>Finalizar Venda</DialogTitle>
-//         </DialogHeader>
-//         <div className="space-y-4">
-//           <Select
-//             value={clienteId || ''}
-//             onValueChange={(value) => setClienteId(Number(value))}
-//           >
-//             <SelectItem value="">Selecione um cliente</SelectItem>
-//             {clientes.map((cliente) => (
-//               <SelectItem key={cliente.id} value={cliente.id.toString()}>
-//                 {cliente.nome}
-//               </SelectItem>
-//             ))}
-//           </Select>
-//           <Select
-//             value={paymentMethod}
-//             onValueChange={(value) =>
-//               setPaymentMethod(value as keyof typeof paymentMethods)
-//             }
-//           >
-//             <SelectTrigger>
-//               <SelectValue placeholder="Forma de Pagamento" />
-//             </SelectTrigger>
-//             <SelectContent>
-//               {Object.entries(paymentMethods).map(([key, label]) => (
-//                 <SelectItem key={key} value={key}>
-//                   {label}
-//                 </SelectItem>
-//               ))}
-//             </SelectContent>
-//           </Select>
-//           <p className="text-lg font-bold">Total: R$ {total().toFixed(2)}</p>
-//         </div>
-//         <DialogFooter>
-//           <Button variant="outline" onClick={onClose}>
-//             Cancelar
-//           </Button>
-//           <Button onClick={handleSubmit} disabled={loading}>
-//             {loading ? 'Finalizando...' : 'Confirmar Venda'}
-//           </Button>
-//         </DialogFooter>
-//       </DialogContent>
-//     </Dialog>
-//   );
-// }
+  const handleSubmitSale = async () => {
+    setLoading(true);
+    try {
+      const pedido = {
+        vendedor_id: user?.id,
+        cliente_id: cliente?.id,
+        type: 'loja',
+        forma_pagamento: paymentMethod,
+        desconto: reqPedidos.desconto,
+        produtos: reqPedidos.produtos.map((item) => ({
+          produto_id: item.product.id,
+          quantidade: item.quantity,
+        })),
+      };
+      console.log("PEDIDO: ", pedido)
+      // const response = await createPedido(pedido);
+      gerarNotificacao('Venda finalizada com sucesso!', 'sucesso');
+      onOpenChange(false); // Close the modal after success
+      clearCart();
+            // Preparar os dados para o modal de notas
+            setSaleNotesData({
+              sale: {
+                items: reqPedidos.produtos.map((item) => ({
+                  productId: item.product.id,
+                  productName: item.product.name,
+                  quantity: item.quantity,
+                  unitPrice: item.product.sellingPrice,
+                  total: item.quantity * item.product.sellingPrice,
+                  })),
+                total: reqPedidos.total,
+                desconto: reqPedidos.desconto,
+                customerName: cliente?.name || 'Cliente Desconhecido',
+                paymentMethod: paymentMethod,
+                createdAt: new Date(),
+              },
+            });
+      
+            // Abrir o modal de notas da venda
+            setOpenNotesModal(true);
+    } catch (error) {
+      gerarNotificacao('Erro ao finalizar venda.', 'error');
+    } finally {
+      setLoading(false);
+    }
+  };
+// console.log(cliente?.name)
+  return (
+    <>
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Finalizar Venda</DialogTitle>
+        </DialogHeader>
+        <div className="grid gap-4 py-4">
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="customer" className="text-right">
+              Cliente
+            </Label>
+            <SearchClients onSelectCliente={(id, name) => setCliente({ id, name })} />
+          </div>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="payment" className="text-right">
+              Pagamento
+            </Label>
+            <Select
+              value={paymentMethod}
+              onValueChange={(value) =>
+                setPaymentMethod(value as keyof typeof paymentMethods)
+              }
+            >
+              <SelectTrigger className="col-span-3">
+                <SelectValue placeholder="Forma de Pagamento" />
+              </SelectTrigger>
+              <SelectContent>
+                {Object.entries(paymentMethods).map(([key, label]) => (
+                  <SelectItem key={key} value={key}>
+                    {label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <div className="col-span-4 text-right text-lg font-bold">
+              Total:{' '}
+              {reqPedidos.total.toLocaleString('pt-BR', {
+                style: 'currency',
+                currency: 'BRL',
+              })}
+            </div>
+          </div>
+        </div>
+        <DialogFooter>
+          <DialogClose asChild>
+            <Button>Cancelar</Button>
+          </DialogClose>
+          <Button onClick={handleSubmitSale} disabled={loading}>
+            {loading ? 'Finalizando...' : 'Confirmar Venda'}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+    
+      {/* Modal de Notas da Venda */}
+      {saleNotesData && (
+        <SalesNotes
+          openDialog={openNotesModal}
+          onOpenChangeDialog={setOpenNotesModal}
+          notesSales={saleNotesData}
+        />
+      )}
+    </>
+  );
+}

@@ -43,7 +43,7 @@ import { useSaleStore } from '@/stores/sale-store';
 import GetCategorys from '@/services/products/GetCategorys';
 import GetProducts from '@/services/products/GetProducts';
 import GetPedidos from '@/services/pedidos/GetPedidos';
-
+import FinalizeSaleModal from './checkout/FinalizeSaleModal';
 
 interface Product {
   id: number;
@@ -62,30 +62,17 @@ interface Product {
   variants: any[];
 }
 
-// Métodos de pagamento mockados
-const paymentMethods = {
-  dinheiro: 'Dinheiro',
-  cartao_credito: 'Cartão de Crédito',
-  cartao_debito: 'Cartão de Débito',
-  pix: 'PIX',
-} as const;
 
-type PaymentMethod = keyof typeof paymentMethods;
 
 export default function VendasPage() {
   const { products, setProducts } = useProductStore();
-  // const [products, setProducts] = useState<Product[]>([])
   const { items, addItem, removeItem, updateQuantity, clearCart, total } =
     useCartStore();
-  const { addSale } = useSaleStore();
   const [searchTerm, setSearchTerm] = useState('');
-  const [paymentMethod, setPaymentMethod] = useState('dinheiro');
-  const [customerName, setCustomerName] = useState('');
   const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
-  const [isReceiptDialogOpen, setIsReceiptDialogOpen] = useState(false);
-  const [receiptData, setReceiptData] = useState<any>(null);
   const [categories, setCategories] = useState<any[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
+  const [desconto, setDesconto] = useState<number>(0);
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -154,47 +141,23 @@ export default function VendasPage() {
     removeItem(productId);
   };
 
+  const handleCompleteSale = () => {
+   
+    clearCart();
+  };
+
   const handleFinalizeSale = () => {
     if (items.length === 0) {
       alert('Adicione produtos ao carrinho antes de finalizar a venda.');
       return;
     }
+
+
     setIsPaymentDialogOpen(true);
   };
 
-  const handleCompleteSale = () => {
-    const saleItems = items.map((item) => ({
-      productId: item.product.id,
-      productName: item.product.name,
-      quantity: item.quantity,
-      unitPrice: item.product.purchasePrice,
-      total: item.product.sellingPrice * item.quantity,
-    }));
 
-    const sale = {
-      items: saleItems,
-      total: total(),
-      paymentMethod,
-      customerName: customerName || 'Cliente não identificado',
-    };
-
-    addSale(sale);
-    setReceiptData({
-      ...sale,
-      date: new Date(),
-    });
-    setIsPaymentDialogOpen(false);
-    setIsReceiptDialogOpen(true);
-    clearCart();
-  };
-
-  const handleCloseReceipt = () => {
-    setIsReceiptDialogOpen(false);
-    setReceiptData(null);
-    setPaymentMethod('dinheiro');
-    setCustomerName('');
-  };
-
+  const totalDesconto = Math.max(0, total() - desconto);
   return (
     <div className="p-6 h-full">
       <h1 className="text-3xl font-bold mb-6">Vendas</h1>
@@ -246,11 +209,6 @@ export default function VendasPage() {
           {/* end */}
 
           {/* Cards dos Pedidos para Venda */}
-          {/* <FinalizeSaleModal
-  isOpen={isFinalizeModalOpen}
-  onClose={() => setIsFinalizeModalOpen(false)}
-  onSuccess={() => alert("Venda finalizada com sucesso!")}
-/> */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 overflow-y-auto h-[calc(100vh-280px)] pr-2">
             {filteredProducts.map((product) => (
               <Card
@@ -368,10 +326,22 @@ export default function VendasPage() {
           </div>
 
           <div className="border-t pt-4 space-y-4">
+            <div className="flex justify-between text-lg items-center font-bold">
+              <p className="text-sm text-center">Desconto:</p>
+              <span>
+                <Input
+                  id="desconto"
+                  value={desconto}
+                  onChange={(e) => setDesconto(Number(e.target.value))}
+                  placeholder="informe o valor do desconto"
+                  className=" items-end"
+                />
+              </span>
+            </div>
             <div className="flex justify-between text-lg font-bold">
               <span>Total:</span>
               <span>
-                {total().toLocaleString('pt-BR', {
+                {totalDesconto.toLocaleString('pt-BR', {
                   style: 'currency',
                   currency: 'BRL',
                 })}
@@ -389,124 +359,75 @@ export default function VendasPage() {
         </div>
       </div>
       {/* Modal finalizar Venda */}
-      <Dialog open={isPaymentDialogOpen} onOpenChange={setIsPaymentDialogOpen}>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>Finalizar Venda</DialogTitle>
-            <DialogDescription>
-              Selecione o método de pagamento e informe o cliente.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="customer" className="text-right">
-                Cliente
-              </Label>
-              <Input
-                id="customer"
-                value={customerName}
-                onChange={(e) => setCustomerName(e.target.value)}
-                placeholder="Nome do cliente (opcional)"
-                className="col-span-3"
-              />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="payment" className="text-right">
-                Pagamento
-              </Label>
-              <Select value={paymentMethod} onValueChange={setPaymentMethod}>
-                <SelectTrigger className="col-span-3">
-                  <SelectValue placeholder="Selecione o método de pagamento" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="dinheiro">Dinheiro</SelectItem>
-                  <SelectItem value="cartao_credito">
-                    Cartão de Crédito
-                  </SelectItem>
-                  <SelectItem value="cartao_debito">
-                    Cartão de Débito
-                  </SelectItem>
-                  <SelectItem value="pix">PIX</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <div className="col-span-4 text-right text-lg font-bold">
-                Total:{' '}
-                {total().toLocaleString('pt-BR', {
-                  style: 'currency',
-                  currency: 'BRL',
-                })}
-              </div>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button type="submit" onClick={handleCompleteSale}>
-              Concluir Venda
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Modal Ver comprovante da Venda */}
-      <Dialog open={isReceiptDialogOpen} onOpenChange={setIsReceiptDialogOpen}>
-        <DialogContent className="sm:max-w-[500px]">
-          <DialogHeader>
-            <DialogTitle>Comprovante de Venda</DialogTitle>
-            <DialogDescription>Venda realizada com sucesso!</DialogDescription>
-          </DialogHeader>
-          {receiptData && (
-            <div className="py-4 space-y-4">
-              <div className="border-b pb-2">
-                <p className="font-bold">PDV System</p>
-                <p className="text-sm text-muted-foreground">
-                  {receiptData.date.toLocaleString('pt-BR')}
-                </p>
-                <p className="text-sm">Cliente: {receiptData.customerName}</p>
-              </div>
-              <div className="space-y-2">
-                <p className="font-semibold">Itens:</p>
-                {receiptData.items.map((item: any, index: number) => (
-                  <div key={index} className="flex justify-between text-sm">
-                    <span>
-                      {item.quantity}x {item.productName}
-                    </span>
-                    <span>
-                      {item.total.toLocaleString('pt-BR', {
-                        style: 'currency',
-                        currency: 'BRL',
-                      })}
-                    </span>
-                  </div>
-                ))}
-              </div>
-              <div className="border-t pt-2 flex justify-between font-bold">
-                <span>Total:</span>
-                <span>
-                  {receiptData.total.toLocaleString('pt-BR', {
-                    style: 'currency',
-                    currency: 'BRL',
-                  })}
-                </span>
-              </div>
-              <div className="text-sm">
-                <p className="text-sm text-muted-foreground">
-                  Método de Pagamento
-                </p>
-                <p className="font-medium">
-                  {paymentMethods[receiptData.paymentMethod as PaymentMethod] ||
-                    'Desconhecido'}
-                </p>
-              </div>
-            </div>
-          )}
-          <DialogFooter>
-            <Button type="button" onClick={handleCloseReceipt}>
-              Fechar
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <FinalizeSaleModal
+        open={isPaymentDialogOpen}
+        onOpenChange={setIsPaymentDialogOpen}
+        reqPedidos={{
+          desconto: desconto,
+          total: totalDesconto,
+          produtos: items,
+        }}
+      />
     </div>
   );
 }
+
+
+// {/* <Dialog open={isReceiptDialogOpen} onOpenChange={setIsReceiptDialogOpen}>
+//   <DialogContent className="sm:max-w-[500px]">
+//     <DialogHeader>
+//       <DialogTitle>Comprovante de Venda</DialogTitle>
+//       <DialogDescription>Venda realizada com sucesso!</DialogDescription>
+//     </DialogHeader>
+//     {receiptData && (
+//       <div className="py-4 space-y-4">
+//         <div className="border-b pb-2">
+//           <p className="font-bold">PDV System</p>
+//           <p className="text-sm text-muted-foreground">
+//             {receiptData.date.toLocaleString('pt-BR')}
+//           </p>
+//           <p className="text-sm">Cliente: {receiptData.customerName}</p>
+//         </div>
+//         <div className="space-y-2">
+//           <p className="font-semibold">Itens:</p>
+//           {receiptData.items.map((item: any, index: number) => (
+//             <div key={index} className="flex justify-between text-sm">
+//               <span>
+//                 {item.quantity}x {item.productName}
+//               </span>
+//               <span>
+//                 {item.total.toLocaleString('pt-BR', {
+//                   style: 'currency',
+//                   currency: 'BRL',
+//                 })}
+//               </span>
+//             </div>
+//           ))}
+//         </div>
+//         <div className="border-t pt-2 flex justify-between font-bold">
+//           <span>Total:</span>
+//           <span>
+//             {receiptData.total.toLocaleString('pt-BR', {
+//               style: 'currency',
+//               currency: 'BRL',
+//             })}
+//           </span>
+//         </div>
+//         <div className="text-sm">
+//           <p className="text-sm text-muted-foreground">
+//             Método de Pagamento
+//           </p>
+//           <p className="font-medium">
+//             {paymentMethods[receiptData.paymentMethod as PaymentMethod] ||
+//               'Desconhecido'}
+//           </p>
+//         </div>
+//       </div>
+//     )}
+//     <DialogFooter>
+//       <Button type="button" onClick={handleCloseReceipt}>
+//         Fechar
+//       </Button>
+//     </DialogFooter>
+//   </DialogContent>
+// </Dialog> */}

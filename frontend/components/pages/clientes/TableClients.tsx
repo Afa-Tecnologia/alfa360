@@ -21,7 +21,7 @@ import { formatCurrency } from './format-currency';
 import { UpdateClient } from './modals/Update-Clients';
 import { ViewDetails } from './modals/View-Details-Clients';
 import { DeleteClient } from './modals/Delete-Client';
-import { deleteClient } from '@/services/clientes/DeleteClient';
+import CustomerService from '@/services/clientes/CustomerServices';
 
 interface CustomersList {
   customers: Customer[];
@@ -45,7 +45,7 @@ export function TableViewClient({ customers }: CustomersList) {
   };
   const handleDeleteCustomer = async (clientId: number) => {
     try {
-      await deleteClient({ id: clientId });
+      await CustomerService.deleteClient(clientId);
       deleteCustomer(clientId);
     
     } catch (error) {

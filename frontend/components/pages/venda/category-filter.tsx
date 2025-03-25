@@ -3,7 +3,8 @@
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
-import GetCategorys from "@/services/products/GetCategorys"
+import ProductService from "@/services/products/ProductServices"
+
 
 
 interface CategoryFilterProps {
@@ -19,7 +20,7 @@ export default function CategoryFilter({ onCategorySelect, selectedCategory }: C
     const fetchCategories = async () => {
       try {
         setIsLoading(true)
-        const categoriesData = await GetCategorys()
+        const categoriesData = await ProductService.getCategorys()
         setCategories(categoriesData)
       } catch (error) {
         console.error("Erro ao buscar categorias:", error)

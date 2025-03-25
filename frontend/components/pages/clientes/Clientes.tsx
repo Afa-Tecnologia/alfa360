@@ -10,8 +10,8 @@ import { SearchInput } from './SearchInputClients';
 import { FilterDialog } from './modals/FilterClientModal';
 import { Filter, RefreshCcw } from 'lucide-react';
 import ClientesLoading from './ClientLoading';
-import GetClients from '@/services/clientes/GetClients';
-import { refreshClients } from '@/services/clientes/refreshClients';
+
+import CustomerService from '@/services/clientes/CustomerServices';
 
 export default function ClientesPage() {
   const { customers, setCustomers } = useCustomerStore();
@@ -26,7 +26,7 @@ export default function ClientesPage() {
 
   useEffect(() => {
     const fetchClients = async () => {
-      const customersData = await GetClients();
+      const customersData = await CustomerService.getClients();
       setCustomers(customersData);
       setFilteredCustomers(customersData);
       setTimeout(() => {
@@ -80,7 +80,7 @@ export default function ClientesPage() {
               variant="outline"
               size="icon"
               onClick={() =>
-                refreshClients(setCustomers, setFilteredCustomers, setIsLoading)
+                CustomerService.refreshClients(setCustomers, setFilteredCustomers, setIsLoading)
               }
             >
               <RefreshCcw className="h-4 w-4" />

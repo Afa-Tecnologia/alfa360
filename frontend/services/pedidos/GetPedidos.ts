@@ -6,7 +6,7 @@ export default async function GetPedidos() {
     
         try {
             const response = await api.get(`/pedidos`); 
-            console.log(response.data)
+           // console.log(response.data)
             return response.data;
         } catch (error: any) {
             console.error("Erro ao buscar pedidos:", error);

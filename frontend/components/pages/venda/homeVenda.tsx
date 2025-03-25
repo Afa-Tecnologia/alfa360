@@ -1,433 +1,174 @@
-'use client';
+"use client"
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState } from "react"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { Search } from "lucide-react"
+import { useProductStore } from "@/stores/product-store"
+import GetPedidos from "@/services/pedidos/GetPedidos"
+import ProductService from "@/services/products/ProductServices"
+import Link from "next/link"
+import Image from "next/image"
+import OrdersSales from "@/services/pedidos/SalesOrders"
 
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { Search, ShoppingCart, Plus, Minus, Trash2 } from 'lucide-react';
-import { useProductStore } from '@/stores/product-store';
-import { useCartStore } from '@/stores/cart-store';
-import { useSaleStore } from '@/stores/sale-store';
-import GetCategorys from '@/services/products/GetCategorys';
-import GetProducts from '@/services/products/GetProducts';
-import GetPedidos from '@/services/pedidos/GetPedidos';
-import FinalizeSaleModal from './checkout/FinalizeSaleModal';
 
 interface Product {
-  id: number;
-  name: string;
-  description: string;
-  purchase_price: string;
-  selling_price: string;
-  quantity: number;
-  type: string;
-  image: string | null;
-  brand: string;
-  code: string;
-  categoria_id: number;
-  created_at: string;
-  updated_at: string;
-  variants: any[];
+  id: number
+  name: string
+  description: string
+  purchase_price: string
+  selling_price: string
+  quantity: number
+  type: string
+  image: string | null
+  brand: string
+  code: string
+  categoria_id: number
+  created_at: string
+  updated_at: string
+  variants: any[]
+  sellingPrice?: number
+  category_id?: number
 }
 
-
-
 export default function VendasPage() {
-  const { products, setProducts } = useProductStore();
-  const { items, addItem, removeItem, updateQuantity, clearCart, total } =
-    useCartStore();
-  const [searchTerm, setSearchTerm] = useState('');
-  const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
-  const [categories, setCategories] = useState<any[]>([]);
-  const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
-  const [desconto, setDesconto] = useState<number>(0);
+  const { products, setProducts } = useProductStore()
+  const [searchTerm, setSearchTerm] = useState("")
+  const [categories, setCategories] = useState<any[]>([])
+  const [selectedCategory, setSelectedCategory] = useState<number | null>(null)
 
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        await GetPedidos();
-        const categoriesData = await GetCategorys();
-        setCategories(categoriesData);
-        const data = await GetProducts();
+      await OrdersSales.getPedidos()
+        const categoriesData = await ProductService.getCategorys()
+        setCategories(categoriesData)
+        const data = await ProductService.getProducts()
 
         const formattedData: Product[] = data.map((product: Product) => ({
           ...product,
           purchasePrice: product.purchase_price,
-          sellingPrice: product.selling_price,
+          sellingPrice: Number.parseFloat(product.selling_price),
           stock: product.quantity,
           category: product.categoria_id,
-        }));
+          category_id: product.categoria_id,
+        }))
 
-        setProducts(formattedData);
+        setProducts(formattedData)
       } catch (error) {
-        console.error('Erro ao buscar produtos:', error);
+        console.error("Erro ao buscar produtos:", error)
       }
-    };
+    }
 
-    fetchProducts();
-  }, []);
-
+    fetchProducts()
+  }, [setProducts])
   const filteredProducts = products.filter((product) => {
     // Filtro por termo de busca
     const matchesSearch =
-      product?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      product.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      product.brand.toLowerCase().includes(searchTerm.toLowerCase());
+      product?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      product?.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      product?.brand?.toLowerCase().includes(searchTerm.toLowerCase())
 
     // Filtro por categoria
-    const matchesCategory = selectedCategory
-      ? product.category_id === selectedCategory
-      : true;
+    const matchesCategory = selectedCategory ? product.category_id === selectedCategory : true
 
-    return matchesSearch && matchesCategory;
-  });
+    return matchesSearch && matchesCategory
+  })
 
-  const handleAddToCart = (productId: number) => {
-    const product = products.find((p) => p.id === productId);
-    if (product) {
-      addItem(product, 1);
-    }
-  };
-
-  const handleIncreaseQuantity = (productId: number) => {
-    const item = items.find((item) => item.product.id === productId);
-    if (item) {
-      updateQuantity(productId, item.quantity + 1);
-    }
-  };
-
-  const handleDecreaseQuantity = (productId: number) => {
-    const item = items.find((item) => item.product.id === productId);
-    if (item && item.quantity > 1) {
-      updateQuantity(productId, item.quantity - 1);
-    } else if (item) {
-      removeItem(productId);
-    }
-  };
-
-  const handleRemoveFromCart = (productId: number) => {
-    removeItem(productId);
-  };
-
-  const handleCompleteSale = () => {
-   
-    clearCart();
-  };
-
-  const handleFinalizeSale = () => {
-    if (items.length === 0) {
-      alert('Adicione produtos ao carrinho antes de finalizar a venda.');
-      return;
-    }
-
-
-    setIsPaymentDialogOpen(true);
-  };
-
-
-  const totalDesconto = Math.max(0, total() - desconto);
   return (
-    <div className="p-6 h-full">
-      <h1 className="text-3xl font-bold mb-6">Vendas</h1>
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 h-[calc(100vh-100px)] p-4">
+      <div className="md:col-span-2 space-y-4">
+        <div className="flex justify-between items-center mb-4">
+          <h1 className="text-2xl font-bold">Catálogo de Produtos</h1>
+          
+        </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 h-[calc(100vh-180px)]">
-        <div className="md:col-span-2 space-y-4">
-          {/* Busca de pedidos para venda */}
-          <div className="flex items-center space-x-2 relative">
-            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-            <Input
-              placeholder="Buscar produtos..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="flex-1 pl-8"
-            />
-          </div>
-          {/* end */}
+        {/* Busca de produtos */}
+        <div className="flex items-center space-x-2 relative">
+          <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+          <Input
+            placeholder="Buscar produtos..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="flex-1 pl-10"
+          />
+        </div>
 
-          {/* Categorias */}
-          <div className="flex overflow-x-auto space-x-2 pb-2">
+        {/* Categorias */}
+        <div className="flex overflow-x-auto space-x-2 pb-2">
+          <Button
+            variant={searchTerm === "" && !selectedCategory ? "default" : "outline"}
+            className="whitespace-nowrap"
+            onClick={() => {
+              setSearchTerm("")
+              setSelectedCategory(null)
+            }}
+          >
+            Todos
+          </Button>
+          {categories.map((category) => (
             <Button
-              variant={
-                searchTerm === '' && !selectedCategory ? 'default' : 'outline'
-              }
+              key={category.id}
+              variant={selectedCategory === category.id ? "default" : "outline"}
               className="whitespace-nowrap"
               onClick={() => {
-                setSearchTerm('');
-                setSelectedCategory(null);
+                setSelectedCategory(category.id)
+                setSearchTerm("")
               }}
             >
-              Todos
+              {category.name}
             </Button>
-            {categories.map((category) => (
-              <Button
-                key={category.id}
-                variant={
-                  selectedCategory === category.id ? 'default' : 'outline'
-                }
-                className="whitespace-nowrap"
-                onClick={() => {
-                  setSelectedCategory(category.id);
-                  setSearchTerm('');
-                }}
-              >
-                {category.name}
-              </Button>
-            ))}
-          </div>
-          {/* end */}
+          ))}
+        </div>
 
-          {/* Cards dos Pedidos para Venda */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 overflow-y-auto h-[calc(100vh-280px)] pr-2">
-            {filteredProducts.map((product) => (
-              <Card
-                key={product.id}
-                className="flex flex-col justify-between max-h-[300px] "
-              >
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-lg">{product.name}</CardTitle>
-                  <CardDescription className="line-clamp-2">
-                    {product.brand}
-                  </CardDescription>
+        {/* Grid de produtos */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 overflow-y-auto  pr-2">
+          {filteredProducts.map((product) => (
+            <div key={product.id}>
+            
+              <Card className="h-full hover:shadow-md transition-shadow cursor-pointer">
+                <div className="relative h-40 bg-gray-100">
+                  <Image
+                    src={product.image || "/placeholder.svg?height=200&width=300"}
+                    alt={product.name}
+                    fill
+                    className="object-cover rounded-t-lg"
+                  />
+                </div>
+                <CardHeader className="pb-2 pt-3">
+                  <CardTitle className="text-lg line-clamp-1">{product.name}</CardTitle>
+                  <CardDescription className="line-clamp-1">{product.brand}</CardDescription>
                 </CardHeader>
-                <CardContent>
-                  <p className="text-2xl font-bold">{`${product.sellingPrice} R$`}</p>
-                  <p className="text-sm text-muted-foreground">
-                    Estoque: {product.quantity} unidades
+                <CardContent className="pb-2">
+                  <p className="text-xl font-bold">
+                    {typeof product.sellingPrice === "number"
+                      ? product.sellingPrice.toLocaleString("pt-BR", {
+                          style: "currency",
+                          currency: "BRL",
+                        })
+                      : `R$ ${product.sellingPrice}`}
                   </p>
+                  <p className="text-sm text-muted-foreground">Estoque: {product.quantity} unidades</p>
                 </CardContent>
-                <CardFooter>
-                  <Button
-                    className="w-full"
-                    onClick={() => handleAddToCart(product.id)}
-                    disabled={product.quantity <= 0}
-                  >
-                    <ShoppingCart className="mr-2 h-4 w-4" /> Adicionar
+                <CardFooter className="pt-0">
+                  <Button variant='default'  className="w-full ">
+                  <Link href={`/dashboard/vendas/${product.id}`} key={product.id} >
+                    Ver detalhes
+                    </Link>
                   </Button>
                 </CardFooter>
               </Card>
-            ))}
-            {filteredProducts.length === 0 && (
-              <div className="col-span-full text-center py-10">
-                <p className="text-muted-foreground">
-                  Nenhum produto encontrado
-                </p>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* tabela de checkout da Venda */}
-        <div className="bg-muted/40 rounded-lg p-4 flex flex-col h-full">
-          <h2 className="text-xl font-bold mb-4 flex items-center">
-            <ShoppingCart className="mr-2 h-5 w-5" /> Carrinho
-          </h2>
-
-          <div className="flex-1 overflow-y-auto mb-4">
-            {items.length === 0 ? (
-              <div className="text-center py-10">
-                <p className="text-muted-foreground">Carrinho vazio</p>
-              </div>
-            ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Produto</TableHead>
-                    <TableHead className="text-right">Qtd</TableHead>
-                    <TableHead className="text-right">Preço</TableHead>
-                    <TableHead className="w-[50px]"></TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {items.map((item) => (
-                    <TableRow key={item.product.id}>
-                      <TableCell className="font-medium">
-                        {item.product.name}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex items-center justify-end space-x-2">
-                          <Button
-                            variant="outline"
-                            size="icon"
-                            className="h-6 w-6"
-                            onClick={() =>
-                              handleDecreaseQuantity(item.product.id)
-                            }
-                          >
-                            <Minus className="h-3 w-3" />
-                          </Button>
-                          <span>{item.quantity}</span>
-                          <Button
-                            variant="outline"
-                            size="icon"
-                            className="h-6 w-6"
-                            onClick={() =>
-                              handleIncreaseQuantity(item.product.id)
-                            }
-                          >
-                            <Plus className="h-3 w-3" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        {(
-                          item.product.sellingPrice * item.quantity
-                        ).toLocaleString('pt-BR', {
-                          style: 'currency',
-                          currency: 'BRL',
-                        })}
-                      </TableCell>
-                      <TableCell>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-6 w-6"
-                          onClick={() => handleRemoveFromCart(item.product.id)}
-                        >
-                          <Trash2 className="h-3 w-3" />
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            )}
-          </div>
-
-          <div className="border-t pt-4 space-y-4">
-            <div className="flex justify-between text-lg items-center font-bold">
-              <p className="text-sm text-center">Desconto:</p>
-              <span>
-                <Input
-                  id="desconto"
-                  value={desconto}
-                  onChange={(e) => setDesconto(Number(e.target.value))}
-                  placeholder="informe o valor do desconto"
-                  className=" items-end"
-                />
-              </span>
             </div>
-            <div className="flex justify-between text-lg font-bold">
-              <span>Total:</span>
-              <span>
-                {totalDesconto.toLocaleString('pt-BR', {
-                  style: 'currency',
-                  currency: 'BRL',
-                })}
-              </span>
+          ))}
+          {filteredProducts.length === 0 && (
+            <div className="col-span-full text-center py-10">
+              <p className="text-muted-foreground">Nenhum produto encontrado</p>
             </div>
-            <Button
-              className="w-full"
-              size="lg"
-              onClick={handleFinalizeSale}
-              disabled={items.length === 0}
-            >
-              Finalizar Venda
-            </Button>
-          </div>
+          )}
         </div>
-      </div>
-      {/* Modal finalizar Venda */}
-      <FinalizeSaleModal
-        open={isPaymentDialogOpen}
-        onOpenChange={setIsPaymentDialogOpen}
-        reqPedidos={{
-          desconto: desconto,
-          total: totalDesconto,
-          produtos: items,
-        }}
-      />
+      </div> 
     </div>
-  );
+  )
 }
 
-
-// {/* <Dialog open={isReceiptDialogOpen} onOpenChange={setIsReceiptDialogOpen}>
-//   <DialogContent className="sm:max-w-[500px]">
-//     <DialogHeader>
-//       <DialogTitle>Comprovante de Venda</DialogTitle>
-//       <DialogDescription>Venda realizada com sucesso!</DialogDescription>
-//     </DialogHeader>
-//     {receiptData && (
-//       <div className="py-4 space-y-4">
-//         <div className="border-b pb-2">
-//           <p className="font-bold">PDV System</p>
-//           <p className="text-sm text-muted-foreground">
-//             {receiptData.date.toLocaleString('pt-BR')}
-//           </p>
-//           <p className="text-sm">Cliente: {receiptData.customerName}</p>
-//         </div>
-//         <div className="space-y-2">
-//           <p className="font-semibold">Itens:</p>
-//           {receiptData.items.map((item: any, index: number) => (
-//             <div key={index} className="flex justify-between text-sm">
-//               <span>
-//                 {item.quantity}x {item.productName}
-//               </span>
-//               <span>
-//                 {item.total.toLocaleString('pt-BR', {
-//                   style: 'currency',
-//                   currency: 'BRL',
-//                 })}
-//               </span>
-//             </div>
-//           ))}
-//         </div>
-//         <div className="border-t pt-2 flex justify-between font-bold">
-//           <span>Total:</span>
-//           <span>
-//             {receiptData.total.toLocaleString('pt-BR', {
-//               style: 'currency',
-//               currency: 'BRL',
-//             })}
-//           </span>
-//         </div>
-//         <div className="text-sm">
-//           <p className="text-sm text-muted-foreground">
-//             Método de Pagamento
-//           </p>
-//           <p className="font-medium">
-//             {paymentMethods[receiptData.paymentMethod as PaymentMethod] ||
-//               'Desconhecido'}
-//           </p>
-//         </div>
-//       </div>
-//     )}
-//     <DialogFooter>
-//       <Button type="button" onClick={handleCloseReceipt}>
-//         Fechar
-//       </Button>
-//     </DialogFooter>
-//   </DialogContent>
-// </Dialog> */}

@@ -13,7 +13,7 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { updateClient } from '@/services/clientes/UpdateClients';
+import CustomerService from '@/services/clientes/CustomerServices';
 import { Customer, useCustomerStore } from '@/stores/customer-store';
 import { gerarNotificacao } from '@/utils/toast';
 import { useEffect, useState } from 'react';
@@ -37,7 +37,7 @@ interface EditModalProps {
   const handleEditCustomer = async () => {
     if (currentCustomer) {
       try {
-        await updateClient(currentCustomer); // Chama a API de atualização
+        await CustomerService.updateClient(currentCustomer); // Chama a API de atualização
         gerarNotificacao("success", "Cliente atualizado com sucesso!");
         updateCustomer(currentCustomer.id, currentCustomer); // Atualiza no estado global
         onOpenChange(false);

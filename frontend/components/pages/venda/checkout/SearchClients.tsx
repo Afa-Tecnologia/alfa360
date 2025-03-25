@@ -16,8 +16,8 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
-import GetClients from '@/services/clientes/GetClients';
 import { useEffect, useState } from 'react';
+import CustomerService from '@/services/clientes/CustomerServices';
 
 interface Cliente {
   id: number;
@@ -38,7 +38,7 @@ export function SearchClients({ onSelectCliente }: SearchClientsProps) {
   useEffect(() => {
     const fetchClients = async () => {
       try {
-        const customersData = await GetClients();
+        const customersData = await CustomerService.getClients();
         setCustomers(customersData);
       } catch (error) {
         console.error('Erro ao buscar clientes:', error);

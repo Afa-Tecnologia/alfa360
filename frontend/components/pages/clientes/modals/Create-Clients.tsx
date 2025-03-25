@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { createClient } from '@/services/clientes/CreateClient';
+import CustomerService from '@/services/clientes/CustomerServices';
 import { useCustomerStore } from '@/stores/customer-store';
 import { gerarNotificacao } from '@/utils/toast';
 import { useState } from 'react';
@@ -34,7 +34,7 @@ export function CreateClient() {
 
   const handleAddCustomer = async () => {
     try {
-      const response = await createClient(newCustomer);
+      const response = await CustomerService.createClient(newCustomer);
       addCustomer(response); // Atualiza o estado com o cliente criado na API
       setNewCustomer({
         name: '',

@@ -31,6 +31,7 @@ import EditProductForm from './ProductEditForm';
 import { gerarNotificacao } from '@/utils/toast';
 import { api } from '@/app/api/api';
 import NoData from '../Semdados/NoData';
+import { ProductsTable } from '../admin/products-table';
 
 export default function ProductListingInTable() {
   const {
@@ -157,7 +158,7 @@ export default function ProductListingInTable() {
         </Button>
       </div>
 
-      {paginatedProducts.length === 0 ? (
+      {/* {paginatedProducts.length === 0 ? (
         <NoData name="Produto" />
       ) : (
         <div className="border rounded-md">
@@ -242,7 +243,8 @@ export default function ProductListingInTable() {
             </TableBody>
           </Table>
         </div>
-      )}
+      )} */}
+      {paginatedProducts.length > 0 && <ProductsTable product={paginatedProducts} />}
 
       <div className="flex justify-between items-center">
         <div className="flex gap-2 items-center">

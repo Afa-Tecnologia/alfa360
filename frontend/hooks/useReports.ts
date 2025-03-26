@@ -1,13 +1,13 @@
 import { useState, useEffect } from 'react';
 import { format, startOfMonth, endOfMonth } from 'date-fns';
 import {
-  reportService,
   SalesReportFilters,
   SalesSummary,
   CategorySales,
   ProductSales,
   CommissionSummary,
-} from '@/lib/services/ReportService';
+} from '@/types/reports';
+import { reportService } from '@/lib/services/ReportService';
 
 export function useReports() {
   const [activeTab, setActiveTab] = useState('vendas');

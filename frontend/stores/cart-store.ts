@@ -7,16 +7,19 @@ export type CartItem = {
 };
 
 type CartStore = {
+  discount: number;
   items: CartItem[];
   addItem: (product: Product, quantity: number) => void;
   removeItem: (productId: number) => void;
   updateQuantity: (productId: number, quantity: number) => void;
+  setDiscount: (discount: number) => void;
   clearCart: () => void;
   total: () => number;
 };
 
 export const useCartStore = create<CartStore>((set, get) => ({
   items: [],
+  discount: 0, // Estado para o desconto
 
   addItem: (product, quantity) => {
     set((state) => {
@@ -25,13 +28,15 @@ export const useCartStore = create<CartStore>((set, get) => ({
       if (existingItem) {
         return {
           items: state.items.map((item) =>
-            item.product.id === product.id ? { ...item, quantity: item.quantity + quantity } : item
+            item.product.id === product.id
+              ? { ...item, quantity: item.quantity + quantity }
+              : item
           ),
         };
       }
 
       return {
-        items: [...state.items, { product, quantity }],
+        items: [...state.items, { product, quantity }], // Removido desconto (não existe em CartItem)
       };
     });
   },
@@ -50,11 +55,19 @@ export const useCartStore = create<CartStore>((set, get) => ({
     }));
   },
 
+  setDiscount: (discount) => {
+    set({ discount });
+  },
+
   clearCart: () => {
-    set({ items: [] });
+    set({ items: [], discount: 0 }); // Reseta o desconto ao limpar o carrinho
   },
 
   total: () => {
-    return get().items.reduce((total, item) => total + item.product.sellingPrice * item.quantity, 0);
+    const subtotal = get().items.reduce(
+      (total, item) => total + item.product.sellingPrice * item.quantity,
+      0
+    );
+    return subtotal - get().discount; // Aplica o desconto ao total
   },
 }));

@@ -13,7 +13,8 @@ export type Sale = {
   id: string
   items: SaleItem[]
   total: number
-  paymentMethod: string
+  desconto: number
+  paymentMethod?: string
   createdAt: Date
   customerId?: string
   customerName?: string

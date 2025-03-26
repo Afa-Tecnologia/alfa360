@@ -17,7 +17,7 @@ export const metadata: Metadata = {
   title: 'Alfa Manager - Alfa Tecnologia',
   description: 'Software de gestão de vendas desenvolvido por alfa tecnologia',
 };
-const inter = Inter({ subsets: ["latin"] })
+const inter = Inter({ subsets: ['latin'] });
 
 export default function RootLayout({
   children,
@@ -26,16 +26,17 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-             <body className={inter.className} suppressHydrationWarning>  
-      {/* <ThemeProvider
-      attribute="class"
-      defaultTheme="system"
-      enableSystem
-      disableTransitionOnChange
-    > */}
-        <ToastContainer />
-        {children}
-        {/* </ThemeProvider> */}
+      <body className={inter.className} suppressHydrationWarning>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <ToastContainer />
+          {children}
+        </ThemeProvider>
+
       </body>
     </html>
   );

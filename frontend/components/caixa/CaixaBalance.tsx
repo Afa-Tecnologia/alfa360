@@ -73,10 +73,10 @@
 import { DollarSign, TrendingDown, TrendingUp } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { useEffect, useState } from 'react';
-import { caixaService } from '@/utils/caixaService';
+import { caixaService } from '@/lib/services/CaixaService';
 import { IReports, IStatus } from '@/types/caixa';
 import { gerarNotificacao } from '@/utils/toast';
-import { Skeleton } from '../ui/skeleton';// Importando o Skeleton
+import { Skeleton } from '../ui/skeleton'; // Importando o Skeleton
 
 interface ICaixaBalance {
   status: IStatus;
@@ -118,7 +118,9 @@ export default function CaixaBalance({ status }: ICaixaBalance) {
               R$ {Number(balance.total_entradas) - Number(balance.total_saidas)}
             </div>
           )}
-          <p className="text-xs text-muted-foreground">ID Do caixa: {status.id}</p>
+          <p className="text-xs text-muted-foreground">
+            ID Do caixa: {status.id}
+          </p>
         </CardContent>
       </Card>
 
@@ -158,4 +160,3 @@ export default function CaixaBalance({ status }: ICaixaBalance) {
     </div>
   );
 }
-

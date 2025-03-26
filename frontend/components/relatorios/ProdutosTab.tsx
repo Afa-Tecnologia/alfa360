@@ -1,6 +1,6 @@
 'use client';
 
-import { ProductSales } from '@/lib/services/ReportService';
+import { ProductSales } from '@/types/reports';
 import {
   Card,
   CardContent,

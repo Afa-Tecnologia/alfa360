@@ -38,7 +38,7 @@ import { gerarNotificacao } from '@/utils/toast';
 import { cleanUrl } from '../estoquenovo/utils/replaceImagesUrl';
 
 interface IProductTable {
-  product: Product[];
+  product?: Product[];
 }
 
 export function ProductsTable(props: IProductTable) {

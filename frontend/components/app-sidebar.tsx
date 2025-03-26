@@ -145,7 +145,6 @@ const data = {
 };
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const pathRoute = useSearchParams();
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>

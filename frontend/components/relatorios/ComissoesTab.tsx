@@ -1,6 +1,6 @@
 'use client';
 
-import { CommissionSummary } from '@/lib/services/ReportService';
+import { CommissionSummary } from '@/types/reports';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   BarChart,

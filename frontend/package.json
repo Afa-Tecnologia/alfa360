@@ -42,6 +42,7 @@
     "nextjs": "^0.0.3",
     "npm": "^11.1.0",
     "react": "^19.0.0",
+    "react-day-picker": "^9.6.3",
     "react-dom": "^19.0.0",
     "react-dropzone": "^14.3.5",
     "react-hook-form": "^7.54.2",

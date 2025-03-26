@@ -42,9 +42,8 @@ const data = {
       name: 'LesAmis',
       logo: GalleryVerticalEnd,
       plan: 'Premium',
-      url: '/dashboard'
+      url: '/dashboard',
     },
-   
   ],
   navMain: [
     {
@@ -62,8 +61,16 @@ const data = {
           url: '/dashboard/estoque',
         },
         {
+          title: 'Categorias',
+          url: '/dashboard/categorias',
+        },
+        {
           title: 'Caixa',
           url: '/dashboard/caixa',
+        },
+        {
+          title: 'Relatórios',
+          url: '/dashboard/relatorios',
         },
         {
           title: 'Sangria',
@@ -112,31 +119,29 @@ const data = {
       ],
     },
     {
-      title: "Configurações",
-      url: "#",
+      title: 'Configurações',
+      url: '#',
       icon: Settings2,
       items: [
         {
-          title: "Configurações da loja",
-          url: "#",
+          title: 'Configurações da loja',
+          url: '#',
         },
         {
-          title: "Usuários do Sistema",
-          url: "#",
+          title: 'Usuários do Sistema',
+          url: '#',
         },
         {
-          title: "Billing",
-          url: "#",
+          title: 'Billing',
+          url: '#',
         },
         {
-          title: "Limits",
-          url: "#",
+          title: 'Limits',
+          url: '#',
         },
       ],
     },
-    
   ],
- 
 };
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {

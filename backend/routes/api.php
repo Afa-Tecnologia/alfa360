@@ -12,7 +12,8 @@ use App\Http\Controllers\Variantes\VariantesController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Commissions\CommissionsController;
-use App\Http\Controllers\Woocommerce\ProductController;
+use App\Http\Controllers\Relatorios\RelatoriosController;
+use App\Http\Middleware\ComissionsMiddleware;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -37,6 +38,7 @@ Route::prefix('produtos')->middleware('auth:sanctum')->group(function () {
     Route::post('/', [ProdutoController::class, 'store']);
     Route::put('/{id}', [ProdutoController::class, 'update']);
     Route::delete('{id}', [ProdutoController::class, 'delete']);
+    Route::delete('/', [ProdutoController::class, 'batchDelete']);
 });
 
 Route::prefix('pedidos')->middleware('auth:sanctum')->group(function () {
@@ -44,16 +46,25 @@ Route::prefix('pedidos')->middleware('auth:sanctum')->group(function () {
     Route::get('{id}', [PedidosController::class, 'show']);
     Route::get('/categoria/{id}', [PedidosController::class, 'findByCategory']);
     Route::get('/tipo/{tipo}', [PedidosController::class, 'findByType']);
-    Route::post('/', [PedidosController::class, 'store']);
+    Route::post('/', [PedidosController::class, 'store'])->middleware(ComissionsMiddleware::class);
     Route::put('/{id}', [PedidosController::class, 'update']);
     Route::delete('{id}', [PedidosController::class, 'delete']);
 });
 
-Route::prefix('comissoes')->middleware('auth:sanctum')->group(function () {
-    Route::get('/', [CommissionsController::class, 'index']); // Comissões do mês atual
-    Route::get('/vendedor/{id}', [CommissionsController::class, 'comissaoPorVendedor']); // Consolidado por vendedora
-    Route::get('/vendedor/{id}/comissoes', [CommissionsController::class, 'getCommissionsByVendedorAndDate']);
+Route::prefix('relatorios')->middleware('auth:sanctum')->group(function () {
+    Route::get('/resumo', [RelatoriosController::class, 'getSalesSummary']);
+    Route::get('/por-categoria', [RelatoriosController::class, 'getSalesByCategory']);
+    Route::get('/produtos-mais-vendidos', [RelatoriosController::class, 'getTopProducts']);
+    Route::get('/receita-por-periodo', [RelatoriosController::class, 'getRevenueByPeriod']);
+    
+    Route::prefix('comissoes')->group(function () {
+        Route::get('/', [CommissionsController::class, 'index']); // Comissões do mês atual
+        Route::get('/vendedor/{id}', [CommissionsController::class, 'getCommissionsByVendedor']);
+        Route::get('/vendedor/{id}/comissoes', [CommissionsController::class, 'getCommissionsByVendedorAndDate']);
+    });
 });
+
+
 
 Route::prefix('categorias')->middleware('auth:sanctum')->group(function () {
     Route::get('/', [CategoriasController::class, 'index']);
@@ -77,14 +88,6 @@ Route::prefix('variantes')->middleware('auth:sanctum')->group(function () {
     Route::post('/', [VariantesController::class, 'store']);
     Route::put('{id}', [VariantesController::class, 'update']);
     Route::delete('{id}', [VariantesController::class, 'delete']);
-});
-
-Route::prefix('imagens')->middleware('auth:sanctum')->group(function () {
-    Route::get('/', [ImagemController::class, 'index']);
-    Route::get('{id}', [ImagemController::class, 'show']);
-    Route::post('/', [ImagemController::class, 'store']);
-    Route::put('{id}', [ImagemController::class, 'update']);
-    Route::delete('{id}', [ImagemController::class, 'delete']);
 });
 
 Route::middleware('auth:sanctum')->group(function () {

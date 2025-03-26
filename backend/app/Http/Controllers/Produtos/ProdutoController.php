@@ -103,11 +103,30 @@ class ProdutoController extends Controller
 
     public function delete($id)
     {
+        if(!isset($id)) {
+            return response()->json(['error' => 'ID do produto não informado'], Response::HTTP_BAD_REQUEST);
+        }
+
+        $searchProduto = $this->produtoService->getById($id);
+
+        if(!$searchProduto) {
+            return response()->json(['error' => 'Produto não encontrado'], Response::HTTP_NOT_FOUND);
+        }
+
         try {
             return $this->produtoService->delete($id);
             return response()->json(['message' => 'Produto DELETADO com sucesso'], Response::HTTP_OK);
         } catch (\Exception $e) {
             return response()->json(['error' => 'Erro ao deletar produto', 'message' => $e->getMessage()], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
+    }
+
+    public function batchDelete(Request $request)
+    {
+        $ids = $request->ids;
+        if(!$ids) {
+            return response()->json(['error' => 'IDs dos produtos não informados'], Response::HTTP_BAD_REQUEST);
+        }
+        return $this->produtoService->batchDelete($ids);
     }
 }

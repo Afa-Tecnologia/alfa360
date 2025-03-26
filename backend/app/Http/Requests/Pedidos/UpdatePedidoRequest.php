@@ -40,6 +40,7 @@ class UpdatePedidoRequest extends FormRequest
             'produtos' => 'sometimes|array',
             'produtos.*.produto_id' => 'required_with:produtos|exists:produtos,id',
             'produtos.*.quantidade' => 'required_with:produtos|integer|min:1',
+            'produtos.*.variante_id' => 'nullable|exists:variantes,id',
         ];
     }
 
@@ -58,6 +59,7 @@ class UpdatePedidoRequest extends FormRequest
             'produtos.*.quantidade.required_with' => 'A quantidade é obrigatória',
             'produtos.*.quantidade.integer' => 'A quantidade deve ser um número inteiro',
             'produtos.*.quantidade.min' => 'A quantidade deve ser maior que zero',
+            'produtos.*.variante_id.exists' => 'Variante não encontrada',
         ];
     }
 

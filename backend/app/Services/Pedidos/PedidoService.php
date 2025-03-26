@@ -7,15 +7,20 @@ use App\Models\PedidosProduto;
 use App\Models\Produto;
 use App\Models\Commission;
 use App\Services\Caixa\CaixaService;
+use App\Services\EstoqueService;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class PedidoService
 {
     protected $caixaService;
+    protected $estoqueService;
+    protected $comissionsService;
 
-    public function __construct(CaixaService $caixaService)
+    public function __construct(CaixaService $caixaService, EstoqueService $estoqueService)
     {
         $this->caixaService = $caixaService;
+        $this->estoqueService = $estoqueService;
     }
 
     public function create(array $data)
@@ -26,7 +31,6 @@ class PedidoService
             $pedido = Pedido::create([
                 'vendedor_id' => $data['vendedor_id'],
                 'cliente_id' => $data['cliente_id'],
-                'categoria_id' => $data['categoria_id'],
                 'type' => $data['type'],
                 'payment_method' => $data['payment_method'],
                 'total' => 0,
@@ -37,8 +41,7 @@ class PedidoService
 
             // Aplicar desconto se houver
             $total = $this->aplicarDesconto($total, $data['desconto'] ?? 0);
-
-            $pedido->update(['total' => round($total, 2)]);
+            $pedido->update(['total' => $total]);
 
 
             //Verifico se o caixa está aberto
@@ -50,6 +53,7 @@ class PedidoService
                 throw new \Exception("Não há caixa aberto para registrar movimentação.");
             }
 
+            
             DB::commit();
 
             return $pedido;
@@ -98,12 +102,89 @@ class PedidoService
         return $total;
     }
 
-    private function aplicarDesconto(float $total, float $desconto)
+    public function aplicarDesconto(float $total, float $desconto)
     {
         if ($desconto > 0) {
             $total -= $total * ($desconto / 100);
         }
+        return round($total, 2);
+    }
+
+    public function processarProdutosNoPedido(Pedido $pedido, array $produtos)
+    {
+        $total = 0;
+        
+        foreach ($produtos as $item) {
+            // Verifica se o produto existe
+            $produto = Produto::findOrFail($item['produto_id']);
+            
+            // Verifica se existe quantidade ou quantity no item
+            $quantidade = $item['quantidade'] ?? $item['quantity'] ?? 0;
+            
+            $subtotal = $produto->selling_price * $quantidade;
+            
+            // Associa o produto ao pedido
+            $pedido->produtos()->attach($produto->id, [
+                'quantity' => $quantidade,
+                'selling_price' => $produto->selling_price,
+            ]);
+            
+            $total += $subtotal;
+            
+            // Reduz o estoque da variante se houver variante_id
+            if (isset($item['variante_id']) && $item['variante_id']) {
+                try {
+                    $this->estoqueService->reduzirEstoqueVariante(
+                        $item['variante_id'], 
+                        $quantidade
+                    );
+                    $this->estoqueService->reduzirEstoqueProduto(
+                        $item['produto_id'], 
+                        $quantidade
+                    );
+                } catch (\Exception $e) {
+                    Log::error("Erro ao reduzir estoque da variante {$item['variante_id']}: " . $e->getMessage());
+                    // Não interrompemos o processamento, apenas logamos o erro
+                }
+            }
+        }
+        
         return $total;
+    }
+    
+    public function processarAtualizacaoDeProdutos(Pedido $pedido, array $produtos)
+    {
+        // Remover todos os produtos antigos
+        $pedido->produtos()->detach();
+        
+        return $this->processarProdutosNoPedido($pedido, $produtos);
+    }
+    
+    public function verificarDisponibilidadeEstoqueProdutos(array $produtos)
+    {
+        $itensEstoque = [];
+        foreach ($produtos as $item) {
+            // Verificar estoque somente para itens com variante_id
+            if (isset($item['variante_id'])) {
+                // Verifica se existe quantidade ou quantity no item
+                $quantidade = $item['quantidade'] ?? $item['quantity'] ?? null;
+                
+                if ($quantidade !== null) {
+                    $itensEstoque[] = [
+                        'variante_id' => $item['variante_id'],
+                        'quantity' => $quantidade
+                    ];
+                }
+            }
+        }
+        
+        // Se não houver itens com variante_id, não é necessário verificar estoque
+        if (empty($itensEstoque)) {
+            return true;
+        }
+        
+        // Verifica disponibilidade apenas para os itens que têm variante_id
+        return $this->estoqueService->verificarDisponibilidadeEstoque($itensEstoque);
     }
 
     public function getAll()

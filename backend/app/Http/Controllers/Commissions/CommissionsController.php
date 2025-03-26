@@ -21,59 +21,19 @@ class CommissionsController extends Controller
 
     public function index()
     {
-        $comissoes = $this->commissionService->getCommissionsForCurrentMonth();
+        $comissoes = $this->commissionService->getAllCommissions();
         return response()->json($comissoes);
     }
 
-    //Traz um consolidado de todas as comissões de determinado vendedor
-    public function comissaoPorVendedor($id)
-    {
-        try {
-            // $vendedorId = $request->input('vendedor_id');
-            $vendedorId = $id;
-            // $startDate = $request->input('start_date');
-            // $endDate = $request->input('end_date');
-
-            // Recuperando as comissões do vendedor dentro do período
-            $comissoes = Commission::where('vendedor_id', $vendedorId)
-                ->get();
-
-            $totalComissao = $comissoes->sum('valor');
-
-            return response()->json([
-                'vendedor_id' => $vendedorId,
-                'comissao_total' => $totalComissao,
-                'comissoes' => $comissoes
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'error' => 'Erro ao buscar comissões',
-                'message' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
-            ], Response::HTTP_INTERNAL_SERVER_ERROR);
-        }
+    public function getCommissionsByVendedor($vendedorId){
+        $comissoes = $this->commissionService->getCommissionsByVendedor($vendedorId);
+        return response()->json($comissoes);
     }
 
-    //Comissão por vendedor em determinada data
-    public function getCommissionsByVendedorAndDate($id, Request $request)
-    {
-        $dataInicial = $request->query('data_inicial');
-        $dataFinal = $request->query('data_final');
-
-        try {
-            $comissoes = $this->commissionService->getCommissionsByVendedoraAndDate(
-                $id,
-                $dataInicial,
-                $dataFinal
-            );
-
-            return response()->json($comissoes);
-        } catch (\Exception $e) {
-            return response()->json([
-                'error' => 'Erro ao buscar comissões',
-                'message' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
-            ], Response::HTTP_INTERNAL_SERVER_ERROR);
-        }
+    public function getCommissionsByVendedorAndDate($vendedorId, $dataInicial, $dataFinal){
+        $comissoes = $this->commissionService->getCommissionsByVendedorAndDate($vendedorId, $dataInicial, $dataFinal);
+        return response()->json($comissoes);
     }
+    
+    
 }

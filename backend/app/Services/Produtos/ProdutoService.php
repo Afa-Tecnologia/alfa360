@@ -4,14 +4,15 @@ namespace App\Services\Produtos;
 use App\Models\Produto;
 use App\Services\Variantes\VariantesService;
 use Illuminate\Support\Facades\DB;
-
+use App\Services\EstoqueService;
 class ProdutoService
 {
     protected $varianteService;
-    public function __construct(VariantesService $varianteService)
+    protected $estoqueService;
+    public function __construct(VariantesService $varianteService, EstoqueService $estoqueService)
     {
         $this->varianteService = $varianteService;
-        
+        $this->estoqueService = $estoqueService;
     }
     public function getAll()
     {
@@ -29,13 +30,17 @@ class ProdutoService
         return DB::transaction(function () use ($data) {
             
             $produto = Produto::create($data);
+            $stock = 0;
 
             if (!empty($data['variants']) && is_array($data['variants'])) {
                 foreach ($data['variants'] as $variantData) {
                     $variantData['produto_id'] = $produto->id;
                     $this->varianteService->create($variantData);
+                    $stock += $variantData['quantity'];
                 }
             }
+            $produto->quantity = $stock;
+            $produto->save();
 
             return $produto->load('variants');
         });
@@ -51,19 +56,26 @@ class ProdutoService
         if (isset($data['variants']) && is_array($data['variants'])) {
             foreach ($data['variants'] as $variantData) {
                 if (isset($variantData['id'])) {
-                    $this->varianteService->update($variantData['id'], $variantData);
+                    try {
+                        $this->varianteService->update($variantData['id'], $variantData);
+                    } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+                        $variantData['produto_id'] = $produto->id;
+                        $this->varianteService->create($variantData);
+                    }
                 } else {
-                    $this->varianteService->create($produto->id, $variantData);
+                    $variantData['produto_id'] = $produto->id;
+                    $this->varianteService->create($variantData);
                 }
             }
         }
-    
+        $this->estoqueService->atualizarEstoqueProduto($produto->id);
         return $produto->load('variants');
     }
     
 
     public function delete($id)
     {
+        
         $produto = Produto::findOrFail($id);
     
         foreach ($produto->variants as $variant) {
@@ -76,4 +88,22 @@ class ProdutoService
     
         return ['message' => 'Produto deletado com sucesso'];
     }
+
+    public function batchDelete(array $ids)
+    {
+        try {
+            foreach ($ids as $id) {
+                $produto = Produto::find($id);
+                if ($produto) {
+                    $produto->variants()->delete();
+                    $produto->delete();
+                }
+                
+            }
+            return ['message' => 'Produtos deletados com sucesso'];
+        } catch (\Exception $e) {
+            return ['error' => 'Erro ao deletar produtos', 'message' => $e->getMessage()];
+        }
+    }
+    
 }

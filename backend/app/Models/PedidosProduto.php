@@ -12,8 +12,8 @@ class PedidosProduto extends Model
     protected $fillable = [
         'pedido_id',
         'produto_id',
-        'quantity',
-        'selling_price',
+        'quantidade',
+        'preco_unitario',
     ];
 
     // Defina a chave primária, caso não seja 'id'

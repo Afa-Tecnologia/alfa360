@@ -21,7 +21,7 @@ class VariantesController extends Controller
     public function index()
     {
         $variants = Variantes::all()->map(function ($variant) {
-            $variant->images = json_decode($variant->images, true); // ✅ Transforma JSON de volta para array
+            // $variant->images = json_decode($variant->images, true); // ✅ Transforma JSON de volta para array
             return $variant;
         });
 
@@ -38,8 +38,8 @@ class VariantesController extends Controller
             'size' => 'required|string',
             'quantity' => 'required|integer',
             'active' => 'boolean',
-            'images' => 'array',  // ✅ Confirma que images é um array
-            'images.*' => 'url'   // ✅ Confirma que cada imagem é uma URL válida
+            'images' => 'array', 
+            'images.*' => 'url'   
         ]);
 
         $variant = Variantes::create([
@@ -50,7 +50,7 @@ class VariantesController extends Controller
             'size' => $request->size,
             'quantity' => $request->quantity,
             'active' => $request->active ?? true,
-            'images' => json_encode($request->images) // ✅ Salva o array como JSON
+            'images' => json_encode($request->images)
         ]);
 
         return response()->json($variant, 201);
@@ -61,7 +61,7 @@ class VariantesController extends Controller
     public function show($id)
     {
         $variante = $this->varianteService->getById($id);
-        $variante->images = json_decode($variante->images, true);
+        // $variante->images = json_decode($variante->images, true);
         if (!$variante) {
             return response()->json(
                 ['error' => 'Variante não encontrado'],

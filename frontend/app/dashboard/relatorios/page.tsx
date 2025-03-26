@@ -1,3 +1,4 @@
+
 import Relatorios from "@/components/pages/Relatorios";
 
 export default function Page() {
@@ -6,3 +7,4 @@ export default function Page() {
   );
 }
   
+

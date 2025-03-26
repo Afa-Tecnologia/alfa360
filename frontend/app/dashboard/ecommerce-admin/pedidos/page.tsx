@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Search } from "lucide-react"
 import { AdminOrdersTable } from "@/components/admin/admin-orders-table"
-import VendasPage from "@/components/admin/historico-vendas"
+
 
 export default function AdminOrdersPage() {
   return (
@@ -26,7 +26,7 @@ export default function AdminOrdersPage() {
       <Tabs defaultValue="todos" className="space-y-4">
         <TabsList>
           <TabsTrigger value="todos">Todos</TabsTrigger>
-          <TabsTrigger value="historicos">Historico de Vendas</TabsTrigger>
+          <TabsTrigger value="aguardando">Aguardando Pagamento</TabsTrigger>
           <TabsTrigger value="aprovados">Pagamento Aprovado</TabsTrigger>
           <TabsTrigger value="processando">Em Processamento</TabsTrigger>
           <TabsTrigger value="enviados">Enviados</TabsTrigger>
@@ -46,13 +46,12 @@ export default function AdminOrdersPage() {
         </TabsContent>
 
         {/* Conteúdo similar para as outras abas */}
-        <TabsContent value="historicos">
+        <TabsContent value="aguardando">
           <Card>
             <CardHeader>
-              <CardTitle>Vendas</CardTitle>
+              <CardTitle>Aguardando Pagamento</CardTitle>
             </CardHeader>
             <CardContent>
-              <VendasPage/>
               </CardContent>
           </Card>
         </TabsContent>

@@ -17,6 +17,9 @@ export type Product = {
   createdAt: Date;
   updatedAt: Date;
   variants: any[];
+  selectedColor?: string; 
+  selectedSize?: string;  
+  selectedColorId?:number;
 };
 
 type ProductStore = {

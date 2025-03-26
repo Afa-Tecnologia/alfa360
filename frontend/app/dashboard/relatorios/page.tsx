@@ -1,9 +1,10 @@
 
+import Relatorios from "@/components/pages/Relatorios";
 
-
-export default function Page(){
-
-    return(
-    <h1>Relatorios</h1>
-    )
+export default function Page() {
+  return (
+    <Relatorios />
+  );
 }
+  
+

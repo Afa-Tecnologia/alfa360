@@ -7,19 +7,38 @@ use App\Http\Requests\Pedidos\StorePedidoRequest;
 use App\Http\Requests\Pedidos\UpdatePedidoRequest;
 use App\Models\Pedido;
 use App\Models\Produto;
+use App\Models\Variantes;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
 use Symfony\Component\HttpFoundation\Response;
 use App\Services\Pedidos\Pedidos;
 use App\Services\Pedidos\PedidoService;
+use App\Services\EstoqueService;
+use App\Exceptions\EstoqueInsuficienteException;
+use Exception;
+use App\Services\Pedidos\EstoqueHelper;
+use Carbon\Carbon;
+use App\Services\Reports\ReportService;
 
 class PedidosController extends Controller
 {
     protected $pedidoService;
+    protected $estoqueService;
+    protected $estoqueHelper;
+    protected $reportService;
 
-    public function __construct(PedidoService $pedidoService)
+    public function __construct(
+        PedidoService $pedidoService, 
+        EstoqueService $estoqueService,
+        EstoqueHelper $estoqueHelper,
+        ReportService $reportService,
+    )
     {
         $this->pedidoService = $pedidoService;
+        $this->estoqueService = $estoqueService;
+        $this->estoqueHelper = $estoqueHelper;
+        $this->reportService = $reportService;
     }
 
     // Método para obter todos os pedidos
@@ -32,49 +51,53 @@ class PedidosController extends Controller
     // Método para criar pedidos
     public function store(StorePedidoRequest $request)
     {
-        // Adiciona logs para debug
-        Log::info('Recebeu requisição de criação de pedido');
-        Log::info('Dados recebidos: ', $request->all());
-        
         try {
             $dataValidated = $request->validated();
-            Log::info('Dados validados: ', $dataValidated);
+            
+            // Verifica disponibilidade de estoque para os produtos
+            if (!$this->pedidoService->verificarDisponibilidadeEstoqueProdutos($dataValidated['produtos'])) {
+                return response()->json([
+                    'error' => true,
+                    'message' => 'Estoque insuficiente para um ou mais produtos.'
+                ], 422);
+            }
             
             // Garantindo que payment_method esteja em maiúsculas
             $dataValidated['payment_method'] = strtoupper($dataValidated['payment_method']);
             
-            // Criando pedido
-            $pedido = Pedido::create([
-                'vendedor_id' => $dataValidated['vendedor_id'],
-                'cliente_id' => $dataValidated['cliente_id'],
-                'type' => $dataValidated['type'],
-                'payment_method' => $dataValidated['payment_method'],
-                'desconto' => $dataValidated['desconto'] ?? 0,
-                'total' => 0,
-            ]);
-            
-            Log::info('Pedido criado: ' . $pedido->id);
-            
-            $total = 0;
-            foreach ($dataValidated['produtos'] as $item) {
-                $produto = Produto::findOrFail($item['produto_id']);
-                $subtotal = $produto->selling_price * $item['quantidade'];
-    
-                $pedido->produtos()->attach($produto->id, [
-                    'quantidade' => $item['quantidade'],
-                    'preco_unitario' => $produto->selling_price,
+            // Usa transação para garantir integridade
+            return DB::transaction(function () use ($dataValidated) {
+                // Criando pedido
+                $pedido = Pedido::create([
+                    'vendedor_id' => $dataValidated['vendedor_id'],
+                    'cliente_id' => $dataValidated['cliente_id'],
+                    'type' => $dataValidated['type'],
+                    'payment_method' => $dataValidated['payment_method'],
+                    'desconto' => $dataValidated['desconto'] ?? 0,
+                    'total' => 0,
                 ]);
-    
-                $total += $subtotal;
-            }
-    
-            $pedido->update(['total' => $total - ($dataValidated['desconto'] ?? 0)]);
-    
-            return response()->json([
-                'message' => 'Pedido criado com sucesso!',
-                'pedido' => $pedido->load('produtos'),
-            ], 201);
+                
+                // Processa os produtos e calcula o total
+                $total = $this->pedidoService->processarProdutosNoPedido($pedido, $dataValidated['produtos']);
+                
+                // Aplica o desconto
+                $total = $this->pedidoService->aplicarDesconto($total, $dataValidated['desconto'] ?? 0);
+                $pedido->update(['total' => $total]);
         
+                return response()->json([
+                    'message' => 'Pedido criado com sucesso!',
+                    'pedido' => $pedido->load('produtos'),
+                ], 201);
+            });
+            
+        } catch (EstoqueInsuficienteException $e) {
+            Log::error('Erro de estoque: ' . $e->getMessage());
+            
+            return response()->json([
+                'error' => true,
+                'message' => $e->getMessage(),
+            ], (int)$e->getCode() ?: 422);
+            
         } catch (\Exception $e) {
             Log::error('Erro ao criar pedido: ' . $e->getMessage());
             Log::error($e->getTraceAsString());
@@ -140,47 +163,54 @@ class PedidosController extends Controller
             Log::info('Atualizando pedido ID: ' . $id);
             Log::info('Dados validados: ', $dataValidated);
             
+            // Carregar o pedido existente com seus produtos
+            $pedido = Pedido::with('produtos')->findOrFail($id);
+            
+            // Se estiver alterando produtos, verificar estoque primeiro
+            if (isset($dataValidated['produtos'])) {
+                if (!$this->pedidoService->verificarDisponibilidadeEstoqueProdutos($dataValidated['produtos'])) {
+                    return response()->json([
+                        'error' => true,
+                        'message' => 'Estoque insuficiente para um ou mais produtos.'
+                    ], 422);
+                }
+            }
+            
             // Garantindo que payment_method esteja em maiúsculas se estiver presente
             if (isset($dataValidated['payment_method'])) {
                 $dataValidated['payment_method'] = strtoupper($dataValidated['payment_method']);
             }
             
-            // Atualiza o pedido
-            $pedido = $this->pedidoService->update($id, $dataValidated);
-
-            if (!$pedido) {
-                return response()->json(['error' => 'Pedido não encontrado'], 404);
-            }
-
-            // Atualiza os produtos do pedido se fornecidos
-            if (isset($dataValidated['produtos'])) {
-                // Remover todos os produtos antigos
-                $pedido->produtos()->detach();
-
-                $total = 0;
-                // Adiciona os novos produtos
-                foreach ($dataValidated['produtos'] as $item) {
-                    $produto = Produto::findOrFail($item['produto_id']);
-                    $subtotal = $produto->selling_price * $item['quantidade'];
-    
-                    $pedido->produtos()->attach($produto->id, [
-                        'quantidade' => $item['quantidade'],
-                        'preco_unitario' => $produto->selling_price,
-                    ]);
-    
-                    $total += $subtotal;
-                }
+            return DB::transaction(function () use ($pedido, $dataValidated, $id) {
+                // Estornar estoque dos produtos anteriores
+                $itensEstornar = $this->estoqueHelper->prepararItensParaEstorno($pedido->produtos);
+                $this->estoqueHelper->estornarEstoqueItens($itensEstornar);
                 
-                // Atualiza o total do pedido
-                $pedido->update([
-                    'total' => $total - ($dataValidated['desconto'] ?? $pedido->desconto)
-                ]);
-            }
-
+                // Atualiza o pedido
+                $pedido = $this->pedidoService->update($id, $dataValidated);
+    
+                // Atualiza os produtos do pedido se fornecidos
+                if (isset($dataValidated['produtos'])) {
+                    // Processa a atualização dos produtos e calcula o total
+                    $total = $this->pedidoService->processarAtualizacaoDeProdutos($pedido, $dataValidated['produtos']);
+                    
+                    // Aplica o desconto
+                    $total = $this->pedidoService->aplicarDesconto($total, $dataValidated['desconto'] ?? $pedido->desconto);
+                    $pedido->update(['total' => $total]);
+                }
+    
+                return response()->json([
+                    'message' => 'Pedido atualizado com sucesso',
+                    'pedido' => $pedido->load('produtos')
+                ], 200);
+            });
+        } catch (EstoqueInsuficienteException $e) {
+            Log::error('Erro de estoque: ' . $e->getMessage());
+            
             return response()->json([
-                'message' => 'Pedido atualizado com sucesso',
-                'pedido' => $pedido->load('produtos')
-            ], 200);
+                'error' => true,
+                'message' => $e->getMessage(),
+            ], (int)$e->getCode() ?: 422);
         } catch (\Exception $e) {
             Log::error('Erro ao atualizar pedido: ' . $e->getMessage());
             Log::error($e->getTraceAsString());
@@ -193,28 +223,42 @@ class PedidosController extends Controller
         }
     }
 
-    // Método para deletar um produto
+    // Método para deletar um pedido
     public function delete(string $id)
     {
         try {
-            $pedido = $this->pedidoService->delete($id);
-
+            // Carregar o pedido com seus produtos
+            $pedido = Pedido::with('produtos')->find($id);
+            
             if (!$pedido) {
                 return response()->json(
-                    ['error' => 'Produto não encontrado'],
+                    ['error' => 'Pedido não encontrado'],
                     Response::HTTP_NOT_FOUND
                 );
             }
-
-            return response()->json(
-                ['message' => 'Produto deletado com sucesso'],
-                Response::HTTP_OK
-            );
+            
+            // Estornar estoque dos produtos (se tiver variantes)
+            $itensEstornar = $this->estoqueHelper->prepararItensParaEstorno($pedido->produtos);
+            
+            return DB::transaction(function () use ($itensEstornar, $id) {
+                // Estornar estoque se necessário
+                $this->estoqueHelper->estornarEstoqueItens($itensEstornar);
+                
+                // Deletar o pedido
+                $this->pedidoService->delete($id);
+                
+                return response()->json(
+                    ['message' => 'Pedido deletado com sucesso e estoque restaurado'],
+                    Response::HTTP_OK
+                );
+            });
         } catch (\Exception $e) {
+            Log::error('Erro ao deletar pedido: ' . $e->getMessage());
             return response()->json(
-                ['error' => 'Erro ao deletar produto'],
+                ['error' => 'Erro ao deletar pedido: ' . $e->getMessage()],
                 Response::HTTP_INTERNAL_SERVER_ERROR
             );
         }
     }
 }
+

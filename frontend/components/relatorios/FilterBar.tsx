@@ -8,7 +8,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { SalesReportFilters } from '@/lib/services/ReportService';
+import { SalesReportFilters } from '@/types/reports';
 import { ptBR } from 'date-fns/locale';
 
 interface FilterBarProps {

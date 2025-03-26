@@ -275,7 +275,7 @@ export default function ImageUploader({ variantId, images = [], onUpload }: IIma
         {Array.isArray(images) && images.map((imageUrl, index) => (
           <div key={index} className="relative group">
             <Image
-              src={cleanUrl(imageUrl)}
+              src={cleanUrl(imageUrl) || ''}
               alt={`Produto ${index + 1}`}
               width={100}
               height={100}
@@ -285,7 +285,7 @@ export default function ImageUploader({ variantId, images = [], onUpload }: IIma
               variant="destructive"
               size="icon"
               className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
-              onClick={() => handleRemoveImage(cleanUrl(imageUrl))}
+              onClick={() => handleRemoveImage(cleanUrl(imageUrl) || '')}
             >
               <Trash2 className="h-4 w-4" />
             </Button>

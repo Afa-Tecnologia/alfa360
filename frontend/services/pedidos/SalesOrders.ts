@@ -1,4 +1,3 @@
-
 import { api } from '@/app/api/api';
 import { CartItem } from '@/stores/cart-store';
 import { gerarNotificacao } from '@/utils/toast';
@@ -30,18 +29,62 @@ class OrdersSales {
       throw new Error(error.response?.data?.message || 'Erro ao criar cliente');
     }
   }
-  static async getPedidos() {
-    
-    try {
-        const response = await api.get(`/pedidos`); 
-        console.log(response.data)
-        return response.data;
-    } catch (error: any) {
-        console.error("Erro ao buscar pedidos:", error);
-        gerarNotificacao("error","Erro ao buscar pedidos");
-        return "Erro ao buscar pedidos veja a API"
+
+  // Função utilitária para processar as imagens
+  private static processarImagens(item: any): any {
+    // Cria uma cópia do item para não modificar o original
+    const itemProcessado = { ...item };
+
+    // Processa as variantes, se existirem
+    if (itemProcessado.variants && Array.isArray(itemProcessado.variants)) {
+      itemProcessado.variants = itemProcessado.variants.map((variant: any) => {
+        const variantProcessada = { ...variant };
+
+        // Se a variante tiver imagens como string JSON, converte para array
+        if (
+          variantProcessada.images &&
+          typeof variantProcessada.images === 'string'
+        ) {
+          try {
+            variantProcessada.images = JSON.parse(variantProcessada.images);
+          } catch (error) {
+            console.error('Erro ao processar JSON das imagens:', error);
+            variantProcessada.images = [];
+          }
+        }
+
+        return variantProcessada;
+      });
     }
+
+    // Se o próprio item tiver imagens como string JSON, converte para array
+    if (itemProcessado.images && typeof itemProcessado.images === 'string') {
+      try {
+        itemProcessado.images = JSON.parse(itemProcessado.images);
+      } catch (error) {
+        console.error('Erro ao processar JSON das imagens do item:', error);
+        itemProcessado.images = [];
+      }
+    }
+
+    return itemProcessado;
   }
 
+  static async getPedidos() {
+    try {
+      const response = await api.get(`/pedidos`);
+
+      // Normaliza os dados com processamento de imagens
+      const pedidosProcessados = Array.isArray(response.data)
+        ? response.data.map(this.processarImagens)
+        : [];
+
+      return pedidosProcessados;
+    } catch (error: any) {
+      console.error('Erro ao buscar pedidos:', error);
+      gerarNotificacao('error', 'Erro ao buscar pedidos');
+      return 'Erro ao buscar pedidos veja a API';
+    }
+  }
 }
 export default OrdersSales;

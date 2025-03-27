@@ -189,7 +189,9 @@ class PedidoService
 
     public function getAll()
     {
-        return Pedido::with('produtos')->get();
+        return Pedido::with(['produtos', 'cliente' => function($query) {
+            $query->select('id', 'name', 'last_name');
+        }])->get();
     }
 
     public function getById($id)

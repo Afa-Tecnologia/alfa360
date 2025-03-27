@@ -106,4 +106,10 @@ class ProdutoService
         }
     }
     
+    public function findByBarcode($code)
+    {
+        return Produto::with('variants')
+            ->where('code', $code)
+            ->first();
+    }
 }

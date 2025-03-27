@@ -154,22 +154,22 @@ export function ProductsTable(props: IProductTable) {
   };
 
   const handleDeleteProduct = (productId: string) => {
-    console.log(productId)
+    console.log(productId);
     setProductToDelete(productId);
     setDeleteDialogOpen(true);
   };
 
   const confirmDelete = async () => {
     console.log(`Deletando produto ${productToDelete}`);
-      deleteProduct(productToDelete as string);
-      try {
-        const response = await api.delete(`/produtos/${productToDelete}`);
-        // const products = response?.data;
-        // setProducts(products)
-        gerarNotificacao('success', response.data.message);
-      } catch (e) {
-        gerarNotificacao('error', 'Erro ao deletar produto');
-      }
+    deleteProduct(productToDelete as string);
+    try {
+      const response = await api.delete(`/produtos/${productToDelete}`);
+      // const products = response?.data;
+      // setProducts(products)
+      gerarNotificacao('success', response.data.message);
+    } catch (e) {
+      gerarNotificacao('error', 'Erro ao deletar produto');
+    }
 
     setDeleteDialogOpen(false);
     setProductToDelete(null);
@@ -220,17 +220,31 @@ export function ProductsTable(props: IProductTable) {
                 </TableCell>
                 <TableCell>
                   <div className="flex items-center gap-3">
-                    <div className="relative h-10 w-10 overflow-hidden rounded-md">
-                      <Image
-                        src={
-                          cleanUrl(produto.variants?.[0]?.images?.[0]) ||
-                          '/placeholder.svg'
-                        }
-                        alt={produto.name}
-                        fill
-                        className="object-cover"
-                        sizes="40px"
-                      />
+                    <div className="relative h-10 w-10 overflow-hidden rounded-md bg-muted">
+                      {produto.variants &&
+                      produto.variants.length > 0 &&
+                      produto.variants[0].images ? (
+                        <Image
+                          src={
+                            cleanUrl(produto.variants[0].images[0]) ||
+                            '/placeholder.svg'
+                          }
+                          alt={produto.name}
+                          width={40}
+                          height={40}
+                          className="object-cover"
+                          unoptimized
+                        />
+                      ) : (
+                        <Image
+                          src="/placeholder.svg"
+                          alt="Produto sem imagem"
+                          width={40}
+                          height={40}
+                          className="object-cover"
+                          unoptimized
+                        />
+                      )}
                     </div>
                     <div>
                       <p className="font-medium">{produto.name}</p>
@@ -279,7 +293,9 @@ export function ProductsTable(props: IProductTable) {
                         </DropdownMenuItem>
                       </Link>
                       <Link href={'#'}>
-                        <DropdownMenuItem onClick={() => handleEditProduct(produto)}>
+                        <DropdownMenuItem
+                          onClick={() => handleEditProduct(produto)}
+                        >
                           <Edit className="h-4 w-4 mr-2" />
                           Editar
                         </DropdownMenuItem>
@@ -299,34 +315,33 @@ export function ProductsTable(props: IProductTable) {
               </TableRow>
             ))}
           </TableBody>
-      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Excluir Produto</DialogTitle>
-            <DialogDescription>
-              Tem certeza que deseja excluir este produto? Esta ação não pode
-              ser desfeita.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="flex items-center justify-center py-4">
-            <AlertTriangle className="h-16 w-16 text-red-500" />
-          </div>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setDeleteDialogOpen(false)}
-            >
-              Cancelar
-            </Button>
-            <Button variant="destructive" onClick={confirmDelete}>
-              Excluir
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Excluir Produto</DialogTitle>
+                <DialogDescription>
+                  Tem certeza que deseja excluir este produto? Esta ação não
+                  pode ser desfeita.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="flex items-center justify-center py-4">
+                <AlertTriangle className="h-16 w-16 text-red-500" />
+              </div>
+              <DialogFooter>
+                <Button
+                  variant="outline"
+                  onClick={() => setDeleteDialogOpen(false)}
+                >
+                  Cancelar
+                </Button>
+                <Button variant="destructive" onClick={confirmDelete}>
+                  Excluir
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </Table>
       </div>
-
 
       {selectedProducts.length > 0 && (
         <div className="mt-4 flex items-center gap-2">

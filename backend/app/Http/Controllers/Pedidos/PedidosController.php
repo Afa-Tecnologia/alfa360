@@ -18,6 +18,7 @@ use App\Services\EstoqueService;
 use App\Exceptions\EstoqueInsuficienteException;
 use Exception;
 use App\Services\Pedidos\EstoqueHelper;
+use App\Services\ApiResponseService;
 use Carbon\Carbon;
 use App\Services\Reports\ReportService;
 
@@ -45,7 +46,7 @@ class PedidosController extends Controller
     public function index()
     {
         $pedidos = $this->pedidoService->getAll();
-        return response()->json($pedidos);
+        return ApiResponseService::json($pedidos);
     }
 
     // Método para criar pedidos
@@ -84,7 +85,7 @@ class PedidosController extends Controller
                 $total = $this->pedidoService->aplicarDesconto($total, $dataValidated['desconto'] ?? 0);
                 $pedido->update(['total' => $total]);
         
-                return response()->json([
+                return ApiResponseService::json([
                     'message' => 'Pedido criado com sucesso!',
                     'pedido' => $pedido->load('produtos'),
                 ], 201);
@@ -125,7 +126,7 @@ class PedidosController extends Controller
         // Inclui os produtos associados ao pedido
         $pedido->load('produtos'); // Garantir que os produtos sejam carregados com o pedido
 
-        return response()->json($pedido);
+        return ApiResponseService::json($pedido);
     }
 
     // Método para obter um produto pelo nome
@@ -139,7 +140,7 @@ class PedidosController extends Controller
             );
         }
 
-        return response()->json($pedidos);
+        return ApiResponseService::json($pedidos);
     }
 
     // Método para obter um pedidos por tipo
@@ -153,7 +154,7 @@ class PedidosController extends Controller
             );
         }
 
-        return response()->json($pedidos);
+        return ApiResponseService::json($pedidos);
     }
 
     public function update(UpdatePedidoRequest $request, $id)
@@ -199,7 +200,7 @@ class PedidosController extends Controller
                     $pedido->update(['total' => $total]);
                 }
     
-                return response()->json([
+                return ApiResponseService::json([
                     'message' => 'Pedido atualizado com sucesso',
                     'pedido' => $pedido->load('produtos')
                 ], 200);
@@ -247,7 +248,7 @@ class PedidosController extends Controller
                 // Deletar o pedido
                 $this->pedidoService->delete($id);
                 
-                return response()->json(
+                return ApiResponseService::json(
                     ['message' => 'Pedido deletado com sucesso e estoque restaurado'],
                     Response::HTTP_OK
                 );

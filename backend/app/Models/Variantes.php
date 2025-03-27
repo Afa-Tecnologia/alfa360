@@ -30,4 +30,14 @@ class Variantes extends Model
     {
         return $date->format('d-m-Y H:i:s');
     }
+    
+    // Garantir que images seja sempre um array, mesmo se vier como string JSON
+    public function getImagesAttribute($value)
+    {
+        if (is_string($value)) {
+            return json_decode($value, true) ?: [];
+        }
+        
+        return $value ?: [];
+    }
 }

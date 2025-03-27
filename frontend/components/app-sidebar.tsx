@@ -69,8 +69,8 @@ const data = {
           url: '/dashboard/caixa',
         },
         {
-          title: 'Sangria',
-          url: '#'
+          title: 'Relatórios',
+          url: '/dashboard/relatorios',
         },
         {
           title: 'Pedidos',
@@ -79,10 +79,7 @@ const data = {
         {
           title: 'Clientes',
           url: '/dashboard/clientes',
-        },
-        {
-          title: 'Relatórios',
-          url: '/dashboard/relatorios',
+
         }
       ],
     },
@@ -153,7 +150,6 @@ const data = {
 };
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const pathRoute = useSearchParams();
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>

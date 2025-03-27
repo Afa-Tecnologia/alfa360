@@ -13,7 +13,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { caixaService } from '@/utils/caixaService';
+import { caixaService } from '@/lib/services/CaixaService';
 
 interface OpenCaixaFormProps {
   // onOpenCaixa: (saldoInicial: number, observation?: string) => Promise<void>;
@@ -31,11 +31,14 @@ export function OpenCaixaForm() {
 
   const onSubmit = async (values: {
     saldo_inicial: string;
-    observation: string 
+    observation: string;
   }) => {
     setIsLoading(true);
     try {
-      await caixaService.openCaixa(Number(values.saldo_inicial), values.observation);
+      await caixaService.openCaixa(
+        Number(values.saldo_inicial),
+        values.observation
+      );
     } catch (error) {
       console.error('Erro ao abrir o caixa:', error);
     } finally {
@@ -44,7 +47,7 @@ export function OpenCaixaForm() {
   };
 
   return (
-    <div className=' w-6/12'>
+    <div className=" w-6/12">
       <Card>
         <CardHeader>
           <CardTitle>Abrir Caixa</CardTitle>

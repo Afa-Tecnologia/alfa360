@@ -1,6 +1,8 @@
 'use client';
 
-import { SalesSummary } from '@/lib/services/ReportService';
+
+import { SalesSummary } from '@/types/reports';
+
 import {
   Card,
   CardContent,

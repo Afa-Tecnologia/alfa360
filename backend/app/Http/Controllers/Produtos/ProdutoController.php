@@ -7,6 +7,7 @@ use Symfony\Component\HttpFoundation\Response;
 use App\Services\Produtos\ProdutoService;
 use App\Http\Requests\StoreProdutoRequest;
 use App\Services\Variantes\VariantesService;
+use App\Services\ApiResponseService;
 
 class ProdutoController extends Controller
 {
@@ -22,7 +23,7 @@ class ProdutoController extends Controller
 
     public function index()
     {
-        return response()->json($this->produtoService->getAll(), Response::HTTP_OK);
+        return ApiResponseService::json($this->produtoService->getAll(), Response::HTTP_OK);
     }
 
     public function store(StoreProdutoRequest $request)
@@ -56,7 +57,7 @@ class ProdutoController extends Controller
             ]);
             $produto = $this->produtoService->create($productValidated);
 
-            return response()->json(['message' => 'Produto CRIADO com sucesso', 'produto'=> $produto], Response::HTTP_CREATED);
+            return ApiResponseService::json(['message' => 'Produto CRIADO com sucesso', 'produto'=> $produto], Response::HTTP_CREATED);
         } catch (\Exception $e) {
             return response()->json(['error' => 'Erro ao criar produto', 'message' => $e->getMessage()], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
@@ -70,7 +71,7 @@ class ProdutoController extends Controller
             return response()->json(['error' => 'Produto não encontrado'], Response::HTTP_NOT_FOUND);
         }
 
-        return response()->json($produto);
+        return ApiResponseService::json($produto);
     }
 
     public function update(Request $request, $id)
@@ -95,7 +96,7 @@ class ProdutoController extends Controller
                 return response()->json(['error' => 'Produto não encontrado'], Response::HTTP_NOT_FOUND);
             }
             
-            return response()->json(['message' => 'Produto ATUALIZADO com sucesso', 'produto'=> $produto], Response::HTTP_OK);
+            return ApiResponseService::json(['message' => 'Produto ATUALIZADO com sucesso', 'produto'=> $produto], Response::HTTP_OK);
         } catch (\Exception $e) {
             return response()->json(['error' => 'Erro ao atualizar produto', 'message' => $e->getMessage()], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
@@ -128,5 +129,20 @@ class ProdutoController extends Controller
             return response()->json(['error' => 'IDs dos produtos não informados'], Response::HTTP_BAD_REQUEST);
         }
         return $this->produtoService->batchDelete($ids);
+    }
+
+    public function findByBarcode($code)
+    {
+        if (!$code) {
+            return response()->json(['error' => 'Código de barras não informado'], Response::HTTP_BAD_REQUEST);
+        }
+
+        $produto = $this->produtoService->findByBarcode($code);
+        
+        if (!$produto) {
+            return response()->json(['error' => 'Produto não encontrado com este código de barras'], Response::HTTP_NOT_FOUND);
+        }
+        
+        return ApiResponseService::json($produto, Response::HTTP_OK);
     }
 }

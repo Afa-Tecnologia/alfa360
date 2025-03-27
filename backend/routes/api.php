@@ -35,6 +35,7 @@ Route::prefix('produtos')->middleware('auth:sanctum')->group(function () {
     Route::get('/', [ProdutoController::class, 'index']);
     Route::get('{id}', [ProdutoController::class, 'show']);
     Route::get('/categoria/{id}', [ProdutoController::class, 'findByCategory']);
+    Route::get('/barcode/{code}', [ProdutoController::class, 'findByBarcode']);
     Route::post('/', [ProdutoController::class, 'store']);
     Route::put('/{id}', [ProdutoController::class, 'update']);
     Route::delete('{id}', [ProdutoController::class, 'delete']);

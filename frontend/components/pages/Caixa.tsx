@@ -9,7 +9,7 @@ import {
   TrendingUp,
 } from 'lucide-react';
 import { toast } from 'react-toastify';
-import { caixaService } from '@/utils/caixaService';
+import { caixaService } from '@/lib/services/CaixaService';
 import { CloseCaixaForm } from '../caixa/CloseCaixaForm';
 import StatusCaixaBadge from '../caixa/StatusCaixaBadge';
 import { IMovimentacoes, IReports, IStatus } from '@/types/caixa';
@@ -92,7 +92,7 @@ export default function Home(props: ICaixa) {
                   <ArrowDownUp className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                <MovimentacoesTable status={status}/>
+                  <MovimentacoesTable status={status} />
                 </CardContent>
               </Card>
             </div>

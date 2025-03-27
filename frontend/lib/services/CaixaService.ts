@@ -1,47 +1,49 @@
 import { api as axiosInstance } from '@/app/api/api';
 import { IMovimentacoes, IReports } from '@/types/caixa';
-import { gerarNotificacao } from './toast';
+import { gerarNotificacao } from '../../utils/toast';
 export const caixaService = {
-  openCaixa: async (saldo_inicial: number, observation?: string ) =>{
+  openCaixa: async (saldo_inicial: number, observation?: string) => {
     const data = {
-      saldo_inicial:saldo_inicial,
-      observation: observation
-    }
+      saldo_inicial: saldo_inicial,
+      observation: observation,
+    };
 
-    try{
-      const response = await axiosInstance.post(`/caixa/open`, data)
-      gerarNotificacao('success', 'Caixa ABERTO com sucesso')
+    try {
+      const response = await axiosInstance.post(`/caixa/open`, data);
+      gerarNotificacao('success', 'Caixa ABERTO com sucesso');
       return response.data;
-    } catch (e:any){
-      gerarNotificacao('error', e.response?.data?.message)
+    } catch (e: any) {
+      gerarNotificacao('error', e.response?.data?.message);
       console.log(e);
-      return []
+      return [];
     }
   },
 
   closeCaixa: (caixaId: number, data: { observation?: string }) =>
     axiosInstance.post(`/caixa/${caixaId}/close`, data),
 
-  createMovimentacao: async (caixaId: string, data: any) =>{
-    try{
-      const response = await axiosInstance.post(`/caixa/${caixaId}/movimentacao`, data)
-      gerarNotificacao('success', 'Movimentação criada com sucesso')
-      return response.data as IMovimentacoes[]
-    } catch (e:any){
-      gerarNotificacao('error', e.response?.data?.message)
+  createMovimentacao: async (caixaId: string, data: any) => {
+    try {
+      const response = await axiosInstance.post(
+        `/caixa/${caixaId}/movimentacao`,
+        data
+      );
+      gerarNotificacao('success', 'Movimentação criada com sucesso');
+      return response.data as IMovimentacoes[];
+    } catch (e: any) {
+      gerarNotificacao('error', e.response?.data?.message);
       console.log(e);
-      return []
+      return [];
     }
-    
   },
 
   getCaixaReport: async (caixaId: string) => {
-    try{
+    try {
       const reponse = await axiosInstance.get(`/caixa/${caixaId}/report`);
-      return reponse.data as IReports[]
-    } catch (e:any){
+      return reponse.data as IReports[];
+    } catch (e: any) {
       console.log(e);
-      return []
+      return [];
     }
   },
 
@@ -55,9 +57,11 @@ export const caixaService = {
     }
   },
 
-  getMovimentacoesById: async (caixaId:string) => {
+  getMovimentacoesById: async (caixaId: string) => {
     try {
-      const response = await axiosInstance.get(`/caixa/${caixaId}/movimentacoes`);
+      const response = await axiosInstance.get(
+        `/caixa/${caixaId}/movimentacoes`
+      );
       return response.data as IMovimentacoes[];
     } catch (e) {
       console.log(e);

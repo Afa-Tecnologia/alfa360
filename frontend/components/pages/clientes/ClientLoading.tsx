@@ -3,7 +3,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 
 export default function ClientesLoading() {
   return (
-    <div className="min-h-screen bg-background text-foreground  overflow-hidden">
+    <div className=" bg-background text-foreground  overflow-hidden">
      
       {/* <div className="mb-6">
         <Skeleton className="h-10 w-40 bg-gray-500 mb-2" />

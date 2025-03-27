@@ -13,12 +13,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { format, parse } from 'date-fns';
 import { IMovimentacoes, IStatus } from '@/types/caixa';
-import { caixaService } from '@/utils/caixaService';
+import { caixaService } from '@/lib/services/CaixaService';
 
-interface IMovimentacoesTable{
-  status:IStatus
+interface IMovimentacoesTable {
+  status: IStatus;
 }
-export default function MovimentacoesTable({status}:IMovimentacoesTable) {
+export default function MovimentacoesTable({ status }: IMovimentacoesTable) {
   const [movimentacoes, setMovimentacoes] = useState<IMovimentacoes[]>([]);
   const [filteredData, setFilteredData] = useState<IMovimentacoes[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
@@ -57,11 +57,11 @@ export default function MovimentacoesTable({status}:IMovimentacoesTable) {
     setCurrentPage(1); // Resetar para a primeira página ao filtrar
   };
 
- // Paginação segura
-const paginatedData = (filteredData || []).slice(
-  (currentPage - 1) * rowsPerPage,
-  currentPage * rowsPerPage
-);
+  // Paginação segura
+  const paginatedData = (filteredData || []).slice(
+    (currentPage - 1) * rowsPerPage,
+    currentPage * rowsPerPage
+  );
 
   const totalPages = Math.ceil(filteredData.length / rowsPerPage);
 
@@ -100,8 +100,15 @@ const paginatedData = (filteredData || []).slice(
                 <TableCell>{row.id}</TableCell>
                 <TableCell>{row.type}</TableCell>
                 <TableCell>{row.description}</TableCell>
-                <TableCell>R$ {parseFloat(row.value.toString()).toFixed(2)}</TableCell>
-                <TableCell>{format(parse(row.created_at, 'dd-MM-yyyy HH:mm:ss', new Date()), 'dd/MM/yyyy HH:mm')}</TableCell>
+                <TableCell>
+                  R$ {parseFloat(row.value.toString()).toFixed(2)}
+                </TableCell>
+                <TableCell>
+                  {format(
+                    parse(row.created_at, 'dd-MM-yyyy HH:mm:ss', new Date()),
+                    'dd/MM/yyyy HH:mm'
+                  )}
+                </TableCell>
               </TableRow>
             ))
           ) : (
@@ -125,7 +132,9 @@ const paginatedData = (filteredData || []).slice(
           Página {currentPage} de {totalPages}
         </span>
         <Button
-          onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+          onClick={() =>
+            setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+          }
           disabled={currentPage === totalPages}
         >
           Próxima

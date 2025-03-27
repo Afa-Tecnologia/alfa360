@@ -15,11 +15,11 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { gerarNotificacao } from '@/utils/toast';
 import { IStatus } from '@/types/caixa';
-import { caixaService } from '@/utils/caixaService';
+import { caixaService } from '@/lib/services/CaixaService';
 
 interface CloseCaixaFormProps {
-  onCloseCaixa: (caixaId: string, observation?: string) => Promise<void>,
-  status: IStatus
+  onCloseCaixa: (caixaId: string, observation?: string) => Promise<void>;
+  status: IStatus;
 }
 
 export function CloseCaixaForm({ onCloseCaixa, status }: CloseCaixaFormProps) {

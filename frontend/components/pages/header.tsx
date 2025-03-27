@@ -7,7 +7,7 @@ import { ThemeToggle } from "../theme-toggle";
 
 export const Header = () => {
   return (
-    <header className="sticky top-0 flex h-14 items-center gap-4 border-b bg-background px-4 sm:px-6">
+    <header className="sticky top-0 flex h-14 items-center gap-4  border-b bg-background/95 backdrop-blur px-4  sm:px-6 z-50">
       <div className="flex items-center justify-between w-full"> 
         <div className="flex items-center space-x-4">
           <div className="flex flex-row"> 

@@ -73,10 +73,6 @@ const data = {
           url: '/dashboard/relatorios',
         },
         {
-          title: 'Pedidos',
-          url: '/dashboard/pedidos',
-        },
-        {
           title: 'Clientes',
           url: '/dashboard/clientes',
 

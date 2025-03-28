@@ -73,13 +73,7 @@ class OrdersSales {
   static async getPedidos() {
     try {
       const response = await api.get(`/pedidos`);
-
-      // Normaliza os dados com processamento de imagens
-      const pedidosProcessados = Array.isArray(response.data)
-        ? response.data.map(this.processarImagens)
-        : [];
-
-      return pedidosProcessados;
+      return response.data;
     } catch (error: any) {
       console.error('Erro ao buscar pedidos:', error);
       gerarNotificacao('error', 'Erro ao buscar pedidos');

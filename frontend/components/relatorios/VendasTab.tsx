@@ -25,6 +25,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import PedidosPageSales from '../pages/pedidos/PedidosSalesPage';
 
 interface VendasTabProps {
   salesSummary: SalesSummary | null;
@@ -113,7 +114,14 @@ export function VendasTab({
           </CardContent>
         </Card>
       </div>
-
+      <Card>
+        <CardHeader>
+          <CardTitle>Relatorio de Vendas</CardTitle>
+        </CardHeader>
+        <CardContent>
+       <PedidosPageSales/>
+        </CardContent>
+      </Card>
       <div className="grid grid-cols-1 gap-4">
         <Card>
           <CardHeader>

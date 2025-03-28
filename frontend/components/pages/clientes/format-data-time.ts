@@ -1,3 +1,5 @@
+"use client"
+
 import { format, parse } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 export function formatDateTime(dateString: string | Date | null | undefined) {

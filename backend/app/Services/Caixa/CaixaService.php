@@ -9,6 +9,7 @@ use Carbon\Carbon;
 use DateTime;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class CaixaService
 {
@@ -93,25 +94,51 @@ class CaixaService
             throw new \Exception('Não é possível criar movimentações em um caixa fechado.');
         }
 
-        return MovimentacaoCaixa::create([
-            'caixa_id' => $caixa->id,
-            'user_id' => Auth::id(),
-            'pedido_id' => $pedido->id,
-            'type' => 'entrada',
-            'value' => $pedido->total,
-            'description' => "Pagamento do Pedido #{$pedido->id}",
-            'payment_method' => $pedido->payment_method ?? 'não informado',
-            'status' => 'confirmed',
-            'additional_data' => json_encode([
-                'pedido_items' => $pedido->items->map(function ($item) {
+        // Garantir que os produtos estão carregados
+        if (!$pedido->relationLoaded('produtos')) {
+            $pedido->load(['produtos' => function($query) {
+                $query->with('variants');
+            }]);
+        }
+
+        // Preparar os dados adicionais de maneira segura
+        $additionalData = [];
+        if ($pedido->produtos && $pedido->produtos->count() > 0) {
+            $additionalData = [
+                'pedido_items' => $pedido->produtos->map(function ($item) {
+                    // Obter a variante com segurança
+                    $varianteId = null;
+                    if (isset($item->variants) && !empty($item->variants) && $item->variants->isNotEmpty()) {
+                        $varianteId = $item->variants->first()->id ?? null;
+                    }
+                    
                     return [
-                        'produto_id' => $item->produto_id,
-                        'quantity' => $item->quantity,
-                        'selling_price' => $item->selling_price,
+                        'produto_id' => $item->id,
+                        'variante_id' => $varianteId,
+                        'quantity' => $item->pivot->quantidade ?? 0,
+                        'selling_price' => $item->pivot->preco_unitario ?? 0,
                     ];
                 })->toArray()
-            ])
-        ]);
+            ];
+        }
+
+        try {
+            return MovimentacaoCaixa::create([
+                'caixa_id' => $caixa->id,
+                'user_id' => Auth::id(),
+                'pedido_id' => $pedido->id,
+                'type' => 'entrada',
+                'value' => $pedido->total,
+                'description' => "Pagamento do Pedido #{$pedido->id}",
+                'payment_method' => $pedido->payment_method ?? 'PIX',
+                'status' => $pedido->status ?? 'completed',
+                'local' => $pedido->local ?? 'loja',
+                'additional_data' => json_encode($additionalData)
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Erro ao criar movimentação de caixa: ' . $e->getMessage());
+            throw $e;
+        }
     }
 
 

@@ -6,10 +6,11 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use App\Traits\FormataDatas;
 
 class Caixa extends Model
 {
-    use SoftDeletes;
+    use SoftDeletes, FormataDatas;
 
     protected $fillable = [
         'user_id',
@@ -52,10 +53,4 @@ class Caixa extends Model
 
         return $this->saldo_inicial + $entradas - $saidas;
     }
-
-    protected function serializeDate(\DateTimeInterface $date)
-    {
-        return $date->format('d-m-Y H:i:s');
-    }
-
 }

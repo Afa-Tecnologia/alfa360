@@ -27,6 +27,8 @@ class PedidoService
     {
         DB::beginTransaction();
         try {
+            Log::info('Iniciando criação de pedido', ['data' => $data]);
+            
             // Criando o pedido com dados iniciais
             $pedido = Pedido::create([
                 'vendedor_id' => $data['vendedor_id'],
@@ -35,31 +37,45 @@ class PedidoService
                 'payment_method' => $data['payment_method'],
                 'total' => 0,
                 'desconto' => $data['desconto'] ?? 0,
+                'status' => 'pago' // Adicionando status padrão
             ]);
+            
+            Log::info('Pedido base criado', ['pedido_id' => $pedido->id]);
 
-            $total = $this->processarProdutosEPedidos($pedido, $data['produto_id'], $data['vendedor_id']);
+            // Processa os produtos e calcula o total
+            $total = $this->processarProdutosNoPedido($pedido, $data['produtos']);
+            
+            Log::info('Produtos processados', ['total' => $total]);
 
             // Aplicar desconto se houver
             $total = $this->aplicarDesconto($total, $data['desconto'] ?? 0);
             $pedido->update(['total' => $total]);
+            
+            Log::info('Total com desconto calculado', ['total_final' => $total]);
 
-
-            //Verifico se o caixa está aberto
+            // Verifico se o caixa está aberto
             $caixa = $this->caixaService->statusCaixa();
-
+            
             if ($caixa) {
-                $this->caixaService->createMovimentacaoFromPedido($caixa, $pedido);
+                Log::info('Caixa encontrado, criando movimentação', ['caixa_id' => $caixa->id]);
+                $movimentacao = $this->caixaService->createMovimentacaoFromPedido($caixa, $pedido);
+                Log::info('Movimentação criada com sucesso', ['movimentacao_id' => $movimentacao->id]);
             } else {
-                throw new \Exception("Não há caixa aberto para registrar movimentação.");
+                Log::warning('Nenhum caixa aberto encontrado');
+                // Não lançamos exceção para permitir criar pedidos mesmo sem caixa aberto
             }
-
             
             DB::commit();
-
+            
+            Log::info('Pedido criado com sucesso', ['pedido_id' => $pedido->id]);
             return $pedido;
 
         } catch (\Exception $e) {
             DB::rollback();
+            Log::error('Erro ao criar pedido', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
             throw new \Exception("Erro ao criar pedido: " . $e->getMessage());
         }
     }
@@ -81,8 +97,8 @@ class PedidoService
             PedidosProduto::create([
                 'pedido_id' => $pedido->id,
                 'produto_id' => $produto->id,
-                'quantity' => $quantidade,
-                'selling_price' => $precoUnitario,
+                'quantidade' => $quantidade,
+                'preco_unitario' => $precoUnitario,
             ]);
 
             // Criar comissão
@@ -125,8 +141,8 @@ class PedidoService
             
             // Associa o produto ao pedido
             $pedido->produtos()->attach($produto->id, [
-                'quantity' => $quantidade,
-                'selling_price' => $produto->selling_price,
+                'quantidade' => $quantidade,
+                'preco_unitario' => $produto->selling_price,
             ]);
             
             $total += $subtotal;
@@ -163,9 +179,11 @@ class PedidoService
     public function verificarDisponibilidadeEstoqueProdutos(array $produtos)
     {
         $itensEstoque = [];
+        Log::info('Verificando disponibilidade de estoque para produtos', ['count' => count($produtos)]);
+        
         foreach ($produtos as $item) {
             // Verificar estoque somente para itens com variante_id
-            if (isset($item['variante_id'])) {
+            if (isset($item['variante_id']) && !empty($item['variante_id'])) {
                 // Verifica se existe quantidade ou quantity no item
                 $quantidade = $item['quantidade'] ?? $item['quantity'] ?? null;
                 
@@ -175,13 +193,18 @@ class PedidoService
                         'quantity' => $quantidade
                     ];
                 }
+            } else {
+                Log::info('Item sem variante_id, ignorando verificação de estoque', ['item' => $item]);
             }
         }
         
         // Se não houver itens com variante_id, não é necessário verificar estoque
         if (empty($itensEstoque)) {
+            Log::info('Nenhum item com variante_id encontrado, retornando true');
             return true;
         }
+        
+        Log::info('Verificando disponibilidade para itens', ['itensEstoque' => $itensEstoque]);
         
         // Verifica disponibilidade apenas para os itens que têm variante_id
         return $this->estoqueService->verificarDisponibilidadeEstoque($itensEstoque);

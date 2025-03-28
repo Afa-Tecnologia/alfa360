@@ -5,10 +5,11 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use App\Traits\FormataDatas;
 
 class MovimentacaoCaixa extends Model
 {
-    use SoftDeletes;
+    use SoftDeletes, FormataDatas;
 
     protected $fillable = [
         'caixa_id',
@@ -25,7 +26,7 @@ class MovimentacaoCaixa extends Model
 
     public function pedido(): BelongsTo
     {
-        return $this->belongsTo(Pedido::class);
+        return $this->belongsTo(Pedido::class, 'pedido_id');
     }
 
     protected $casts = [
@@ -41,10 +42,5 @@ class MovimentacaoCaixa extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
-    }
-
-    protected function serializeDate(\DateTimeInterface $date)
-    {
-        return $date->format('d-m-Y H:i:s');
     }
 }

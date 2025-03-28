@@ -29,8 +29,20 @@ class ComissionsMiddleware
         
         Log::info('Pedido criado, processando comissões');
         
+        // Verifica se a resposta tem um JSON válido
+        if (!$response->getData()) {
+            Log::error('Resposta sem dados JSON válidos');
+            return $response;
+        }
+        
         // Obtém o pedido criado da resposta
-        $pedido = $response->getData()->pedido;
+        $responseData = $response->getData();
+        if (!isset($responseData->pedido)) {
+            Log::error('Resposta não contém objeto pedido', ['response' => $responseData]);
+            return $response;
+        }
+        
+        $pedido = $responseData->pedido;
         
         Log::info('Dados do pedido:', ['pedido' => $pedido]);
         
@@ -46,7 +58,7 @@ class ComissionsMiddleware
                     
                     // Obter os dados do produto
                     $productValue = $this->getProductValue($produto['produto_id']);  // Pegue o valor do produto
-                    $percentageCommission = config('commissions.default_percentage');  // Obtém o percentual padrão da configuração
+                    $percentageCommission = config('commissions.default_percentage', 5);  // Obtém o percentual padrão da configuração com fallback para 5
                     $piecesQuantity = $produto['quantidade'];  // Quantidade de peças
 
                     Log::info('Valores calculados:', [

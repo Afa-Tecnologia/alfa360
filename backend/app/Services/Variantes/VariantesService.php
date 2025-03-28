@@ -52,29 +52,13 @@ class VariantesService
 
     public function update($variantId, $data)
     {
-        // Encontrar a variante ou lançar exceção
+
         $variant = Variantes::findOrFail($variantId);
-    
-        // Verifica se 'images' foi enviado e é um array
-        if (isset($data['images']) && is_array($data['images'])) {
-            // Pega as imagens existentes e garante que seja um array
-            $existingImages = is_string($variant->images) ? json_decode($variant->images, true) : (is_array($variant->images) ? $variant->images : []);
-    
-            // Mescla imagens novas com as existentes
-            $data['images'] = json_encode(array_merge($existingImages, $data['images']), JSON_UNESCAPED_SLASHES);
-        } elseif (isset($data['images']) && is_string($data['images'])) {
-            // Se o frontend enviar diretamente como string JSON, apenas mantém
-            $data['images'] = json_encode(json_decode($data['images'], true), JSON_UNESCAPED_SLASHES);
-        }
-    
-        // Atualizar a variante com os novos dados
         $variant->update($data);
-    
         return $variant;
     }
     
     
-
 
     // Método para excluir um usuário
     public function delete($id)

@@ -1,3 +1,4 @@
+import { Variant } from "@/types/estoque";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
@@ -16,7 +17,7 @@ export type Product = {
   category_id: number;
   createdAt: Date;
   updatedAt: Date;
-  variants: any[];
+  variants: Variant[];
   selectedColor?: string; 
   selectedSize?: string;  
   selectedColorId?:number;

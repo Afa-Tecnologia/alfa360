@@ -13,13 +13,13 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 
-type ScannedItem = {
+export type ScannedItem = {
   code: string;
   quantity: number;
 };
 
 interface BarcodeScannerProps {
-  onScan: (result: string | ScannedItem[]) => void;
+  onScan: (result: string | ScannedItem[] | any) => void;
   buttonSize?: 'sm' | 'md' | 'lg'; // Tamanhos do botão
   buttonLabel?: string; // Texto opcional para o botão
   timeout?: number; // Tempo limite para considerar a leitura completa em ms

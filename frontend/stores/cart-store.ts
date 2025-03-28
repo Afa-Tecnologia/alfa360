@@ -20,6 +20,7 @@ type CartStore = {
   setDiscount: (discount: number) => void;
   clearCart: () => void;
   total: () => number;
+  totalWithDiscount: () => number;
 };
 
 export const useCartStore = create<CartStore>((set, get) => ({
@@ -91,6 +92,16 @@ export const useCartStore = create<CartStore>((set, get) => ({
       (total, item) => total + item.product.sellingPrice * item.quantity,
       0
     );
-    return subtotal - get().discount; // Aplica o desconto ao total
+    return subtotal;
+  },
+
+  totalWithDiscount: () => {
+    const subtotal = get().items.reduce(
+      (total, item) => total + item.product.sellingPrice * item.quantity,
+      0
+    );
+    const discount = get().discount / 100;
+    const discountAmount = subtotal * discount;
+    return subtotal - discountAmount; 
   },
 }));

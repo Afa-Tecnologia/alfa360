@@ -11,27 +11,20 @@ export type Product = {
   purchase_price?: number;
   selling_price?: number;
   quantity?: number;
-  total_stock?:number
   categoria_id?: number | string;
   brand?:string,
-  variantes?: Variant[] | Variant;
+  code?:string,
+  variants?: Variant[];
 };
 
 export type Variant = {
   id?: number;
-  id_product?: number;
+  produto_id?: number;
   name?: string | any;
   type?: string;
   color?: string | string[];
   size?: string | string[];
   quantity?: number;
   active?: boolean;
-  selling_price?: number;
-  image_url?:string
-};
-
-export type ImageData = {
-  id: string | number;
-  variante_id: string | number;
-  url: string;
+  images: string[]
 };

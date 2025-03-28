@@ -90,7 +90,7 @@ class ProdutoController extends Controller
                 'variants'=> 'nullable'
             ]);
             $produto = $this->produtoService->update($id, $productValidated);
-            // $produto = $this->variantesService->update($id, $productValidated['variants']);
+            // $produto = $this->varianteService->update($id, $productValidated['variants']);
 
             if (!$produto) {
                 return response()->json(['error' => 'Produto não encontrado'], Response::HTTP_NOT_FOUND);

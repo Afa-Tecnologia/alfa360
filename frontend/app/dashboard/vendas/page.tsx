@@ -1,5 +1,5 @@
-import NovaVenda from '@/components/pages/venda/NovaVenda';
+import Vendas from '@/components/pages/Vendas';
 
 export default function PageVenda() {
-  return <NovaVenda />;
+  return <Vendas />;
 }

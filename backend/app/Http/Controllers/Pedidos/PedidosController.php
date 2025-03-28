@@ -55,8 +55,11 @@ class PedidosController extends Controller
         try {
             $dataValidated = $request->validated();
             
+            Log::info('Dados validados para criação de pedido:', ['data' => $dataValidated]);
+            
             // Verifica disponibilidade de estoque para os produtos
             if (!$this->pedidoService->verificarDisponibilidadeEstoqueProdutos($dataValidated['produtos'])) {
+                Log::warning('Estoque insuficiente para produtos');
                 return response()->json([
                     'error' => true,
                     'message' => 'Estoque insuficiente para um ou mais produtos.'
@@ -66,30 +69,52 @@ class PedidosController extends Controller
             // Garantindo que payment_method esteja em maiúsculas
             $dataValidated['payment_method'] = strtoupper($dataValidated['payment_method']);
             
-            // Usa transação para garantir integridade
-            return DB::transaction(function () use ($dataValidated) {
-                // Criando pedido
-                $pedido = Pedido::create([
-                    'vendedor_id' => $dataValidated['vendedor_id'],
-                    'cliente_id' => $dataValidated['cliente_id'],
-                    'type' => $dataValidated['type'],
-                    'payment_method' => $dataValidated['payment_method'],
-                    'desconto' => $dataValidated['desconto'] ?? 0,
-                    'total' => 0,
-                ]);
+            try {
+                // Usa o serviço para criar o pedido e a movimentação de caixa
+                Log::info('Iniciando criação do pedido via serviço');
+                $pedido = $this->pedidoService->create($dataValidated);
                 
-                // Processa os produtos e calcula o total
-                $total = $this->pedidoService->processarProdutosNoPedido($pedido, $dataValidated['produtos']);
+                // Carregar os relacionamentos
+                $pedido->load('produtos');
                 
-                // Aplica o desconto
-                $total = $this->pedidoService->aplicarDesconto($total, $dataValidated['desconto'] ?? 0);
-                $pedido->update(['total' => $total]);
-        
-                return ApiResponseService::json([
+                Log::info('Pedido criado com sucesso via serviço', ['pedido_id' => $pedido->id]);
+                
+                return response()->json([
                     'message' => 'Pedido criado com sucesso!',
-                    'pedido' => $pedido->load('produtos'),
+                    'pedido' => $pedido
                 ], 201);
-            });
+            } catch (\Exception $e) {
+                Log::error('Erro ao criar pedido via serviço: ' . $e->getMessage());
+                
+                // Se falhar o serviço, usa a transação direta como fallback
+                return DB::transaction(function () use ($dataValidated) {
+                    // Criando pedido
+                    $pedido = Pedido::create([
+                        'vendedor_id' => $dataValidated['vendedor_id'],
+                        'cliente_id' => $dataValidated['cliente_id'],
+                        'type' => $dataValidated['type'],
+                        'payment_method' => $dataValidated['payment_method'],
+                        'desconto' => $dataValidated['desconto'] ?? 0,
+                        'total' => 0,
+                    ]);
+                    
+                    // Processa os produtos e calcula o total
+                    $total = $this->pedidoService->processarProdutosNoPedido($pedido, $dataValidated['produtos']);
+                    
+                    // Aplica o desconto
+                    $total = $this->pedidoService->aplicarDesconto($total, $dataValidated['desconto'] ?? 0);
+                    $pedido->update(['total' => $total]);
+            
+                    // Carregar os relacionamentos
+                    $pedido->load('produtos');
+                    
+                    // Usar formato que o middleware espera
+                    return response()->json([
+                        'message' => 'Pedido criado com sucesso!',
+                        'pedido' => $pedido
+                    ], 201);
+                });
+            }
             
         } catch (EstoqueInsuficienteException $e) {
             Log::error('Erro de estoque: ' . $e->getMessage());

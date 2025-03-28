@@ -1,6 +1,8 @@
 'use client';
 
+
 import { ProductSales } from '@/types/reports';
+
 import {
   Card,
   CardContent,

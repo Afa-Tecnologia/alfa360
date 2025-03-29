@@ -3,7 +3,9 @@
 import * as React from 'react';
 import { Slot } from '@radix-ui/react-slot';
 import { VariantProps, cva } from 'class-variance-authority';
-import { PanelLeft } from 'lucide-react';
+import { PanelLeft, PieChart } from 'lucide-react';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 
 import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
@@ -206,7 +208,9 @@ const Sidebar = React.forwardRef<
             }
             side={side}
           >
-            <div className="flex h-full w-full flex-col bg-background">{children}</div>
+            <div className="flex h-full w-full flex-col bg-background">
+              {children}
+            </div>
           </SheetContent>
         </Sheet>
       );
@@ -487,15 +491,40 @@ SidebarGroupContent.displayName = 'SidebarGroupContent';
 
 const SidebarMenu = React.forwardRef<
   HTMLUListElement,
-  React.ComponentProps<'ul'>
->(({ className, ...props }, ref) => (
-  <ul
-    ref={ref}
-    data-sidebar="menu"
-    className={cn('flex w-full min-w-0 flex-col gap-1', className)}
-    {...props}
-  />
-));
+  React.ComponentProps<'ul'> & {
+    user?: { perfil: string } | null;
+  }
+>(({ className, user, ...props }, ref) => {
+  const pathname = usePathname();
+
+  return (
+    <ul
+      ref={ref}
+      data-sidebar="menu"
+      className={cn('flex w-full min-w-0 flex-col gap-1', className)}
+      {...props}
+    >
+      {/* Link para Dashboard Consolidado para admin e gerente */}
+      {(user?.perfil === 'admin' || user?.perfil === 'gerente') && (
+        <SidebarMenuItem>
+          <Link
+            href="/dashboard/consolidado"
+            className={cn(
+              'flex items-center gap-3 rounded-lg px-3 py-2 text-base transition-all hover:text-primary',
+              pathname === '/dashboard/consolidado'
+                ? 'bg-muted font-semibold'
+                : 'text-muted-foreground'
+            )}
+          >
+            <PieChart className="h-5 w-5" />
+            Dashboard Consolidado
+          </Link>
+        </SidebarMenuItem>
+      )}
+      {props.children}
+    </ul>
+  );
+});
 SidebarMenu.displayName = 'SidebarMenu';
 
 const SidebarMenuItem = React.forwardRef<

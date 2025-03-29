@@ -36,7 +36,8 @@ export default function PedidosPage() {
 
   useEffect(() => {
     const pedidos = async () => {
-      const pedidosData = await OrdersSales.getPedidos()
+      const pedidosData = await OrdersSales.getPedidos();
+      if (pedidosData) {
       // Buscar informações dos clientes para cada pedido
       const pedidosComClientes = await Promise.all(
         pedidosData.map(async (pedido: any) => {
@@ -52,8 +53,10 @@ export default function PedidosPage() {
           }
         }),
       )
+      
 
       setPedidosRecords(pedidosComClientes)
+      }
     }
     pedidos()
   }, [])

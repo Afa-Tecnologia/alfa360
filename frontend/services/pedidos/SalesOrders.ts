@@ -83,7 +83,6 @@ class OrdersSales {
     } catch (error: any) {
       console.error('Erro ao buscar pedidos:', error);
       gerarNotificacao('error', 'Erro ao buscar pedidos');
-      return 'Erro ao buscar pedidos veja a API';
     }
   }
 }

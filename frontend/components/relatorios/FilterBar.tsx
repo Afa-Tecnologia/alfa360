@@ -10,6 +10,9 @@ import {
 } from '@/components/ui/select';
 import { SalesReportFilters } from '@/types/reports';
 import { ptBR } from 'date-fns/locale';
+import { useEffect, useState } from 'react';
+import { categoryService } from '@/lib/services/CategoryService';
+import { userService, User } from '@/lib/services/UserService';
 
 interface FilterBarProps {
   startDate: Date;
@@ -32,19 +35,61 @@ export function FilterBar({
   selectedCategoryId,
   setSelectedCategoryId,
 }: FilterBarProps) {
+  const [categories, setCategories] = useState<{ id: number; name: string }[]>(
+    []
+  );
+  const [vendors, setVendors] = useState<User[]>([]);
+  const [loading, setLoading] = useState({
+    categories: true,
+    vendors: true,
+  });
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const categoriesData = await categoryService.getAllCategories();
+        setCategories(categoriesData);
+      } catch (error) {
+        console.error('Erro ao carregar categorias:', error);
+      } finally {
+        setLoading((prev) => ({ ...prev, categories: false }));
+      }
+    };
+
+    const fetchVendors = async () => {
+      try {
+        const vendorsData = await userService.getVendedores();
+        setVendors(vendorsData);
+      } catch (error) {
+        console.error('Erro ao carregar vendedores:', error);
+      } finally {
+        setLoading((prev) => ({ ...prev, vendors: false }));
+      }
+    };
+
+    fetchCategories();
+    fetchVendors();
+  }, []);
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">
           Data Inicial
         </label>
-        <DatePicker date={startDate} setDate={setStartDate} locale={ptBR} />
+        <DatePicker
+          date={startDate}
+          setDate={(date) => date && setStartDate(date)}
+        />
       </div>
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">
           Data Final
         </label>
-        <DatePicker date={endDate} setDate={setEndDate} locale={ptBR} />
+        <DatePicker
+          date={endDate}
+          setDate={(date) => date && setEndDate(date)}
+        />
       </div>
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -56,9 +101,17 @@ export function FilterBar({
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="todos">Todos os vendedores</SelectItem>
-            {/* Adicionar os vendedores dinamicamente aqui */}
-            <SelectItem value="1">Vendedor 1</SelectItem>
-            <SelectItem value="2">Vendedor 2</SelectItem>
+            {loading.vendors ? (
+              <SelectItem value="carregando" disabled>
+                Carregando vendedores...
+              </SelectItem>
+            ) : (
+              vendors.map((vendor) => (
+                <SelectItem key={vendor.id} value={vendor.id.toString()}>
+                  {vendor.name}
+                </SelectItem>
+              ))
+            )}
           </SelectContent>
         </Select>
       </div>
@@ -75,9 +128,17 @@ export function FilterBar({
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="todas">Todas as categorias</SelectItem>
-            {/* Adicionar as categorias dinamicamente aqui */}
-            <SelectItem value="1">Categoria 1</SelectItem>
-            <SelectItem value="2">Categoria 2</SelectItem>
+            {loading.categories ? (
+              <SelectItem value="carregando" disabled>
+                Carregando categorias...
+              </SelectItem>
+            ) : (
+              categories.map((category) => (
+                <SelectItem key={category.id} value={category.id.toString()}>
+                  {category.name}
+                </SelectItem>
+              ))
+            )}
           </SelectContent>
         </Select>
       </div>

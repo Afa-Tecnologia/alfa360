@@ -65,8 +65,6 @@ Route::prefix('relatorios')->middleware('auth:sanctum')->group(function () {
     });
 });
 
-
-
 Route::prefix('categorias')->middleware('auth:sanctum')->group(function () {
     Route::get('/', [CategoriasController::class, 'index']);
     Route::get('{id}', [CategoriasController::class, 'show']);
@@ -99,12 +97,20 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/caixa/{caixa}/movimentacao', [CaixaController::class, 'createMovimentacao']);
     Route::get('/caixa/{caixa}/report', [CaixaController::class, 'report']);
     Route::post('/caixa/{caixa}/pedido/{pedido}/movimentacao', [CaixaController::class, 'createMovimentacaoFromPedido']);
+    Route::get('/caixa/historico', [CaixaController::class, 'historico']);
+    Route::get('/caixa/{caixa}/detalhes', [CaixaController::class, 'detalhes']);
+    Route::get('/caixa/{caixa}/movimentacoes', [CaixaController::class, 'getMovimentacoesByCaixa']);
+    Route::get('/caixa/consolidado', [CaixaController::class, 'consolidado']);
+    Route::get('/caixa/consolidado/pdf', [CaixaController::class, 'consolidadoPdf']);
 });
 
 Route::get('/test', function () {
     return response()->json(['message' => 'API Funcionando!']);
 });
 
+Route::prefix('users')->middleware('auth:sanctum')->group(function () {
+    Route::get('/vendedores', [UserController::class, 'getVendedores']);
+});
 
 Route::options('/{any}', function () {
     return response('', 200)

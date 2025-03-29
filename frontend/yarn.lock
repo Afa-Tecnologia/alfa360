@@ -5016,6 +5016,7 @@ react-barcode-reader@^0.0.2:
     react "^16.13.1"
     react-dom "^16.13.1"
 
+
 react-day-picker@^9.6.3:
   version "9.6.3"
   resolved "https://registry.npmjs.org/react-day-picker/-/react-day-picker-9.6.3.tgz"

@@ -51,7 +51,6 @@
     "npm": "^11.1.0",
     "pdfmake": "^0.2.18",
     "react": "^19.0.0",
-    "react-barcode-reader": "^0.0.2",
     "react-day-picker": "^9.6.3",
     "react-dom": "^19.0.0",
     "react-dropzone": "^14.3.5",

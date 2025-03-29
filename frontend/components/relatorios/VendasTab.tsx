@@ -1,5 +1,6 @@
 'use client';
 
+
 import { useEffect, useState } from 'react';
 import { SalesSummary, RevenueByPeriod } from '@/types/reports';
 import {
@@ -47,6 +48,7 @@ import {
   CreditCardIcon,
 } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import PedidosPageSales from '../pages/pedidos/PedidosSalesPage';
 
 interface VendasTabProps {
   salesSummary: SalesSummary | null;

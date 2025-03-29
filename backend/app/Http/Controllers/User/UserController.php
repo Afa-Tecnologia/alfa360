@@ -38,6 +38,14 @@ class UserController extends Controller
         return response()->json($user);
     }
 
+    // Método para atualizar um usuário
+    public function update(string $id, Request $request)
+    {
+        $data = $request->all();
+        $user = $this->userService->update($id, $data);
+        return response()->json($user);
+    }
+
     //Edição de usuário
     public function edit(string $id, Request $request)
     {
@@ -51,5 +59,22 @@ class UserController extends Controller
     {
         $user = $this->userService->delete($id);
         return response()->json($user);
+    }
+
+    // Método para obter todos os vendedores
+    public function getVendedores()
+    {
+        try {
+            $vendedores = $this->userService->getVendedores();
+            return response()->json([
+                'error' => false,
+                'vendedores' => $vendedores
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => true,
+                'message' => 'Erro ao buscar vendedores: ' . $e->getMessage()
+            ], 500);
+        }
     }
 }

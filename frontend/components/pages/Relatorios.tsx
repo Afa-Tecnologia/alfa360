@@ -7,7 +7,8 @@ import { VendasTab } from '@/components/relatorios/VendasTab';
 import { ProdutosTab } from '@/components/relatorios/ProdutosTab';
 import { CategoriasTab } from '@/components/relatorios/CategoriasTab';
 import { useReports } from '@/hooks/useReports';
-
+import { DashboardConsolidado } from '../caixa/DashboardConsolidado';
+import { HistoricoCaixaPanel } from '../caixa/HistoricoCaixaPanel';
 export default function Relatorios() {
   const {
     activeTab,
@@ -56,8 +57,9 @@ export default function Relatorios() {
         onValueChange={setActiveTab}
         className="space-y-4"
       >
-        <TabsList className="grid grid-cols-2 md:grid-cols-4 h-auto">
+        <TabsList className="grid grid-cols-2 md:grid-cols-5 h-auto">
           <TabsTrigger value="vendas">Vendas</TabsTrigger>
+          <TabsTrigger value="caixa">Caixa</TabsTrigger>
           <TabsTrigger value="produtos">Produtos</TabsTrigger>
           <TabsTrigger value="categorias">Categorias</TabsTrigger>
           <TabsTrigger value="comissoes">Comissões</TabsTrigger>
@@ -71,7 +73,17 @@ export default function Relatorios() {
             formatCurrency={formatCurrency}
             period={period}
             setPeriod={setPeriod}
+            startDate={startDate}
+            endDate={endDate}
+            selectedVendorId={selectedVendorId}
+            selectedCategoryId={selectedCategoryId}
           />
+        </TabsContent>
+
+        {/* Tab de Caixa */}
+        <TabsContent value="caixa" className="space-y-4">
+          <DashboardConsolidado startDate={startDate} endDate={endDate} />
+          <HistoricoCaixaPanel />
         </TabsContent>
 
         {/* Tab de Produtos */}

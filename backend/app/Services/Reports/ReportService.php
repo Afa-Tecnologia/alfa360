@@ -138,8 +138,8 @@ class ReportService
             ->select(
                 'categorias.id as categoryId',
                 'categorias.name as categoryName',
-                DB::raw('SUM(pedidos_produtos.quantity) as totalSales'),
-                DB::raw('SUM(pedidos_produtos.quantity * pedidos_produtos.selling_price) as totalRevenue')
+                DB::raw('SUM(pedidos_produtos.quantidade) as totalSales'),
+                DB::raw('SUM(pedidos_produtos.quantidade * pedidos_produtos.preco_unitario) as totalRevenue')
             )
             ->groupBy('categorias.id', 'categorias.name')
             ->orderByDesc('totalRevenue')
@@ -196,8 +196,8 @@ class ReportService
             ->select(
                 'produtos.id as productId',
                 'produtos.name as productName',
-                DB::raw('SUM(pedidos_produtos.quantity) as quantity'),
-                DB::raw('SUM(pedidos_produtos.quantity * pedidos_produtos.selling_price) as totalRevenue')
+                DB::raw('SUM(pedidos_produtos.quantidade) as quantity'),
+                DB::raw('SUM(pedidos_produtos.quantidade * pedidos_produtos.preco_unitario) as totalRevenue')
             )
             ->groupBy('produtos.id', 'produtos.name')
             ->orderByDesc('quantity')
@@ -236,16 +236,16 @@ class ReportService
         // Determinar o formato e agrupamento com base no período selecionado
         switch ($period) {
             case 'day':
-                $groupFormat = 'Y-m-d';
+                $groupFormat = '%Y-%m-%d';
                 $displayFormat = 'd/m';
                 break;
             case 'week':
-                $groupFormat = 'Y-W';
+                $groupFormat = '%Y-%W';
                 $displayFormat = '\S\e\m\a\n\a W';
                 break;
             case 'month':
             default:
-                $groupFormat = 'Y-m';
+                $groupFormat = '%Y-%m';
                 $displayFormat = 'm/Y';
                 break;
         }
@@ -257,10 +257,10 @@ class ReportService
                 return $query->where('vendedor_id', $vendedorId);
             })
             ->select(
-                DB::raw("DATE_FORMAT(created_at, '{$groupFormat}') as period"),
+                DB::raw("strftime('{$groupFormat}', created_at) as period"),
                 DB::raw('SUM(total) as revenue')
             )
-            ->groupBy(DB::raw("DATE_FORMAT(created_at, '{$groupFormat}')"))
+            ->groupBy(DB::raw("strftime('{$groupFormat}', created_at)"))
             ->orderBy('period')
             ->get();
 

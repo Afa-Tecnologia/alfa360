@@ -3,6 +3,7 @@ import { SidebarTrigger } from "../ui/sidebar";
 import { Separator } from "../ui/separator";
 
 import { ThemeToggle } from "../theme-toggle";
+import StatusCaixaBadge from "../caixa/StatusCaixaBadge";
 
 
 export const Header = () => {
@@ -21,14 +22,7 @@ export const Header = () => {
 
         <div className="flex items-center space-x-4">
         <ThemeToggle/>
-          <Badge
-            variant="outline"
-            className="status-badge bg-green-50 text-green-600 border-green-200"
-          >
-            <span className="h-2 w-2 rounded-full bg-green-500 animate-pulse-subtle"></span>
-            CAIXA ABERTO
-          </Badge>
-        
+          <StatusCaixaBadge/>
         </div>
       </div>
     </header>

@@ -39,7 +39,7 @@ export default function ProductsTable({
           <TableHead>Categoria</TableHead>
           <TableHead className="text-right">Preço</TableHead>
           <TableHead className="text-center">Estoque</TableHead>
-          <TableHead className="text-right">Ação</TableHead>
+          <TableHead className="text-right lg:hidden">Ação</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -100,7 +100,7 @@ export default function ProductsTable({
                 {product.quantity}
               </span>
             </TableCell>
-            <TableCell className="text-right">
+            <TableCell className="text-right lg:hidden">
               <div className="flex justify-end gap-2">
                 <Button
                   variant="ghost"

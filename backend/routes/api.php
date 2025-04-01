@@ -24,7 +24,7 @@ Route::post('signup', [UserAuthController::class, 'signup']);
 Route::post('login', [UserAuthController::class, 'login']);
 Route::middleware('auth:sanctum')->post('logout', [UserAuthController::class, 'logout']);
 
-Route::prefix('users')->group(function () {
+Route::prefix('users')->middleware('auth:sanctum')->group(function () {
     Route::get('/', [UserController::class, 'index']);
     Route::get('{id}', [UserController::class, 'show']);
     Route::post('/', [UserController::class, 'store']);

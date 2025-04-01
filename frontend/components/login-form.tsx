@@ -9,7 +9,7 @@ import { LoginResponse } from '@/types/auth';
 import { loginAction } from '@/app/api/actions';
 import { gerarNotificacao } from '@/utils/toast';
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { redirect, useRouter } from 'next/navigation';
 import useAuthStore from '@/stores/authStore';
 import { ButtonLoading } from './ui/button-spinner';
 
@@ -38,6 +38,7 @@ export function LoginForm({
         setUser(user);
         setToken(access_token);
         gerarNotificacao('success', message);
+        redirect('/dashboard')
       }
     } catch (error: any) {
       const { response } = error;

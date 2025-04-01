@@ -80,7 +80,7 @@ export function FilterBar({
         </label>
         <DatePicker
           date={startDate}
-          setDate={(date) => date && setStartDate(date)}
+          onDateChange={(date) => date && setStartDate(date)}
         />
       </div>
       <div>
@@ -89,14 +89,20 @@ export function FilterBar({
         </label>
         <DatePicker
           date={endDate}
-          setDate={(date) => date && setEndDate(date)}
+          onDateChange={(date) => date && setEndDate(date)}
         />
       </div>
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">
           Vendedor
         </label>
-        <Select value={selectedVendorId} onValueChange={setSelectedVendorId}>
+        <Select
+          value={selectedVendorId}
+          onValueChange={(value) => {
+            console.log('Vendedor selecionado:', value);
+            setSelectedVendorId(value);
+          }}
+        >
           <SelectTrigger>
             <SelectValue placeholder="Todos os vendedores" />
           </SelectTrigger>

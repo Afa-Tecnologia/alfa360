@@ -1,7 +1,5 @@
-import WelcomeScreenDashboard from "@/components/pages/dashboard/HomeDashboard";
+import { WelcomeScreenDashboard } from '@/components/WelcomeScreenDashboard';
 
 export default function Page() {
-  return (
-    <WelcomeScreenDashboard/>
-  )
+  return <WelcomeScreenDashboard />;
 }

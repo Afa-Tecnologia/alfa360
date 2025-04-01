@@ -1,17 +1,14 @@
 import { useState, useEffect } from 'react';
 import { format, startOfMonth, endOfMonth } from 'date-fns';
 import {
-
-
   SalesReportFilters,
   SalesSummary,
   CategorySales,
   ProductSales,
-  CommissionSummary
-
+  CommissionSummary,
+  Commission,
 } from '@/types/reports';
 import { reportService } from '@/lib/services/ReportService';
-
 
 export function useReports() {
   const [activeTab, setActiveTab] = useState('vendas');
@@ -24,8 +21,14 @@ export function useReports() {
   const [salesSummary, setSalesSummary] = useState<SalesSummary | null>(null);
   const [categorySales, setCategorySales] = useState<CategorySales[]>([]);
   const [topProducts, setTopProducts] = useState<ProductSales[]>([]);
-  const [commissionSummary, setCommissionSummary] =
-    useState<CommissionSummary | null>(null);
+  const [commissionSummary, setCommissionSummary] = useState<CommissionSummary>(
+    {
+      vendedor_id: 0,
+      vendedor: undefined,
+      comissao_total: 0,
+      comissoes: [],
+    }
+  );
   const [loading, setLoading] = useState({
     summary: true,
     categories: true,
@@ -71,16 +74,67 @@ export function useReports() {
       setTopProducts(products);
       setLoading((prev) => ({ ...prev, products: false }));
 
-      // Fetch commissions if vendor selected
-      if (selectedVendorId && selectedVendorId !== 'todos') {
-        const vendorId = parseInt(selectedVendorId);
-        const commissions =
-          await reportService.getCommissionsByVendor(vendorId);
-        setCommissionSummary(commissions);
-      } else {
-        setCommissionSummary(null);
+      // Fetch commissions based on filter selection
+      try {
+        if (selectedVendorId && selectedVendorId !== 'todos') {
+          // Caso específico: vendedor selecionado
+          const vendorId = parseInt(selectedVendorId);
+          console.log('Selected Vendor ID:', selectedVendorId);
+
+          if (!isNaN(vendorId)) {
+            const commissionData =
+              await reportService.getCommissionsByVendor(vendorId);
+            console.log(
+              'Comissões recebidas da API para vendedor específico:',
+              commissionData
+            );
+
+            setCommissionSummary({
+              ...commissionData,
+              dataInicial: format(startDate, 'yyyy-MM-dd'),
+              dataFinal: format(endDate, 'yyyy-MM-dd'),
+            });
+          } else {
+            console.error('ID do vendedor inválido:', selectedVendorId);
+            throw new Error('ID do vendedor inválido');
+          }
+        } else {
+          // Caso "todos": buscar todas as comissões e consolidar
+          console.log('Buscando comissões para todos os vendedores');
+          const allCommissions = await reportService.getAllCommissions(
+            format(startDate, 'yyyy-MM-dd'),
+            format(endDate, 'yyyy-MM-dd')
+          );
+          console.log('Comissões de todos os vendedores:', allCommissions);
+
+          // Consolidar os dados de comissões de todos os vendedores
+          const totalComissao = allCommissions.reduce(
+            (total: number, c: Commission) => total + c.valor,
+            0
+          );
+
+          setCommissionSummary({
+            vendedor_id: 0,
+            vendedor: { id: 0, name: 'Todos os vendedores' },
+            comissao_total: totalComissao,
+            comissoes: allCommissions,
+            dataInicial: format(startDate, 'yyyy-MM-dd'),
+            dataFinal: format(endDate, 'yyyy-MM-dd'),
+          });
+        }
+      } catch (error) {
+        console.error('Erro ao buscar comissões:', error);
+        setCommissionSummary({
+          vendedor_id: 0,
+          vendedor: undefined,
+          comissao_total: 0,
+          comissoes: [],
+          dataInicial: format(startDate, 'yyyy-MM-dd'),
+          dataFinal: format(endDate, 'yyyy-MM-dd'),
+        });
+      } finally {
+        setLoading((prev) => ({ ...prev, commissions: false }));
       }
-      setLoading((prev) => ({ ...prev, commissions: false }));
     } catch (error) {
       console.error('Erro ao buscar dados:', error);
       setLoading({

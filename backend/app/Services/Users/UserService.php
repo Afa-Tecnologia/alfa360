@@ -43,4 +43,10 @@ class UserService
         }
         return $user;
     }
+
+    // Método para obter todos os vendedores
+    public function getVendedores()
+    {
+        return User::where('role', 'vendedor')->orWhere('role', 'admin')->get();
+    }
 }

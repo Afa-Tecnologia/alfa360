@@ -110,6 +110,7 @@ export default function Relatorios() {
             commissionSummary={commissionSummary}
             loading={loading.commissions}
             formatCurrency={formatCurrency}
+            selectedVendorId={selectedVendorId}
           />
         </TabsContent>
       </Tabs>

@@ -18,7 +18,7 @@ class UserService {
    */
   async getAll() {
     try {
-      const response = await api.get('/users2');
+      const response = await api.get('/users');
       return response.data;
     } catch (error: any) {
       console.error('Erro ao buscar usuários:', error);
@@ -35,7 +35,7 @@ class UserService {
    */
   async getById(id: number) {
     try {
-      const response = await api.get(`/users2/${id}`);
+      const response = await api.get(`/users/${id}`);
       return response.data;
     } catch (error: any) {
       console.error('Erro ao buscar usuário:', error);
@@ -53,7 +53,7 @@ class UserService {
   async create(user: User) {
     try {
       // Remove a senha da resposta antes de retornar para evitar exposição
-      const response = await api.post('/users2', user);
+      const response = await api.post('/users', user);
 
       // Garantindo que a senha não está sendo retornada na resposta
       const { password, ...safeUserData } = response.data;
@@ -75,7 +75,7 @@ class UserService {
    */
   async update(id: number, user: Partial<User>) {
     try {
-      const response = await api.put(`/users2/${id}`, user);
+      const response = await api.put(`/users/${id}`, user);
 
       // Garantindo que a senha não está sendo retornada na resposta
       const { password, ...safeUserData } = response.data;
@@ -99,7 +99,7 @@ class UserService {
    */
   async delete(id: number) {
     try {
-      const response = await api.delete(`/users2/${id}`);
+      const response = await api.delete(`/users/${id}`);
       gerarNotificacao('success', 'Usuário excluído com sucesso!');
       return response.data;
     } catch (error: any) {

@@ -141,11 +141,7 @@ export function EstatisticasCaixa({
                 {Math.round(percentualEntradas)}%
               </span>
             </div>
-            <Progress
-              value={percentualEntradas}
-              className="h-2 bg-gray-100"
-              indicatorClassName="bg-green-500"
-            />
+            <Progress value={percentualEntradas} className="h-2 bg-gray-100" />
           </div>
 
           <div className="space-y-1">
@@ -155,11 +151,7 @@ export function EstatisticasCaixa({
                 {Math.round(percentualSaidas)}%
               </span>
             </div>
-            <Progress
-              value={percentualSaidas}
-              className="h-2 bg-gray-100"
-              indicatorClassName="bg-red-500"
-            />
+            <Progress value={percentualSaidas} className="h-2 bg-gray-100" />
           </div>
         </div>
 
@@ -190,13 +182,7 @@ export function EstatisticasCaixa({
                     <Progress
                       value={percentual}
                       className="h-1.5 bg-gray-100"
-                      indicatorClassName={cn(
-                        'bg-blue-500',
-                        entrada.metodo === 'MONEY' && 'bg-green-500',
-                        entrada.metodo === 'CREDIT_CARD' && 'bg-purple-500',
-                        entrada.metodo === 'DEBIT_CARD' && 'bg-blue-500',
-                        entrada.metodo === 'PIX' && 'bg-yellow-500'
-                      )}
+                    
                     />
                   </div>
                 );

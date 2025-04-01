@@ -20,6 +20,7 @@ import { formatCurrency } from '@/utils/format';
 import { useState } from 'react';
 import { CircleDollarSign, Loader2, MessageSquareText } from 'lucide-react';
 import { gerarNotificacao } from '@/utils/toast';
+import useAuthStore from '@/stores/authStore';
 
 // Esquema de validação
 const formSchema = z.object({
@@ -48,6 +49,7 @@ interface AbrirCaixaFormProps {
 export function AbrirCaixaForm({ onSuccess }: AbrirCaixaFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { openCaixa } = useCaixaStore();
+  const user = useAuthStore((state) => state.user);
 
   // Formulário
   const form = useForm<AbrirCaixaFormValues>({
@@ -81,7 +83,7 @@ export function AbrirCaixaForm({ onSuccess }: AbrirCaixaFormProps) {
         Number(values.saldoInicial.replace(/\D/g, '')) / 100;
 
       // Chama a função do store para abrir o caixa
-      await openCaixa(valorNumerico, values.observacao ? +values?.observacao : 0);
+      await openCaixa(valorNumerico, user?.id || 0, values.observacao);
 
       gerarNotificacao('success', 'Caixa aberto com sucesso!');
       onSuccess?.();

@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Commissions\CommissionsController;
 use App\Http\Controllers\Relatorios\RelatoriosController;
 use App\Http\Middleware\ComissionsMiddleware;
+use App\Http\Controllers\API\EmployeeExpenseController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -23,12 +24,13 @@ Route::post('signup', [UserAuthController::class, 'signup']);
 Route::post('login', [UserAuthController::class, 'login']);
 Route::middleware('auth:sanctum')->post('logout', [UserAuthController::class, 'logout']);
 
-Route::prefix('users2')->group(function () {
+Route::prefix('users')->group(function () {
     Route::get('/', [UserController::class, 'index']);
     Route::get('{id}', [UserController::class, 'show']);
     Route::post('/', [UserController::class, 'store']);
     Route::put('{id}', [UserController::class, 'update']);
     Route::delete('{id}', [UserController::class, 'delete']);
+    Route::get('/vendedores', [UserController::class, 'getVendedores']);
 });
 
 Route::prefix('produtos')->middleware('auth:sanctum')->group(function () {
@@ -108,9 +110,7 @@ Route::get('/test', function () {
     return response()->json(['message' => 'API Funcionando!']);
 });
 
-Route::prefix('users')->middleware('auth:sanctum')->group(function () {
-    Route::get('/vendedores', [UserController::class, 'getVendedores']);
-});
+
 
 Route::options('/{any}', function () {
     return response('', 200)
@@ -118,3 +118,14 @@ Route::options('/{any}', function () {
         ->header('Access-Control-Allow-Methods', 'POST, GET, OPTIONS')
         ->header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 })->where('any', '.*');
+
+Route::middleware(['auth:sanctum'])->group(function () {
+    Route::prefix('despesas')->group(function () {
+        Route::get('/', [EmployeeExpenseController::class, 'index']);
+        Route::get('/summary', [EmployeeExpenseController::class, 'summary']);
+        Route::get('/funcionario/{id}', [EmployeeExpenseController::class, 'byEmployee']);
+        Route::post('/', [EmployeeExpenseController::class, 'store']);
+        Route::put('/{id}', [EmployeeExpenseController::class, 'update']);
+        Route::delete('/{id}', [EmployeeExpenseController::class, 'destroy']);
+    });
+});

@@ -1,4 +1,4 @@
-'use client'
+'use client';
 import { useEffect, useState } from 'react';
 import { Product, useProductStore } from '@/stores/productStore';
 import { useUIStore } from '@/stores/uiStore';
@@ -11,27 +11,28 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
+} from '@/components/ui/table';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+} from '@/components/ui/select';
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { Trash2, PencilIcon, ArrowUpDown } from 'lucide-react';
+import { Trash2, PencilIcon, Search, Package } from 'lucide-react';
 import CreateProductForm from './ProductCreateForm';
 import EditProductForm from './ProductEditForm';
 import { gerarNotificacao } from '@/utils/toast';
 import { api } from '@/app/api/api';
 import NoData from '../Semdados/NoData';
 import { ProductsTable } from '../admin/products-table';
+import EmptyStockTable from './EmptyStockTable';
 
 export default function ProductListingInTable() {
   const {
@@ -45,7 +46,7 @@ export default function ProductListingInTable() {
     setSellingPrice,
     setTipoProduto,
   } = useProductStore();
-  
+
   const { openForm, closeForm, setIsOpenCreate, setIsOpenEdit } = useUIStore();
   const [searchTerm, setSearchTerm] = useState('');
   const [itemsPerPage, setItemsPerPage] = useState(10);
@@ -56,25 +57,35 @@ export default function ProductListingInTable() {
   } | null>(null);
 
   // Filter products based on search term
-  const filteredProducts = products.filter((product) =>
-    product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    product.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    product.brand.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredProducts = products.filter((product) => {
+    const searchLower = searchTerm.toLowerCase();
+    return (
+      product.name.toLowerCase().includes(searchLower) ||
+      product.description.toLowerCase().includes(searchLower) ||
+      product.brand.toLowerCase().includes(searchLower) ||
+      product.type.toLowerCase().includes(searchLower) ||
+      product.variants.some(
+        (variant) =>
+          variant.name.toLowerCase().includes(searchLower) ||
+          variant.color.toLowerCase().includes(searchLower) ||
+          variant.size.toLowerCase().includes(searchLower)
+      )
+    );
+  });
 
   // Sort products
   const sortedProducts = [...filteredProducts].sort((a, b) => {
     if (!sortConfig) return 0;
-    
+
     const aValue = a[sortConfig.key];
     const bValue = b[sortConfig.key];
-    
+
     if (typeof aValue === 'string' && typeof bValue === 'string') {
-      return sortConfig.direction === 'asc' 
+      return sortConfig.direction === 'asc'
         ? aValue.localeCompare(bValue)
         : bValue.localeCompare(aValue);
     }
-    
+
     return sortConfig.direction === 'asc'
       ? (aValue as number) - (bValue as number)
       : (bValue as number) - (aValue as number);
@@ -103,9 +114,10 @@ export default function ProductListingInTable() {
   };
 
   const handleSort = (key: keyof Product) => {
-    setSortConfig(current => ({
+    setSortConfig((current) => ({
       key,
-      direction: current?.key === key && current.direction === 'asc' ? 'desc' : 'asc'
+      direction:
+        current?.key === key && current.direction === 'asc' ? 'desc' : 'asc',
     }));
   };
 
@@ -145,12 +157,13 @@ export default function ProductListingInTable() {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <div className="flex-1 max-w-sm">
+        <div className="flex-1 max-w-sm relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
           <Input
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Buscar por nome, descrição ou marca..."
-            className="w-full"
+            placeholder="Buscar por nome, descrição, marca ou variante..."
+            className="w-full pl-10"
           />
         </div>
         <Button onClick={() => handleNewProductForm(product)}>
@@ -158,51 +171,76 @@ export default function ProductListingInTable() {
         </Button>
       </div>
 
-      {/* {paginatedProducts.length === 0 ? (
-        <NoData name="Produto" />
+      {paginatedProducts.length === 0 ? (
+        <EmptyStockTable />
       ) : (
-        <div className="border rounded-md">
+        <div className="rounded-md border">
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead onClick={() => handleSort('name')} className="cursor-pointer">
-                  <div className="flex items-center">
+                <TableHead
+                  onClick={() => handleSort('name')}
+                  className="cursor-pointer hover:bg-gray-50"
+                >
+                  <div className="flex items-center gap-2">
                     Nome
-                    <ArrowUpDown className="h-4 w-4 ml-2" />
+                    <span className="text-gray-400">↕</span>
                   </div>
                 </TableHead>
                 <TableHead>Descrição</TableHead>
-                <TableHead onClick={() => handleSort('quantity')} className="cursor-pointer">
-                  <div className="flex items-center">
-                    Quantidade
-                    <ArrowUpDown className="h-4 w-4 ml-2" />
+                <TableHead
+                  onClick={() => handleSort('purchase_price')}
+                  className="cursor-pointer hover:bg-gray-50"
+                >
+                  <div className="flex items-center gap-2">
+                    Preço de Compra
+                    <span className="text-gray-400">↕</span>
                   </div>
                 </TableHead>
-                <TableHead onClick={() => handleSort('selling_price')} className="cursor-pointer">
-                  <div className="flex items-center">
+                <TableHead
+                  onClick={() => handleSort('selling_price')}
+                  className="cursor-pointer hover:bg-gray-50"
+                >
+                  <div className="flex items-center gap-2">
                     Preço de Venda
-                    <ArrowUpDown className="h-4 w-4 ml-2" />
+                    <span className="text-gray-400">↕</span>
                   </div>
                 </TableHead>
-                <TableHead>Marca</TableHead>
-                <TableHead className="text-right">Ações</TableHead>
+                <TableHead
+                  onClick={() => handleSort('quantity')}
+                  className="cursor-pointer hover:bg-gray-50"
+                >
+                  <div className="flex items-center gap-2">
+                    Quantidade
+                    <span className="text-gray-400">↕</span>
+                  </div>
+                </TableHead>
+                <TableHead>Variantes</TableHead>
+                <TableHead>Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {paginatedProducts.map((product) => (
-                <TableRow key={product.id}>
+                <TableRow key={product.id} className="hover:bg-gray-50">
                   <TableCell className="font-medium">{product.name}</TableCell>
-                  <TableCell>{product.description}</TableCell>
+                  <TableCell className="max-w-[200px] truncate">
+                    {product.description}
+                  </TableCell>
+                  <TableCell>
+                    R$ {Number(product.purchase_price).toFixed(2)}
+                  </TableCell>
+                  <TableCell>
+                    R$ {Number(product.selling_price).toFixed(2)}
+                  </TableCell>
                   <TableCell>{product.quantity}</TableCell>
                   <TableCell>
-                    {new Intl.NumberFormat('pt-BR', {
-                      style: 'currency',
-                      currency: 'BRL'
-                    }).format(+product.selling_price)}
+                    <div className="flex items-center gap-2">
+                      <Package className="h-4 w-4 text-gray-500" />
+                      <span>{product.variants.length}</span>
+                    </div>
                   </TableCell>
-                  <TableCell>{product.brand}</TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex justify-end gap-2">
+                  <TableCell>
+                    <div className="flex gap-2">
                       <TooltipProvider>
                         <Tooltip>
                           <TooltipTrigger asChild>
@@ -210,8 +248,9 @@ export default function ProductListingInTable() {
                               variant="ghost"
                               size="icon"
                               onClick={() => handleEditProduct(product)}
+                              className="hover:bg-blue-50"
                             >
-                              <PencilIcon className="h-4 w-4" />
+                              <PencilIcon className="h-4 w-4 text-blue-600" />
                             </Button>
                           </TooltipTrigger>
                           <TooltipContent>
@@ -226,7 +265,10 @@ export default function ProductListingInTable() {
                             <Button
                               variant="ghost"
                               size="icon"
-                              onClick={() => handleDeleteProduct(product.id ? product.id : 0)}
+                              onClick={() =>
+                                handleDeleteProduct(product.id || 0)
+                              }
+                              className="hover:bg-red-50"
                             >
                               <Trash2 className="h-4 text-red-500 w-4" />
                             </Button>
@@ -243,13 +285,13 @@ export default function ProductListingInTable() {
             </TableBody>
           </Table>
         </div>
-      )} */}
-      {paginatedProducts.length > 0 && <ProductsTable product={paginatedProducts} />}
+      )}
 
       <div className="flex justify-between items-center">
         <div className="flex gap-2 items-center">
           <p className="text-muted-foreground text-sm">
-            Mostrando {paginatedProducts.length} de {filteredProducts.length} produtos
+            Mostrando {paginatedProducts.length} de {filteredProducts.length}{' '}
+            produtos
           </p>
           <Select
             value={itemsPerPage.toString()}

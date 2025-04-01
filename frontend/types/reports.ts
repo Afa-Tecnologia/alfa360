@@ -46,6 +46,12 @@ export interface Commission {
     id: number;
     name: string;
   };
+  pedido?: {
+    id: number;
+    total: number;
+    status: string;
+    created_at: string;
+  };
 }
 
 export interface CommissionSummary {
@@ -56,6 +62,8 @@ export interface CommissionSummary {
     id: number;
     name: string;
   };
+  dataInicial?: string;
+  dataFinal?: string;
 }
 
 export interface RevenueByPeriod {

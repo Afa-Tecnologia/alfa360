@@ -41,6 +41,7 @@
     "embla-carousel-react": "^8.5.2",
     "framer-motion": "^12.5.0",
     "install": "^0.13.0",
+    "jsbarcode": "^3.11.6",
     "jspdf": "^3.0.1",
     "jwt-decode": "^4.0.0",
     "lucide-react": "^0.471.1",

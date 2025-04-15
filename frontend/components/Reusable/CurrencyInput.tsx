@@ -1,8 +1,7 @@
-import { use, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 
-// Componente reutilizável para valores monetários
 export function CurrencyInput({
   label,
   value,
@@ -10,21 +9,42 @@ export function CurrencyInput({
   description,
 }: {
   label: string;
-  value: number | string;
+  value: number;
   onChange: (newValue: number) => void;
   description?: string;
 }) {
-  const [localValue, setLocalValue] = useState<number>(0);
-  const handleCurrencyInput = () => {
+  const [displayValue, setDisplayValue] = useState<string>('0,00');
 
+  // Converte o valor do formato interno (123.45) para o formato de exibição (123,45)
+  const formatToDisplay = (value: number): string => {
+    return value.toFixed(2).replace('.', ',');
   };
-  useEffect(() => {
-    onChange(+localValue);
-  }, [localValue]);
 
-  useEffect(() =>{
-    setLocalValue(+value)
-  },[])
+
+  useEffect(() => {
+    // Inicialização do valor local
+    if (typeof value === 'number' && !isNaN(value)) {
+      setDisplayValue(formatToDisplay(value));
+    } else {
+      setDisplayValue('0,00');
+    }
+  }, []);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    // Obtém apenas os dígitos da entrada
+    const digits = e.target.value.replace(/\D/g, '');
+
+    // Converte para centavos (multiplicado por 0.01 para obter o valor em reais)
+    const valueInCents = parseInt(digits || '0');
+    const valueInReais = valueInCents * 0.01;
+
+    // Formata o número para ter sempre duas casas decimais
+    const formattedValue = formatToDisplay(valueInReais);
+
+    // Atualiza o estado e notifica o componente pai
+    setDisplayValue(formattedValue);
+    onChange(valueInReais);
+  };
 
   return (
     <div className="flex flex-col gap-1">
@@ -37,11 +57,8 @@ export function CurrencyInput({
         <Input
           type="text"
           className="pl-8"
-          value={Number(localValue?.toLocaleString('pt-BR'))}
-          onChange={(e) => {
-            const newValue = Number(e.target.value.replace(/\D/g, ''));
-            setLocalValue(newValue)
-          }}
+          value={displayValue}
+          onChange={handleChange}
         />
       </div>
     </div>

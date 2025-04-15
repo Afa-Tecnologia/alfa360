@@ -26,6 +26,25 @@ class ProductService {
   }
 
   /**
+   * Verifica se um código de barras já existe no sistema
+   * @returns true se o código já existe, false caso contrário
+   */
+  async checkBarcodeExists(code: string): Promise<boolean> {
+    try {
+      const response = await api.get(`/produtos/barcode-check/${code}`);
+      return response.data.exists;
+    } catch (error) {
+      // Se o endpoint não existir, tentamos buscar o produto diretamente
+      try {
+        const product = await this.getProductByBarcode(code);
+        return !!product; // Retorna true se o produto existir
+      } catch (e) {
+        return false; // Se não encontrar o produto, assume que não existe
+      }
+    }
+  }
+
+  /**
    * Busca todos os produtos
    */
   async getProducts(): Promise<any[]> {

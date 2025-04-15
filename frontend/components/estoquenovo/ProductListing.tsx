@@ -24,8 +24,7 @@ import {
 import { DialogHeader } from '../ui/dialog';
 import { gerarNotificacao } from '@/utils/toast';
 import { api } from '@/app/api/api';
-import NoData from '../Semdados/NoData';
-
+import EmptyStock from './EmptyStock';
 
 export default function ProductList() {
   const {
@@ -133,11 +132,11 @@ export default function ProductList() {
         </Button>
       </div>
       <div>
-   
-        <div>{paginatedProducts.length == 0 && <NoData name="Produto" />}</div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {paginatedProducts.length > 0 &&
-            paginatedProducts.map((product, index) => (
+        {paginatedProducts.length === 0 ? (
+          <EmptyStock />
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {paginatedProducts.map((product, index) => (
               <Card key={product.id || index}>
                 <CardHeader>
                   <CardTitle>{product.name}</CardTitle>
@@ -182,39 +181,42 @@ export default function ProductList() {
                 </CardContent>
               </Card>
             ))}
-        </div>
+          </div>
+        )}
       </div>
 
       {/* Paginação */}
-      <div className="flex justify-between items-center">
-        <Button
-          disabled={currentPage === 1}
-          onClick={() => setCurrentPage(currentPage - 1)}
-        >
-          Anterior
-        </Button>
+      {paginatedProducts.length > 0 && (
+        <div className="flex justify-between items-center">
+          <Button
+            disabled={currentPage === 1}
+            onClick={() => setCurrentPage(currentPage - 1)}
+          >
+            Anterior
+          </Button>
 
-        <span>
-          Página {currentPage} de {totalPages || 1}
-        </span>
+          <span>
+            Página {currentPage} de {totalPages || 1}
+          </span>
 
-        <Button
-          disabled={currentPage === totalPages || totalPages === 0}
-          onClick={() => setCurrentPage(currentPage + 1)}
-        >
-          Próxima
-        </Button>
+          <Button
+            disabled={currentPage === totalPages || totalPages === 0}
+            onClick={() => setCurrentPage(currentPage + 1)}
+          >
+            Próxima
+          </Button>
 
-        <select
-          value={itemsPerPage}
-          onChange={(e) => setItemsPerPage(Number(e.target.value))}
-          className="ml-2 p-2 border rounded"
-        >
-          <option value={5}>5 por página</option>
-          <option value={10}>10 por página</option>
-          <option value={20}>20 por página</option>
-        </select>
-      </div>
+          <select
+            value={itemsPerPage}
+            onChange={(e) => setItemsPerPage(Number(e.target.value))}
+            className="ml-2 p-2 border rounded"
+          >
+            <option value={5}>5 por página</option>
+            <option value={10}>10 por página</option>
+            <option value={20}>20 por página</option>
+          </select>
+        </div>
+      )}
 
       <CreateProductForm fetchProducts={fetchProdutos} />
       <EditProductForm />

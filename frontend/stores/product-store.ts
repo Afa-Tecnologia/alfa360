@@ -1,6 +1,6 @@
-import { Variant } from "@/types/estoque";
-import { create } from "zustand";
-import { persist } from "zustand/middleware";
+import { Variant } from '@/types/estoque';
+import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 
 export type Product = {
   id: number;
@@ -18,16 +18,23 @@ export type Product = {
   createdAt: Date;
   updatedAt: Date;
   variants: Variant[];
-  selectedColor?: string; 
-  selectedSize?: string;  
-  selectedColorId?:number;
+  selectedColor?: string;
+  selectedSize?: string;
+  selectedColorId?: number;
+  vendedor_id?: number;
+  vendedor_nome?: string;
 };
 
 type ProductStore = {
   products: Product[];
   setProducts: (products: any[]) => void;
-  addProduct: (product: Omit<Product, "id" | "createdAt" | "updatedAt">) => void;
-  updateProduct: (id: number, product: Partial<Omit<Product, "id" | "createdAt" | "updatedAt">>) => void;
+  addProduct: (
+    product: Omit<Product, 'id' | 'createdAt' | 'updatedAt'>
+  ) => void;
+  updateProduct: (
+    id: number,
+    product: Partial<Omit<Product, 'id' | 'createdAt' | 'updatedAt'>>
+  ) => void;
   deleteProduct: (id: number) => void;
   getProduct: (id: number) => Product | undefined;
 };
@@ -50,7 +57,7 @@ export const useProductStore = create<ProductStore>()(
           image: product.image,
           brand: product.brand,
           code: product.code,
-          quantity : product?.quantity,
+          quantity: product?.quantity,
           category_id: product.categoria_id,
           createdAt: new Date(product.created_at),
           updatedAt: new Date(product.updated_at),
@@ -97,7 +104,7 @@ export const useProductStore = create<ProductStore>()(
       },
     }),
     {
-      name: "product-storage",
+      name: 'product-storage',
     }
   )
 );

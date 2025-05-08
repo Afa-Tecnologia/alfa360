@@ -1,0 +1,43 @@
+<?php
+
+namespace App\Http\Controllers\PedidoPagamento;
+
+use Illuminate\Http\Request;
+use App\Http\Controllers\Controller;
+use App\Http\Requests\PedidoPagamento\StorePedidoPagamentoRequest;
+use App\Http\Resources\PedidoPagamentoResource;
+use App\Models\Pedido;
+use App\Services\PedidoPagamento\PedidoPagamentoService;
+use Illuminate\Http\JsonResponse;
+
+class PedidoPagamentoController extends Controller
+{
+    protected PedidoPagamentoService $service;
+
+    public function __construct(PedidoPagamentoService $service)
+    {
+        $this->service = $service;
+    }
+
+    /**
+     * Registra um pagamento de forma síncrona, sem gateway externo.
+     */
+    public function store(StorePedidoPagamentoRequest $request, Pedido $pedido)
+    {
+        try{
+            $data = $request->validated();
+            $pagamento = $this->service->create($pedido, $data);
+            
+            return response()->json([
+                'message' => 'Pagamento registrado com sucesso',
+                'data' => ($pagamento)
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Erro ao registrar pagamento',
+                'error' => $e->getMessage()
+            ], 400);
+        }
+    }
+}

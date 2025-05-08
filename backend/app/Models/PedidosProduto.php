@@ -12,8 +12,11 @@ class PedidosProduto extends Model
     protected $fillable = [
         'pedido_id',
         'produto_id',
+        'vendedor_id',
         'quantidade',
         'preco_unitario',
+        
+
     ];
 
     // Defina a chave primária, caso não seja 'id'
@@ -23,6 +26,11 @@ class PedidosProduto extends Model
     public function pedido()
     {
         return $this->belongsTo(Pedido::class);
+    }
+
+    public function vendedor()
+    {
+        return $this->belongsTo(User::class, 'vendedor_id');
     }
 
     public function produto()

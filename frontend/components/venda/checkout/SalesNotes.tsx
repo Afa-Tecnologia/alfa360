@@ -21,6 +21,7 @@ interface SalesNotes {
       quantity: number;
       unitPrice: number;
       total: number;
+      vendedor?: string;
     }[];
     total: number;
     desconto: number;
@@ -163,27 +164,36 @@ export function SalesNotes({
                         Itens:
                       </motion.p>
                       {notesSales.sale.items.map((item: any, index: number) => (
-                        <div
-                          key={index}
-                          className="flex justify-between text-sm"
-                        >
-                          <motion.span
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            transition={{ delay: 1.5, duration: 0.4 }}
-                          >
-                            {item.quantity}x {item.productName}
-                          </motion.span>
-                          <motion.span
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            transition={{ delay: 1.6, duration: 0.4 }}
-                          >
-                            {item.total.toLocaleString('pt-BR', {
-                              style: 'currency',
-                              currency: 'BRL',
-                            })}
-                          </motion.span>
+                        <div key={index} className="flex flex-col mb-2">
+                          <div className="flex justify-between text-sm">
+                            <motion.span
+                              initial={{ opacity: 0 }}
+                              animate={{ opacity: 1 }}
+                              transition={{ delay: 1.5, duration: 0.4 }}
+                            >
+                              {item.quantity}x {item.productName}
+                            </motion.span>
+                            <motion.span
+                              initial={{ opacity: 0 }}
+                              animate={{ opacity: 1 }}
+                              transition={{ delay: 1.6, duration: 0.4 }}
+                            >
+                              {item.total.toLocaleString('pt-BR', {
+                                style: 'currency',
+                                currency: 'BRL',
+                              })}
+                            </motion.span>
+                          </div>
+                          {item.vendedor && (
+                            <motion.p
+                              className="text-xs text-muted-foreground ml-2"
+                              initial={{ opacity: 0 }}
+                              animate={{ opacity: 1 }}
+                              transition={{ delay: 1.65, duration: 0.4 }}
+                            >
+                              Vendedor: {item.vendedor}
+                            </motion.p>
+                          )}
                         </div>
                       ))}
                     </div>
@@ -195,7 +205,8 @@ export function SalesNotes({
                       >
                         Total:
                       </motion.span>
-                      <motion.span     initial={{ opacity: 0 }}
+                      <motion.span
+                        initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         transition={{ delay: 1.8, duration: 0.4 }}
                       >
@@ -206,13 +217,17 @@ export function SalesNotes({
                       </motion.span>
                     </div>
                     <div className="text-sm">
-                      <motion.p className="text-sm text-muted-foreground"     initial={{ opacity: 0 }}
+                      <motion.p
+                        className="text-sm text-muted-foreground"
+                        initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         transition={{ delay: 1.9, duration: 0.4 }}
                       >
                         Método de Pagamento
                       </motion.p>
-                      <motion.p className="font-medium"     initial={{ opacity: 0 }}
+                      <motion.p
+                        className="font-medium"
+                        initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         transition={{ delay: 2, duration: 0.4 }}
                       >
@@ -223,7 +238,7 @@ export function SalesNotes({
                 </div>
               )}
               <DialogFooter>
-                <Button type="button" onClick={handleCloseReceipt} className=''>
+                <Button type="button" onClick={handleCloseReceipt} className="">
                   Fechar
                 </Button>
               </DialogFooter>

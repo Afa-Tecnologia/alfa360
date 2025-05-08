@@ -13,11 +13,11 @@ return new class extends Migration
     {
         Schema::create('pedidos', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('vendedor_id')->constrained('users');
+            // $table->foreignId('vendedor_id')->constrained('users');
             $table->foreignId('cliente_id')->constrained('clientes');
             $table->enum('type',['ecommerce', 'loja']);
-            $table->enum('status', ['PENDING', 'PAYMENT_CONFIRMED', 'CONDITIONAL', 'ORDERED', 'CANCELLED'])->default('PENDING');
-            $table->enum('payment_method', ['MONEY', 'CREDIT_CARD','DEBIT_CARD', 'PIX', 'CONDITIONAL', 'TRANSFER']);
+            $table->enum('status', ['PENDING','PROCESSING','PAYMENT_CONFIRMED', 'PARTIAL_PAYMENT', 'CONDITIONAL', 'ORDERED', 'CANCELLED'])->default('PENDING');
+            // $table->enum('payment_method', ['MONEY', 'CREDIT_CARD','DEBIT_CARD', 'PIX', 'CONDITIONAL', 'TRANSFER']);
             $table->decimal('desconto', 8, 2)->default(0);
             $table->decimal('total', 8, 3);
             $table->timestamps();

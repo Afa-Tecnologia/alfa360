@@ -5,6 +5,7 @@ export type User = {
   name: string;
   email: string;
   role: string;
+  perfil: string;
   created_at: Date;
   updated_at: Date;
 };

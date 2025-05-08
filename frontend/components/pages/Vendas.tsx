@@ -22,6 +22,12 @@ import FinalizeSaleModal from '@/components/venda/checkout/FinalizeSaleModal';
 import EmptyState from '@/components/venda/components/EmptyState';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
+import { User, userService } from '@/lib/services/UserService';
+
+// Interface para representar um vendedor
+interface Seller extends User {
+  // Estende a interface User existente
+}
 
 export default function Vendas() {
   // Estados
@@ -36,6 +42,8 @@ export default function Vendas() {
   const [isLoading, setIsLoading] = useState(true);
   const [showCartSheet, setShowCartSheet] = useState(false);
   const [viewMode, setViewMode] = useState<'grid' | 'table'>('table');
+  // Novo estado para o vendedor selecionado
+  const [selectedSeller, setSelectedSeller] = useState<Seller | null>(null);
 
   const {
     items,
@@ -124,6 +132,8 @@ export default function Vendas() {
   const handleProductSelect = (product: Product) => {
     setSelectedProduct(product);
     setQuantity(1);
+    // Resetar vendedor selecionado ao selecionar novo produto
+    setSelectedSeller(null);
 
     // Definir valores padrão para variantes se existirem
     if (product.variants && product.variants.length > 0) {
@@ -137,6 +147,11 @@ export default function Vendas() {
     }
 
     setShowProductDetails(true);
+  };
+
+  // Função para lidar com a mudança de vendedor
+  const handleSellerChange = (seller: Seller) => {
+    setSelectedSeller(seller);
   };
 
   const handleEnhancedBarcodeScan = async (items: ScannedItem[]) => {
@@ -189,17 +204,41 @@ export default function Vendas() {
   };
 
   const handleAddToCart = () => {
-    if (selectedProduct) {
-      addItem(selectedProduct as unknown as CartProduct, quantity, 0);
+    if (selectedProduct && selectedSeller) {
+      // Adiciona o produto ao carrinho com o ID do vendedor associado
+      addItem(
+        {
+          ...selectedProduct,
+          vendedor_id: selectedSeller.id, // Associa o ID do vendedor ao produto
+          vendedor_nome: selectedSeller.name, // Guarda também o nome do vendedor
+        } as unknown as CartProduct,
+        quantity,
+        0
+      );
       setShowProductDetails(false);
       gerarNotificacao('success', 'Produto adicionado ao carrinho');
+    } else if (!selectedSeller) {
+      gerarNotificacao('warning', 'Selecione um vendedor para continuar');
     }
   };
 
   const handleQuickAddToCart = (product: Product) => {
-    addItem(product as unknown as CartProduct, 1, 0);
-    gerarNotificacao('success', 'Produto adicionado ao carrinho');
-    setShowCartSheet(true);
+    // Para adições rápidas, deve abrir o modal para selecionar o vendedor
+    setSelectedProduct(product);
+    setQuantity(1);
+
+    // Definir valores padrão para variantes se existirem
+    if (product.variants && product.variants.length > 0) {
+      const defaultVariant = product.variants[0];
+      setSelectedProduct({
+        ...product,
+        selectedColor: defaultVariant.color,
+        selectedSize: defaultVariant.size,
+        selectedColorId: defaultVariant.id,
+      });
+    }
+
+    setShowProductDetails(true);
   };
 
   const handleFinalizeSale = () => {
@@ -406,6 +445,8 @@ export default function Vendas() {
         onDecreaseQuantity={decreaseQuantity}
         onAddToCart={handleAddToCart}
         formatPrice={formatPrice}
+        selectedSeller={selectedSeller}
+        onSellerChange={handleSellerChange}
       />
 
       {/* Modal de finalização de venda */}

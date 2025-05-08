@@ -31,18 +31,17 @@ class PedidoService
             
             // Criando o pedido com dados iniciais
             $pedido = Pedido::create([
-                'vendedor_id' => $data['vendedor_id'],
+                // 'vendedor_id' => $data['vendedor_id'],
                 'cliente_id' => $data['cliente_id'],
                 'type' => $data['type'],
-                'payment_method' => $data['payment_method'],
+                // 'payment_method' => $data['payment_method'],
                 'total' => 0,
                 'desconto' => $data['desconto'] ?? 0,
-                'status' => 'pago' // Adicionando status padrão
+                'status' => $data['status'] ?? 'PENDING',
             ]);
             
             Log::info('Pedido base criado', ['pedido_id' => $pedido->id]);
 
-            // Processa os produtos e calcula o total
             $total = $this->processarProdutosNoPedido($pedido, $data['produtos']);
             
             Log::info('Produtos processados', ['total' => $total]);
@@ -92,11 +91,12 @@ class PedidoService
 
             $quantidade = $produtoData['quantity'];
             $precoUnitario = $produto->selling_price;
-
+            $vendedor = $produtoData['vendedor_id'];
             // Criar relação com pedidos_produtos
             PedidosProduto::create([
                 'pedido_id' => $pedido->id,
                 'produto_id' => $produto->id,
+                'vendedor_id'=> $vendedor,
                 'quantidade' => $quantidade,
                 'preco_unitario' => $precoUnitario,
             ]);
@@ -105,7 +105,7 @@ class PedidoService
             $comissaoValor = $precoUnitario * 0.05 * $quantidade;
             Commission::create([
                 'pedido_id' => $pedido->id,
-                'vendedor_id' => $vendedorId,
+                'vendedor_id' => $vendedor,
                 'produto_id' => $produto->id,
                 'valor' => round($comissaoValor, 2),
                 'quantity' => $quantidade,
@@ -129,45 +129,45 @@ class PedidoService
     public function processarProdutosNoPedido(Pedido $pedido, array $produtos)
     {
         $total = 0;
-        
-        foreach ($produtos as $item) {
-            // Verifica se o produto existe
-            $produto = Produto::findOrFail($item['produto_id']);
-            
-            // Verifica se existe quantidade ou quantity no item
-            $quantidade = $item['quantidade'] ?? $item['quantity'] ?? 0;
-            
-            $subtotal = $produto->selling_price * $quantidade;
-            
-            // Associa o produto ao pedido
-            $pedido->produtos()->attach($produto->id, [
-                'quantidade' => $quantidade,
-                'preco_unitario' => $produto->selling_price,
-            ]);
-            
-            $total += $subtotal;
-            
-            // Reduz o estoque da variante se houver variante_id
-            if (isset($item['variante_id']) && $item['variante_id']) {
-                try {
-                    $this->estoqueService->reduzirEstoqueVariante(
-                        $item['variante_id'], 
-                        $quantidade
-                    );
-                    $this->estoqueService->reduzirEstoqueProduto(
-                        $item['produto_id'], 
-                        $quantidade
-                    );
-                } catch (\Exception $e) {
-                    Log::error("Erro ao reduzir estoque da variante {$item['variante_id']}: " . $e->getMessage());
-                    // Não interrompemos o processamento, apenas logamos o erro
-                }
+    
+        foreach ($produtos as $produtoData) {
+            $produto = Produto::find($produtoData['produto_id']);
+            if (!$produto) {
+                continue; // Ignorar caso o produto não exista
             }
+    
+            $quantidade = $produtoData['quantidade'];
+            $precoUnitario = $produto->selling_price;
+            
+            // Certifique-se de que vendedor_id está sendo passado
+            $vendedorId = $produtoData['vendedor_id'] ?? null;
+            
+            // Criar relação com pedidos_produtos
+            PedidosProduto::create([
+                'pedido_id' => $pedido->id,
+                'produto_id' => $produto->id,
+                'vendedor_id' => $vendedorId, // Adicione o vendedor_id aqui
+                'quantidade' => $quantidade,
+                'preco_unitario' => $precoUnitario,
+            ]);
+    
+            // Criar comissão
+            $comissaoValor = $precoUnitario * 0.05 * $quantidade;
+            Commission::create([
+                'pedido_id' => $pedido->id,
+                'vendedor_id' => $vendedorId,
+                'produto_id' => $produto->id,
+                'valor' => round($comissaoValor, 2),
+                'quantity' => $quantidade,
+                'percentual' => 5,
+            ]);
+
+            $total += $precoUnitario * $quantidade;
         }
-        
+
         return $total;
     }
-    
+
     public function processarAtualizacaoDeProdutos(Pedido $pedido, array $produtos)
     {
         // Remover todos os produtos antigos
@@ -212,7 +212,7 @@ class PedidoService
 
     public function getAll()
     {
-        return Pedido::with(['produtos', 'cliente' => function($query) {
+        return Pedido::with(['produtos','pagamentos', 'cliente' => function($query) {
             $query->select('id', 'name', 'last_name');
         }])->get();
     }

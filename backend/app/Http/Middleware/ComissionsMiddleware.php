@@ -29,15 +29,17 @@ class ComissionsMiddleware
         
         Log::info('Pedido criado, processando comissões');
         
-        // Verifica se a resposta tem um JSON válido
-        if (!$response->getData()) {
-            Log::error('Resposta sem dados JSON válidos');
+        // Verifica se a resposta é um JsonResponse
+        if (!($response instanceof \Illuminate\Http\JsonResponse)) {
+            Log::error('Resposta não é um JsonResponse');
             return $response;
         }
         
-        // Obtém o pedido criado da resposta
+        // Obtém os dados da resposta
         $responseData = $response->getData();
-        if (!isset($responseData->pedido)) {
+        
+        // Verifica se há dados e se contém o objeto pedido
+        if (!$responseData || !isset($responseData->pedido)) {
             Log::error('Resposta não contém objeto pedido', ['response' => $responseData]);
             return $response;
         }

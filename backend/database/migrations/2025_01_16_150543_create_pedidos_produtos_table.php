@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id(); 
             $table->foreignId('pedido_id')->constrained('pedidos')->onDelete('cascade');  // Especificando a tabela 'pedidos'
             $table->foreignId('produto_id')->constrained('produtos')->onDelete('cascade'); // Especificando a tabela 'produtos'
+            $table->foreignId('vendedor_id')->constrained('users');
             $table->integer('quantity'); 
             $table->decimal('selling_price', 8, 2); // Preço de venda do produto
             $table->timestamps(); 

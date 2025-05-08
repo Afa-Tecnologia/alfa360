@@ -26,6 +26,7 @@ import {
   ReceiptText,
   FileCog,
   User,
+  Settings
 } from 'lucide-react';
 
 import { NavMain } from '@/components/nav-main';
@@ -64,7 +65,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             isActive: true,
             items: [
               {
-                title: 'Vendas',
+                title: 'Vender',
                 url: '/dashboard/vendas',
               },
               {
@@ -108,6 +109,18 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                     },
                   ]
                 : []),
+            ],
+          },
+          {
+            title: 'Configurações do PDV',
+            url: '/dashboard',
+            icon: Settings,
+            isActive: true,
+            items: [
+              {
+                title: 'Métodos de Pagamento',
+                url: '/dashboard/metodos-pagamento',
+              }
             ],
           },
           ...(HideSession

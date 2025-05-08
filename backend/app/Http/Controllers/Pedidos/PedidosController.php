@@ -53,6 +53,7 @@ class PedidosController extends Controller
     public function store(StorePedidoRequest $request)
     {
         try {
+            
             $dataValidated = $request->validated();
             
             Log::info('Dados validados para criação de pedido:', ['data' => $dataValidated]);
@@ -65,9 +66,6 @@ class PedidosController extends Controller
                     'message' => 'Estoque insuficiente para um ou mais produtos.'
                 ], 422);
             }
-            
-            // Garantindo que payment_method esteja em maiúsculas
-            $dataValidated['payment_method'] = strtoupper($dataValidated['payment_method']);
             
             try {
                 // Usa o serviço para criar o pedido e a movimentação de caixa
@@ -90,11 +88,10 @@ class PedidosController extends Controller
                 return DB::transaction(function () use ($dataValidated) {
                     // Criando pedido
                     $pedido = Pedido::create([
-                        'vendedor_id' => $dataValidated['vendedor_id'],
                         'cliente_id' => $dataValidated['cliente_id'],
                         'type' => $dataValidated['type'],
-                        'payment_method' => $dataValidated['payment_method'],
                         'desconto' => $dataValidated['desconto'] ?? 0,
+                        'status' => $dataValidated['status'],
                         'total' => 0,
                     ]);
                     

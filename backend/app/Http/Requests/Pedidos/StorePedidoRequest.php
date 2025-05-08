@@ -23,14 +23,17 @@ class StorePedidoRequest extends FormRequest
         }
         
         return [
-            'vendedor_id' => 'required|exists:users,id',
+            // 'vendedor_id' => 'required|exists:users,id',
             'cliente_id' => 'required|exists:clientes,id',
             'type' => 'required|in:ecommerce,loja',
-            'payment_method' => 'required|in:MONEY,CREDIT_CARD,DEBIT_CARD,PIX,CONDITIONAL,TRANSFER',
+            // 'payment_method' => 'required|in:MONEY,CREDIT_CARD,DEBIT_CARD,PIX,CONDITIONAL,TRANSFER',
+            // 'payment'=>'required|array',
             'desconto' => 'numeric|min:0',
             'produtos' => 'required|array',
+            'status' => 'required|string|in:PENDING,PAYMENT_CONFIRMED,PARTIAL_PAYMENT,CONDITIONAL,ORDERED,CANCELLED',
             'produtos.*.produto_id' => 'required|exists:produtos,id',
             'produtos.*.quantidade' => 'required|integer|min:1',
+            'produtos.*.vendedor_id' => 'required|exists:users,id', // Add this line
             'produtos.*.variante_id' => 'nullable|exists:variantes,id',
         ];
     }
@@ -38,14 +41,16 @@ class StorePedidoRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'vendedor_id.required' => 'O vendedor é obrigatório',
-            'vendedor_id.exists' => 'Vendedor não encontrado',
+            // 'vendedor_id.required' => 'O vendedor é obrigatório',
+            // 'vendedor_id.exists' => 'Vendedor não encontrado',
             'cliente_id.required' => 'O cliente é obrigatório',
             'cliente_id.exists' => 'Cliente não encontrado',
+            'status.required' => 'O status do pedido é obrigatório',
+            'status.in' => 'Status do pedido inválido. Valores permitidos: PENDING, PAYMENT_CONFIRMED, PARTIAL_PAYMENT, CONDITIONAL, ORDERED, CANCELLED',
             'type.required' => 'O tipo de pedido é obrigatório',
             'type.in' => 'Tipo de pedido inválido. Valores permitidos: ecommerce, loja',
-            'payment_method.required' => 'A forma de pagamento é obrigatória',
-            'payment_method.in' => 'Forma de pagamento inválida. Valores permitidos: MONEY, CREDIT_CARD, DEBIT_CARD, PIX, CONDITIONAL, TRANSFER',
+            // 'payment_method.required' => 'A forma de pagamento é obrigatória',
+            // 'payment_method.in' => 'Forma de pagamento inválida. Valores permitidos: MONEY, CREDIT_CARD, DEBIT_CARD, PIX, CONDITIONAL, TRANSFER',
             'desconto.numeric' => 'O desconto deve ser um valor numérico',
             'desconto.min' => 'O desconto não pode ser negativo',
             'produtos.required' => 'É necessário incluir produtos no pedido',
@@ -72,4 +77,4 @@ class StorePedidoRequest extends FormRequest
             ], JsonResponse::HTTP_UNPROCESSABLE_ENTITY)
         );
     }
-} 
+}

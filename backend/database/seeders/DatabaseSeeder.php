@@ -6,6 +6,7 @@ use App\Models\Categoria;
 use App\Models\Cliente;
 use App\Models\Produto;
 use App\Models\User;
+use App\Models\Variantes;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
@@ -47,6 +48,16 @@ class DatabaseSeeder extends Seeder
             "brand"=> "lesamis",
             "code"=> 1232
         ]);
+
+        Variantes::create([
+            "produto_id" => "1",
+            "name"=>"SAIA DE RENDA P",
+            "color"=>"AZUL",
+            "type" => "seila",
+            "size"=> "P",
+            "quantity"=>"50",
+            "active"=> true,
+        ]);
         Cliente::create([
             "name" => "João",
             "last_name" => "Carneiro",
@@ -60,5 +71,7 @@ class DatabaseSeeder extends Seeder
             "date_of_birth" => "1990-05-15"
         ]);
 
+        // // Employee expense seeder
+        // $this->call(EmployeeExpenseSeeder::class);
     }
 }

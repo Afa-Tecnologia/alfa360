@@ -170,6 +170,11 @@ function CartItemCard({
             {item.product.selectedColor}, {item.product.selectedSize}
           </p>
         )}
+        {item.product.vendedor_nome && (
+          <p className="text-xs text-muted-foreground font-medium">
+            Vendedor: {item.product.vendedor_nome}
+          </p>
+        )}
         <div className="flex justify-between items-center mt-2">
           <QuantityControl
             item={item}

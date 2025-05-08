@@ -7,14 +7,16 @@ use App\Http\Controllers\Categorias\CategoriasController;
 use App\Http\Controllers\Clientes\ClientesController;
 use App\Http\Controllers\Imagem\ImagemController;
 use App\Http\Controllers\Pedidos\PedidosController;
+use App\Http\Controllers\PedidoPagamento\PedidoPagamentoController;
 use App\Http\Controllers\User\UserController;
 use App\Http\Controllers\Variantes\VariantesController;
-use Illuminate\Http\Request;
+use Illuminate\Http\Request;    
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Commissions\CommissionsController;
 use App\Http\Controllers\Relatorios\RelatoriosController;
 use App\Http\Middleware\ComissionsMiddleware;
-use App\Http\Controllers\API\EmployeeExpenseController;
+use App\Http\Controllers\PaymentMethods\PaymentMethodController;
+// use App\Http\Controllers\API\EmployeeExpenseController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -26,11 +28,12 @@ Route::middleware('auth:sanctum')->post('logout', [UserAuthController::class, 'l
 
 Route::prefix('users')->middleware('auth:sanctum')->group(function () {
     Route::get('/', [UserController::class, 'index']);
+    Route::get('/vendedores', [UserController::class, 'getVendedores']);
     Route::get('{id}', [UserController::class, 'show']);
     Route::post('/', [UserController::class, 'store']);
     Route::put('{id}', [UserController::class, 'update']);
     Route::delete('{id}', [UserController::class, 'delete']);
-    Route::get('/vendedores', [UserController::class, 'getVendedores']);
+    
 });
 
 Route::prefix('produtos')->middleware('auth:sanctum')->group(function () {
@@ -46,6 +49,7 @@ Route::prefix('produtos')->middleware('auth:sanctum')->group(function () {
 
 Route::prefix('pedidos')->middleware('auth:sanctum')->group(function () {
     Route::get('/', [PedidosController::class, 'index']);
+ 
     Route::get('{id}', [PedidosController::class, 'show']);
     Route::get('/categoria/{id}', [PedidosController::class, 'findByCategory']);
     Route::get('/tipo/{tipo}', [PedidosController::class, 'findByType']);
@@ -54,12 +58,16 @@ Route::prefix('pedidos')->middleware('auth:sanctum')->group(function () {
     Route::delete('{id}', [PedidosController::class, 'delete']);
 });
 
+Route::prefix('pagamentos')->middleware('auth:sanctum')->group(function () {
+    Route::post('/{pedido}', [PedidoPagamentoController::class, 'store']);
+});
+
 Route::prefix('relatorios')->middleware('auth:sanctum')->group(function () {
     Route::get('/resumo', [RelatoriosController::class, 'getSalesSummary']);
     Route::get('/por-categoria', [RelatoriosController::class, 'getSalesByCategory']);
     Route::get('/produtos-mais-vendidos', [RelatoriosController::class, 'getTopProducts']);
     Route::get('/receita-por-periodo', [RelatoriosController::class, 'getRevenueByPeriod']);
-    
+    Route::get('/pedidos', [RelatoriosController::class, 'getOrders']);
     Route::prefix('comissoes')->group(function () {
         Route::get('/', [CommissionsController::class, 'index']); // Comissões do mês atual
         Route::get('/vendedor/{id}', [CommissionsController::class, 'getCommissionsByVendedor']);
@@ -110,22 +118,15 @@ Route::get('/test', function () {
     return response()->json(['message' => 'API Funcionando!']);
 });
 
+Route::apiResource('payment-methods', PaymentMethodController::class);
 
-
-Route::options('/{any}', function () {
-    return response('', 200)
-        ->header('Access-Control-Allow-Origin', '*')
-        ->header('Access-Control-Allow-Methods', 'POST, GET, OPTIONS')
-        ->header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-})->where('any', '.*');
-
-Route::middleware(['auth:sanctum'])->group(function () {
-    Route::prefix('despesas')->group(function () {
-        Route::get('/', [EmployeeExpenseController::class, 'index']);
-        Route::get('/summary', [EmployeeExpenseController::class, 'summary']);
-        Route::get('/funcionario/{id}', [EmployeeExpenseController::class, 'byEmployee']);
-        Route::post('/', [EmployeeExpenseController::class, 'store']);
-        Route::put('/{id}', [EmployeeExpenseController::class, 'update']);
-        Route::delete('/{id}', [EmployeeExpenseController::class, 'destroy']);
-    });
-});
+// Route::middleware(['auth:sanctum'])->group(function () {
+//     Route::prefix('despesas')->group(function () {
+//         Route::get('/', [EmployeeExpenseController::class, 'index']);
+//         Route::get('/summary', [EmployeeExpenseController::class, 'summary']);
+//         Route::get('/funcionario/{id}', [EmployeeExpenseController::class, 'byEmployee']);
+//         Route::post('/', [EmployeeExpenseController::class, 'store']);
+//         Route::put('/{id}', [EmployeeExpenseController::class, 'update']);
+//         Route::delete('/{id}', [EmployeeExpenseController::class, 'destroy']);
+//     });
+// });

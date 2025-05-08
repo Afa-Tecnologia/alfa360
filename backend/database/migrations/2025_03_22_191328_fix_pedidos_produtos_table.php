@@ -20,12 +20,15 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('pedido_id');
             $table->unsignedBigInteger('produto_id');
+            $table->unsignedBigInteger('vendedor_id');
             $table->integer('quantidade')->default(1);
             $table->decimal('preco_unitario', 10, 2);
             $table->timestamps();
 
+            
             $table->foreign('pedido_id')->references('id')->on('pedidos')->onDelete('cascade');
             $table->foreign('produto_id')->references('id')->on('produtos')->onDelete('cascade');
+            $table->foreign('vendedor_id')->references('id')->on('users');
         });
     }
 

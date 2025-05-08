@@ -29,7 +29,13 @@ import {
   CommandItem,
   CommandList,
 } from '@/components/ui/command';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { userService, User } from '@/lib/services/UserService';
+
+// Interface para representar um vendedor
+interface Seller extends User {
+  // Estende a interface User existente
+}
 
 interface ProductDetailsProps {
   open: boolean;
@@ -40,6 +46,10 @@ interface ProductDetailsProps {
   onDecreaseQuantity: () => void;
   onAddToCart: () => void;
   formatPrice: (price: number) => string;
+  // Propriedade para o vendedor selecionado
+  selectedSeller?: Seller | null;
+  // Função para atualizar o vendedor selecionado
+  onSellerChange?: (seller: Seller) => void;
 }
 
 export default function ProductDetails({
@@ -51,6 +61,8 @@ export default function ProductDetails({
   onDecreaseQuantity,
   onAddToCart,
   formatPrice,
+  selectedSeller,
+  onSellerChange,
 }: ProductDetailsProps) {
   if (!product) return null;
 
@@ -66,6 +78,39 @@ export default function ProductDetails({
         : undefined,
   });
 
+  // Estado para armazenar a lista de vendedores
+  const [sellers, setSellers] = useState<Seller[]>([]);
+  // Estado para armazenar o vendedor selecionado localmente
+  const [localSelectedSeller, setLocalSelectedSeller] = useState<Seller | null>(
+    selectedSeller || null
+  );
+  // Estado para controlar o carregamento
+  const [loading, setLoading] = useState(false);
+
+  // Buscar vendedores ao montar o componente
+  useEffect(() => {
+    const fetchSellers = async () => {
+      setLoading(true);
+      try {
+        const data = await userService.getVendedores();
+        setSellers(data);
+      } catch (error) {
+        console.error('Erro ao buscar vendedores:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchSellers();
+  }, []);
+
+  // Atualizar estado local quando a prop mudar
+  useEffect(() => {
+    if (selectedSeller) {
+      setLocalSelectedSeller(selectedSeller);
+    }
+  }, [selectedSeller]);
+
   const handleSelectVariant = (variantId: number) => {
     const variant = product.variants.find((v) => v.id === variantId);
     if (!variant) return;
@@ -79,6 +124,19 @@ export default function ProductDetails({
     product.selectedColor = variant.color;
     product.selectedSize = variant.size;
     product.selectedColorId = variant.id;
+  };
+
+  // Função para selecionar um vendedor
+  const handleSelectSeller = (sellerId: number) => {
+    const seller = sellers.find((s) => s.id === sellerId);
+    if (!seller) return;
+
+    setLocalSelectedSeller(seller);
+
+    // Chamar a função de callback se existir
+    if (onSellerChange) {
+      onSellerChange(seller);
+    }
   };
 
   return (
@@ -134,6 +192,53 @@ export default function ProductDetails({
           <div className="col-span-2 space-y-4">
             <Separator />
 
+            {/* Seleção de vendedor - NOVO COMPONENTE */}
+            <div>
+              <Label className="font-medium">Vendedor</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    role="combobox"
+                    className="w-full justify-between mt-2"
+                    disabled={loading}
+                  >
+                    {loading
+                      ? 'Carregando...'
+                      : localSelectedSeller
+                        ? localSelectedSeller.name
+                        : 'Selecione um vendedor'}
+                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-full p-0">
+                  <Command>
+                    <CommandInput placeholder="Buscar vendedor..." />
+                    <CommandEmpty>Nenhum vendedor encontrado.</CommandEmpty>
+                    <CommandList>
+                      <CommandGroup>
+                        {sellers.map((seller) => (
+                          <CommandItem
+                            key={seller.id}
+                            value={seller.name}
+                            onSelect={() => handleSelectSeller(seller.id)}
+                            className="flex items-center justify-between"
+                          >
+                            <div className="flex items-center">
+                              <span>{seller.name}</span>
+                            </div>
+                            {localSelectedSeller?.id === seller.id && (
+                              <Check className="ml-2 h-4 w-4" />
+                            )}
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
+            </div>
+
             {product.variants && product.variants.length > 0 && (
               <div>
                 {/* Seleção de variante única */}
@@ -186,7 +291,10 @@ export default function ProductDetails({
             type="button"
             onClick={onAddToCart}
             className="flex-1"
-            disabled={!selectedVariant.id && product.variants.length > 0}
+            disabled={
+              (!selectedVariant.id && product.variants.length > 0) ||
+              !localSelectedSeller
+            }
           >
             Adicionar ao Carrinho
           </Button>

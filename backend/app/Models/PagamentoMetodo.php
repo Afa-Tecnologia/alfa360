@@ -1,0 +1,36 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+
+
+class PagamentoMetodo extends Model
+{
+    protected $table = 'pagamento_metodos';
+    protected $casts = ['config' => 'array'];
+
+    public function pagamentos()
+    {
+        return $this->hasMany(PedidoPagamento::class, 'payment_method_id');
+    }
+}
+
+
+
+// class Pedido extends Model
+// {
+//     protected $table = 'pedidos';
+
+//     public function itens()
+//     {
+//         return $this->hasMany(PedidoItem::class);
+//     }
+//     public function pagamentos()
+//     {
+//         return $this->hasMany(PedidoPagamento::class);
+//     }
+
+  
+// }

@@ -4,6 +4,10 @@ namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Carbon;
+use App\Services\Interfaces\EmployeeExpenseServiceInterface;
+use App\Services\EmployeeExpenseService;
+use App\Repositories\Interfaces\EmployeeExpenseRepositoryInterface;
+use App\Repositories\EmployeeExpenseRepository;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -12,7 +16,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        // Registra as interfaces e implementações para o módulo de despesas de funcionários
+        $this->app->bind(EmployeeExpenseRepositoryInterface::class, EmployeeExpenseRepository::class);
+        $this->app->bind(EmployeeExpenseServiceInterface::class, EmployeeExpenseService::class);
     }
 
     /**

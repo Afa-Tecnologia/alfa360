@@ -64,17 +64,16 @@ class UserController extends Controller
     // Método para obter todos os vendedores
     public function getVendedores()
     {
-        try {
-            $vendedores = $this->userService->getVendedores();
-            return response()->json([
-                'error' => false,
-                'vendedores' => $vendedores
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'error' => true,
-                'message' => 'Erro ao buscar vendedores: ' . $e->getMessage()
-            ], 500);
-        }
+         try {
+             $vendedores = $this->userService->getVendedores();
+             return response()->json([
+                 'vendedores' => $vendedores
+             ]);
+         } catch (\Exception $e) {
+             return response()->json([
+                 'error' => true,
+                 'message' => 'Erro ao buscar vendedores: ' . $e->getMessage()
+             ], 500);
+         }
     }
 }

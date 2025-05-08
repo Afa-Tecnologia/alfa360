@@ -3,7 +3,9 @@
 namespace App\Services\Reports;
 
 use App\Models\Pedido;
+use App\Models\PedidoPagamento;
 use App\Models\Produto;
+use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
@@ -280,6 +282,250 @@ class ReportService
                 $item->period = $date->format($displayFormat);
                 return $item;
             });
+        }
+    }
+
+    /**
+     * Retorna os pedidos com filtros e paginação
+     *
+     * @param array $filters
+     * @return array
+     */
+    public function getOrders(array $filters = [])
+    {
+        try {
+            // Extrair filtros
+            $dataInicial = $filters['data_inicial'] ?? null;
+            $dataFinal = $filters['data_final'] ?? null;
+            $vendedorId = $filters['vendedor_id'] ?? null;
+            $categoriaId = $filters['categoria_id'] ?? null;
+            $page = $filters['page'] ?? 1;
+            $limit = $filters['limit'] ?? 10;
+
+            // Definir datas padrão se não fornecidas
+            $dataInicial = $dataInicial 
+                ? Carbon::parse($dataInicial)->startOfDay() 
+                : Carbon::now()->startOfMonth();
+            $dataFinal = $dataFinal 
+                ? Carbon::parse($dataFinal)->endOfDay() 
+                : Carbon::now()->endOfDay();
+
+            // Consulta base - carregando relacionamentos necessários
+            $query = Pedido::with([
+                'cliente',
+                'pagamentos',
+                'pagamentos.metodo',
+                'produtos.categoria',
+                'produtos', // Carrega os produtos para acessar o pivot
+            ])
+            ->whereBetween('created_at', [$dataInicial, $dataFinal]);
+
+            // Aplicar filtros adicionais
+            if ($vendedorId) {
+                $query->whereHas('produtos', function ($q) use ($vendedorId) {
+                    $q->where('pedidos_produtos.vendedor_id', $vendedorId);
+                });
+            }
+
+            if ($categoriaId) {
+                $query->whereHas('produtos', function ($q) use ($categoriaId) {
+                    $q->where('produtos.categoria_id', $categoriaId);
+                });
+            }
+
+            // Obter total de registros
+            $totalItems = $query->count();
+            $totalPages = ceil($totalItems / $limit);
+
+            // Aplicar paginação
+            $orders = $query->orderBy('created_at', 'desc')
+                ->skip(($page - 1) * $limit)
+                ->take($limit)
+                ->get();
+
+            // Carregar os vendedores necessários em uma única consulta separada
+            $vendedorIds = [];
+            foreach ($orders as $order) {
+                foreach ($order->produtos as $produto) {
+                    $vendedorIds[] = $produto->pivot->vendedor_id;
+                }
+            }
+            $vendedorIds = array_unique($vendedorIds);
+            
+            // Carregar os vendedores necessários
+            $vendedores = User::whereIn('id', $vendedorIds)->select('id', 'name')->get()->keyBy('id');
+
+            // Transformar os dados para o formato esperado pelo frontend
+            $transformedOrders = $orders->map(function ($order) use ($vendedores) {
+                // Pegar o primeiro vendedor do primeiro produto (ou poderia listar todos)
+                $firstProduto = $order->produtos->first();
+                $vendedorId = $firstProduto ? $firstProduto->pivot->vendedor_id : null;
+                $vendedorName = ($vendedorId && isset($vendedores[$vendedorId])) 
+                    ? $vendedores[$vendedorId]->name 
+                    : 'Vendedor não informado';
+                // Obter o método de pagamento do primeiro pagamento (se existir)
+                $paymentMethod = 'Não informado';
+                if ($order->pagamentos->isNotEmpty() && $order->pagamentos->first()->metodo) {
+                    $paymentMethod = $order->pagamentos->first()->metodo->name;
+                }
+                return [
+                    'id' => $order->id,
+                    'createdAt' => $order->created_at->toISOString(),
+                    'customerName' => $order->cliente->name ?? 'Cliente não informado',
+                    'total' => $order->total,
+                    'status' => $order->status,
+                    'vendorId' => $vendedorId,
+                    'vendorName' => $vendedorName,
+                    'paymentMethod' => $paymentMethod
+                ];
+            });
+
+            return [
+                'data' => $transformedOrders,
+                'totalPages' => $totalPages,
+                'currentPage' => (int)$page,
+                'totalItems' => $totalItems
+            ];
+        } catch (\Exception $e) {
+            Log::error('Erro ao buscar pedidos: ' . $e->getMessage());
+            throw $e;
+        }
+    }
+
+    /**
+     * Retorna os pedidos com filtros adicionais e paginação
+     *
+     * @param array $filters
+     * @return array
+     */
+    public function getOrdersWithFilters(array $filters = [])
+    {
+        try {
+            // Extrair filtros
+            $dataInicial = $filters['data_inicial'] ?? null;
+            $dataFinal = $filters['data_final'] ?? null;
+            $vendedorId = $filters['vendedor_id'] ?? null;
+            $categoriaId = $filters['categoria_id'] ?? null;
+            $status = $filters['status'] ?? null;
+            $clienteNome = $filters['cliente_nome'] ?? null;
+            $formaPagamento = $filters['forma_pagamento'] ?? null;
+            $page = $filters['page'] ?? 1;
+            $limit = $filters['limit'] ?? 10;
+
+            // Definir datas padrão se não fornecidas
+            $dataInicial = $dataInicial 
+                ? Carbon::parse($dataInicial)->startOfDay() 
+                : Carbon::now()->startOfMonth();
+            $dataFinal = $dataFinal 
+                ? Carbon::parse($dataFinal)->endOfDay() 
+                : Carbon::now()->endOfDay();
+
+            // Consulta base - carregando relacionamentos necessários
+            $query = Pedido::with([
+                'cliente',
+                'pagamentos.metodo', 
+                'produtos.categoria',
+                'produtos',
+            ])
+            ->whereBetween('created_at', [$dataInicial, $dataFinal]);
+            
+            
+            // Filtrar por status
+            if ($status) {
+                $query->where('status', $status);
+                Log::info('Aplicando filtro de status: ' . $status);
+            }
+            
+            // Filtrar por nome do cliente
+            if ($clienteNome) {
+                $query->whereHas('cliente', function($q) use ($clienteNome) {
+                    $q->where('name', 'like', '%' . $clienteNome . '%')
+                      ->orWhere('last_name', 'like', '%' . $clienteNome . '%');
+                });
+                Log::info('Aplicando filtro de cliente: ' . $clienteNome);
+            }
+            
+            // Filtrar por forma de pagamento
+            if ($formaPagamento) {
+                $query->whereHas('pagamentos', function($q) use ($formaPagamento) {
+                    $q->whereHas('metodo', function($mq) use ($formaPagamento) {
+                        $mq->where('code', $formaPagamento);
+                    });
+                });
+                Log::info('Aplicando filtro de forma de pagamento: ' . $formaPagamento);
+            }
+
+            // Aplicar filtros adicionais
+            if ($vendedorId) {
+                $query->whereHas('produtos', function ($q) use ($vendedorId) {
+                    $q->where('pedidos_produtos.vendedor_id', $vendedorId);
+                });
+            }
+
+            if ($categoriaId) {
+                $query->whereHas('produtos', function ($q) use ($categoriaId) {
+                    $q->where('produtos.categoria_id', $categoriaId);
+                });
+            }
+
+            // Obter total de registros
+            $totalItems = $query->count();
+            $totalPages = ceil($totalItems / $limit);
+
+            // Aplicar paginação
+            $orders = $query->orderBy('created_at', 'desc')
+                ->skip(($page - 1) * $limit)
+                ->take($limit)
+                ->get();
+
+            // Carregar os vendedores necessários em uma única consulta separada
+            $vendedorIds = [];
+            foreach ($orders as $order) {
+                foreach ($order->produtos as $produto) {
+                    $vendedorIds[] = $produto->pivot->vendedor_id;
+                }
+            }
+            $vendedorIds = array_unique($vendedorIds);
+            
+            // Carregar os vendedores necessários
+            $vendedores = User::whereIn('id', $vendedorIds)->select('id', 'name')->get()->keyBy('id');
+
+            // Transformar os dados para o formato esperado pelo frontend
+            $transformedOrders = $orders->map(function ($order) use ($vendedores) {
+                // Pegar o primeiro vendedor do primeiro produto (ou poderia listar todos)
+                $firstProduto = $order->produtos->first();
+                $vendedorId = $firstProduto ? $firstProduto->pivot->vendedor_id : null;
+                $vendedorName = ($vendedorId && isset($vendedores[$vendedorId])) 
+                    ? $vendedores[$vendedorId]->name 
+                    : 'Vendedor não informado';
+                
+                // Obter o método de pagamento do primeiro pagamento (se existir)
+                $paymentMethod = 'Não informado';
+                if ($order->pagamentos->isNotEmpty() && $order->pagamentos->first()->metodo) {
+                    $paymentMethod = $order->pagamentos->first()->metodo->name;
+                }
+                
+                return [
+                    'id' => $order->id,
+                    'createdAt' => $order->created_at->toISOString(),
+                    'customerName' => $order->cliente->name ?? 'Cliente não informado',
+                    'total' => $order->total,
+                    'status' => $order->status,
+                    'vendorId' => $vendedorId,
+                    'vendorName' => $vendedorName,
+                    'paymentMethod' => $paymentMethod // <-- Adicionado esta linha
+                ];
+            });
+
+            return [
+                'data' => $transformedOrders,
+                'totalPages' => $totalPages,
+                'currentPage' => (int)$page,
+                'totalItems' => $totalItems
+            ];
+        } catch (\Exception $e) {
+            Log::error('Erro ao buscar pedidos com filtros: ' . $e->getMessage());
+            throw $e;
         }
     }
 } 

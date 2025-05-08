@@ -127,4 +127,39 @@ class RelatoriosController extends Controller
         }
     }
 
+    /**
+     * Retorna os pedidos com filtros e paginação
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function getOrders(Request $request)
+    {
+        try {
+            $filters = [
+                'data_inicial' => $request->query('data_inicial'),
+                'data_final' => $request->query('data_final'),
+                'vendedor_id' => $request->query('vendedor_id'),
+                'categoria_id' => $request->query('categoria_id'),
+                'status' => $request->query('status'),
+                'cliente_nome' => $request->query('cliente_nome'),
+                'forma_pagamento' => $request->query('forma_pagamento'),
+                'page' => $request->query('page', 1),
+                'limit' => $request->query('limit', 10)
+            ];
+            
+            Log::info('Filtros recebidos na API de relatórios de pedidos:', $filters);
+            
+            $orders = $this->reportService->getOrdersWithFilters($filters);
+            
+            return response()->json($orders);
+        } catch (\Exception $e) {
+            Log::error('Erro ao buscar pedidos: ' . $e->getMessage());
+            return response()->json([
+                'error' => true,
+                'message' => 'Erro ao buscar pedidos: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
 }

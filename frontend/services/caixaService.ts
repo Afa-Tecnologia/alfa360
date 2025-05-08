@@ -89,6 +89,7 @@ export const CaixaService = {
    * Lista todas as movimentações do caixa atual
    */
   async getMovimentacoes(caixaId?: number): Promise<MovimentacaoCaixa[]> {
+    console.log('chamou')
     try {
       // Se um caixaId foi fornecido, busca movimentações específicas desse caixa
       const url = caixaId

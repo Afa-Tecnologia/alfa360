@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Models\Pedido;
+use App\Observers\PedidoObserver;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Carbon;
 use App\Services\Interfaces\EmployeeExpenseServiceInterface;
@@ -25,8 +27,9 @@ class AppServiceProvider extends ServiceProvider
      * Bootstrap any application services.
      */
     public function boot(): void
-    {
-        
+    {   
+        //Observador de pedido
+        Pedido::observe(PedidoObserver::class);
         Carbon::setLocale(config('app.locale')); // Define o locale
         setlocale(LC_TIME, 'pt_BR.UTF-8'); // Para funções nativas do PHP
     }

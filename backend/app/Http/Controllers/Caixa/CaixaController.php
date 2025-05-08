@@ -7,6 +7,7 @@ use App\Models\Caixa;
 use App\Models\MovimentacaoCaixa;
 use App\Models\Pedido;
 use App\Services\Caixa\CaixaService;
+use App\Services\Caixa\MovimentacaoCaixaService;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Log;
@@ -15,11 +16,13 @@ use Barryvdh\DomPDF\Facade\Pdf;
 class CaixaController extends Controller
 {
     protected $caixaService;
+    protected $movimentacaoCaixaService;
 
 
-    public function __construct(CaixaService $caixaService)
+    public function __construct(CaixaService $caixaService, MovimentacaoCaixaService $movimentacaoCaixaService)
     {
         $this->caixaService = $caixaService;
+        $this->movimentacaoCaixaService = $movimentacaoCaixaService;
 
     }
 
@@ -75,13 +78,13 @@ class CaixaController extends Controller
     }
     
     public function movimentacoes(){
-        $movimentacoes = $this->caixaService->getTodasMovimentacoes();
+        $movimentacoes = $this->movimentacaoCaixaService->getTodasMovimentacoes();
         return response()->json($movimentacoes);
     }
 
     public function getMovimentacoesByCaixa(Caixa $caixa){
         $movimentacoes = $caixa->movimentacoes()
-            ->with(['user:id,name', 'pedido:id,cliente_id,vendedor_id,total,payment_method'])
+            ->with(['user:id,name', 'pedido:id,cliente_id,total'])
             ->orderBy('created_at', 'desc')
             ->get();
         return response()->json($movimentacoes);
@@ -98,7 +101,7 @@ class CaixaController extends Controller
             'local'=> 'required|in:loja,ecommerce'
         ]);
 
-        $movimentacao = $this->caixaService->createMovimentacao(
+        $movimentacao = $this->movimentacaoCaixaService->createMovimentacao(
             $caixa,
             $validated['type'],
             $validated['value'],
@@ -113,7 +116,7 @@ class CaixaController extends Controller
 
     public function createMovimentacaoFromPedido(Request $request, Caixa $caixa, Pedido $pedido): JsonResponse
     {
-        $movimentacao = $this->caixaService->createMovimentacaoFromPedido($caixa, $pedido);
+        $movimentacao = $this->movimentacaoCaixaService->createMovimentacaoFromPedido($caixa, $pedido);
         return response()->json($movimentacao, 201);
     }
 
@@ -183,7 +186,7 @@ class CaixaController extends Controller
                 'movimentacoes' => function ($query) {
                     $query->with([
                         'user:id,name',
-                        'pedido:id,cliente_id,vendedor_id,total,payment_method',
+                        'pedido:id,cliente_id,total',
                         'pedido.cliente:id,name,last_name'
                     ]);
                     $query->orderBy('created_at', 'desc');

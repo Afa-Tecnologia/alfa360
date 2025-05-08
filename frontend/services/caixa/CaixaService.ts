@@ -147,11 +147,13 @@ class CaixaService {
   }
 
   /**
-   * Obtém todas as movimentações
+   * Obtém todas as movimentações do
    */
-  async obterMovimentacoes(): Promise<MovimentacaoCaixa[]> {
+  async obterMovimentacoes(
+    caixaId: number
+  ): Promise<MovimentacaoCaixa[]> {
     try {
-      const response = await api.get('/caixa/movimentacoes');
+      const response = await api.get('/caixa//movimentacoes');
       return response.data;
     } catch (error: any) {
       console.error('Erro ao obter movimentações:', error);

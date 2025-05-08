@@ -20,7 +20,7 @@ class StorePedidoPagamentoRequest extends FormRequest
    public function rules(): array
    {
        return [
-        'payment_method_code' => 'required|string|exists:pagamento_metodos,code', 
+        'payment_method_code' => 'required|string', 
         'total' => 'required|numeric|min:0.01', 
         'transaction_details' => 'nullable|array|max:255', 
        ];

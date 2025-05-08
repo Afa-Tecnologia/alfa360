@@ -2,11 +2,13 @@
 
 namespace App\Services\Pedidos;
 
+use App\Exceptions\CaixaFechadoException;
 use App\Models\Pedido;
 use App\Models\PedidosProduto;
 use App\Models\Produto;
 use App\Models\Commission;
 use App\Services\Caixa\CaixaService;
+use App\Services\Caixa\MovimentacaoCaixaService;
 use App\Services\EstoqueService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -14,12 +16,14 @@ use Illuminate\Support\Facades\Log;
 class PedidoService
 {
     protected $caixaService;
+    protected $movimentacaoCaixaService;
     protected $estoqueService;
     protected $comissionsService;
 
-    public function __construct(CaixaService $caixaService, EstoqueService $estoqueService)
+    public function __construct(CaixaService $caixaService, MovimentacaoCaixaService $movimentacaoCaixaService, EstoqueService $estoqueService)
     {
         $this->caixaService = $caixaService;
+        $this->movimentacaoCaixaService = $movimentacaoCaixaService;
         $this->estoqueService = $estoqueService;
     }
 
@@ -27,46 +31,28 @@ class PedidoService
     {
         DB::beginTransaction();
         try {
-            Log::info('Iniciando criação de pedido', ['data' => $data]);
+            //Precisa verificar se tem algum caixa aberto
+            $caixa = $this->caixaService->statusCaixa();
+            if (!$caixa) {
+                throw new CaixaFechadoException();
+            }
             
             // Criando o pedido com dados iniciais
             $pedido = Pedido::create([
-                // 'vendedor_id' => $data['vendedor_id'],
                 'cliente_id' => $data['cliente_id'],
                 'type' => $data['type'],
-                // 'payment_method' => $data['payment_method'],
                 'total' => 0,
                 'desconto' => $data['desconto'] ?? 0,
                 'status' => $data['status'] ?? 'PENDING',
             ]);
-            
-            Log::info('Pedido base criado', ['pedido_id' => $pedido->id]);
 
             $total = $this->processarProdutosNoPedido($pedido, $data['produtos']);
-            
-            Log::info('Produtos processados', ['total' => $total]);
 
             // Aplicar desconto se houver
             $total = $this->aplicarDesconto($total, $data['desconto'] ?? 0);
             $pedido->update(['total' => $total]);
             
-            Log::info('Total com desconto calculado', ['total_final' => $total]);
-
-            // Verifico se o caixa está aberto
-            $caixa = $this->caixaService->statusCaixa();
-            
-            if ($caixa) {
-                Log::info('Caixa encontrado, criando movimentação', ['caixa_id' => $caixa->id]);
-                $movimentacao = $this->caixaService->createMovimentacaoFromPedido($caixa, $pedido);
-                Log::info('Movimentação criada com sucesso', ['movimentacao_id' => $movimentacao->id]);
-            } else {
-                Log::warning('Nenhum caixa aberto encontrado');
-                // Não lançamos exceção para permitir criar pedidos mesmo sem caixa aberto
-            }
-            
             DB::commit();
-            
-            Log::info('Pedido criado com sucesso', ['pedido_id' => $pedido->id]);
             return $pedido;
 
         } catch (\Exception $e) {

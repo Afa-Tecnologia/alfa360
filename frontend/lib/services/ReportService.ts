@@ -9,6 +9,7 @@ import {
   SalesReportFilters,
   SalesSummary,
 } from '@/types/reports';
+import { OrdersResponse } from '@/types/order';
 
 class ReportService {
   private path: string = '/relatorios';
@@ -215,6 +216,35 @@ class ReportService {
     } catch (error) {
       console.error('Erro ao buscar todas as comissões:', error);
       return [];
+    }
+  }
+
+  async getOrders(filters: {
+    startDate: string;
+    endDate: string;
+    vendorId?: number;
+    categoryId?: number;
+    page: number;
+    limit: number;
+  }): Promise<OrdersResponse> {
+    try {
+      const queryParams = new URLSearchParams();
+
+      queryParams.append('data_inicial', filters.startDate);
+      queryParams.append('data_final', filters.endDate);
+      if (filters.vendorId)
+        queryParams.append('vendedor_id', filters.vendorId.toString());
+      if (filters.categoryId)
+        queryParams.append('categoria_id', filters.categoryId.toString());
+      queryParams.append('page', filters.page.toString());
+      queryParams.append('limit', filters.limit.toString());
+
+      const url = getUrl(`${this.path}/pedidos?${queryParams.toString()}`);
+      const response = await api.get(url);
+      return response.data;
+    } catch (error) {
+      console.error('Erro ao buscar pedidos:', error);
+      throw error;
     }
   }
 }

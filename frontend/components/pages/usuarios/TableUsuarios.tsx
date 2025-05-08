@@ -113,7 +113,7 @@ export function TableViewUser({ users }: UsersList) {
                   </div>
                 </TableCell>
                 <TableCell>{user.email}</TableCell>
-                <TableCell>{getRoleBadge(user.role)}</TableCell>
+                <TableCell>{getRoleBadge(user.perfil)}</TableCell>
                 <TableCell>
                   {new Date(user.created_at).toLocaleDateString('pt-BR')}
                 </TableCell>
@@ -135,7 +135,7 @@ export function TableViewUser({ users }: UsersList) {
                         Editar
                       </DropdownMenuItem>
                       {/* Não permitir excluir administradores */}
-                      {user.role !== 'admin' && (
+                      {user.perfil !== 'admin' && (
                         <DropdownMenuItem
                           onClick={() => {
                             setCurrentUser(user);

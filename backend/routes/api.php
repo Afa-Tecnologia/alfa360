@@ -59,6 +59,7 @@ Route::prefix('pedidos')->middleware('auth:sanctum')->group(function () {
 });
 
 Route::prefix('pagamentos')->middleware('auth:sanctum')->group(function () {
+    Route::get('/{pedido}',[PedidoPagamentoController::class, 'getPagamentoPorPedido']);
     Route::post('/{pedido}', [PedidoPagamentoController::class, 'store']);
 });
 
@@ -110,6 +111,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/caixa/historico', [CaixaController::class, 'historico']);
     Route::get('/caixa/{caixa}/detalhes', [CaixaController::class, 'detalhes']);
     Route::get('/caixa/{caixa}/movimentacoes', [CaixaController::class, 'getMovimentacoesByCaixa']);
+    //Para gerar relatório pdf
     Route::get('/caixa/consolidado', [CaixaController::class, 'consolidado']);
     Route::get('/caixa/consolidado/pdf', [CaixaController::class, 'consolidadoPdf']);
 });

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Pedidos;
 
+use App\Exceptions\CaixaFechadoException;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Pedidos\StorePedidoRequest;
 use App\Http\Requests\Pedidos\UpdatePedidoRequest;
@@ -19,6 +20,7 @@ use App\Exceptions\EstoqueInsuficienteException;
 use Exception;
 use App\Services\Pedidos\EstoqueHelper;
 use App\Services\ApiResponseService;
+use App\Services\Caixa\CaixaService;
 use Carbon\Carbon;
 use App\Services\Reports\ReportService;
 
@@ -28,18 +30,22 @@ class PedidosController extends Controller
     protected $estoqueService;
     protected $estoqueHelper;
     protected $reportService;
+    protected $caixaService;
 
     public function __construct(
         PedidoService $pedidoService, 
         EstoqueService $estoqueService,
         EstoqueHelper $estoqueHelper,
         ReportService $reportService,
+        CaixaService $caixaService
     )
     {
         $this->pedidoService = $pedidoService;
         $this->estoqueService = $estoqueService;
         $this->estoqueHelper = $estoqueHelper;
         $this->reportService = $reportService;
+        $this->caixaService = $caixaService;
+        
     }
 
     // Método para obter todos os pedidos
@@ -52,6 +58,16 @@ class PedidosController extends Controller
     // Método para criar pedidos
     public function store(StorePedidoRequest $request)
     {
+        //Precisa verificar se tem algum caixa aberto
+        $caixa = $this->caixaService->statusCaixa();
+        if (!$caixa) {
+            return response()->json([
+                "error"=> "BadRequestError",
+                "code"=> "400",
+                "message"=> "É necessário abrir um caixa antes de realizar venda"
+            ], 400);
+        }
+        
         try {
             
             $dataValidated = $request->validated();
@@ -60,7 +76,6 @@ class PedidosController extends Controller
             
             // Verifica disponibilidade de estoque para os produtos
             if (!$this->pedidoService->verificarDisponibilidadeEstoqueProdutos($dataValidated['produtos'])) {
-                Log::warning('Estoque insuficiente para produtos');
                 return response()->json([
                     'error' => true,
                     'message' => 'Estoque insuficiente para um ou mais produtos.'
@@ -68,14 +83,13 @@ class PedidosController extends Controller
             }
             
             try {
-                // Usa o serviço para criar o pedido e a movimentação de caixa
+                // Usa o serviço para criar o pedido
                 Log::info('Iniciando criação do pedido via serviço');
                 $pedido = $this->pedidoService->create($dataValidated);
                 
                 // Carregar os relacionamentos
                 $pedido->load('produtos');
                 
-                Log::info('Pedido criado com sucesso via serviço', ['pedido_id' => $pedido->id]);
                 
                 return response()->json([
                     'message' => 'Pedido criado com sucesso!',
@@ -121,6 +135,11 @@ class PedidosController extends Controller
                 'message' => $e->getMessage(),
             ], (int)$e->getCode() ?: 422);
             
+        } catch (CaixaFechadoException $e) {
+            return response()->json([
+                'error' => true,
+                'message' => $e->getMessage()
+            ], $e->getCode());
         } catch (\Exception $e) {
             Log::error('Erro ao criar pedido: ' . $e->getMessage());
             Log::error($e->getTraceAsString());

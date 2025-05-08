@@ -12,11 +12,11 @@ use Illuminate\Http\JsonResponse;
 
 class PedidoPagamentoController extends Controller
 {
-    protected PedidoPagamentoService $service;
+    protected PedidoPagamentoService $pagamentosDoPedidoService;
 
-    public function __construct(PedidoPagamentoService $service)
+    public function __construct(PedidoPagamentoService $pagamentosDoPedidoService)
     {
-        $this->service = $service;
+        $this->pagamentosDoPedidoService = $pagamentosDoPedidoService;
     }
 
     /**
@@ -26,7 +26,7 @@ class PedidoPagamentoController extends Controller
     {
         try{
             $data = $request->validated();
-            $pagamento = $this->service->create($pedido, $data);
+            $pagamento = $this->pagamentosDoPedidoService->create($pedido, $data);
             
             return response()->json([
                 'message' => 'Pagamento registrado com sucesso',
@@ -39,5 +39,9 @@ class PedidoPagamentoController extends Controller
                 'error' => $e->getMessage()
             ], 400);
         }
+    }
+
+    public function getPagamentoPorPedido($pedidoId){
+        return $this->pagamentosDoPedidoService->getPagamentosPorPedido($pedidoId);
     }
 }

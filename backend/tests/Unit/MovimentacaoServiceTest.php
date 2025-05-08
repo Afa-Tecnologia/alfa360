@@ -13,6 +13,7 @@ use App\Models\Produto;
 use App\Models\Variantes;
 use App\Models\Categoria;
 use App\Models\Cliente;
+use App\Services\Caixa\MovimentacaoCaixaService\MovimentacaoCaixaService;
 
 class MovimentacaoServiceTest extends TestCase
 {
@@ -68,7 +69,8 @@ class MovimentacaoServiceTest extends TestCase
         $this->expectException(\Exception::class);
         $this->expectExceptionMessage('Não é possível criar movimentações em um caixa fechado.');
 
-        $service = new CaixaService();  
+        $caixaService = new CaixaService();
+        $service = new MovimentacaoCaixaService($caixaService);
         $service->createMovimentacaoFromPedido($caixa, $pedido);
     }
 
@@ -153,7 +155,8 @@ class MovimentacaoServiceTest extends TestCase
             $query->with('variants');
         }]);
 
-        $service = new CaixaService();
+        $caixaService = new CaixaService();
+        $service = new MovimentacaoCaixaService($caixaService);
         $movimentacao = $service->createMovimentacaoFromPedido($caixa, $pedido);
 
         // Verifica se o objeto retornado é uma instância de MovimentacaoCaixa

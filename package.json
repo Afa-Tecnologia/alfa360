@@ -1,0 +1,29 @@
+{
+  "name": "alfamanager-main",
+  "version": "1.0.0",
+  "description": "Sistema Alfa Manager - Gerenciador de Estoque, Caixa e Vendas",
+  "main": "index.js",
+  "directories": {
+    "frontend": "frontend",
+    "backend": "backend",
+    "doc": "docs"
+  },
+  "scripts": {
+    "start": "node Ligar.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/juniorteixeiradev/alfamanagerr.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/juniorteixeiradev/alfamanagerr/issues"
+  },
+  "homepage": "https://github.com/juniorteixeiradev/alfamanagerr#readme",
+  "dependencies": {
+    "cross-spawn": "^7.0.6"
+  }
+}

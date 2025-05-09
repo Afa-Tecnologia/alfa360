@@ -78,11 +78,7 @@ class PedidoPagamentoService
             }
             $pedido->save();
 
-            return response()->json([
-                "pagamento"=> $pagamento,
-                "metodo"=> $metodo,
-                "pedido"=> $pedido,
-            ],201);
+            return $pagamento;
         });
     }
 

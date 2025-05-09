@@ -16,6 +16,10 @@ class Commission extends Model
         'status'
     ];
 
+    const STATUS_PENDING = 'PENDENTE';
+    const STATUS_PAID = 'PAGO';
+    const STATUS_CANCELLED = 'CANCELADO';
+
     public function pedido()
     {
         return $this->belongsTo(Pedido::class);

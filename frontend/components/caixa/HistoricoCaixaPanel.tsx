@@ -119,7 +119,7 @@ export function HistoricoCaixaPanel() {
 
   // Renderizar badge de status
   const renderStatusBadge = (status: string) => {
-    if (status === 'open') {
+    if (status === 'aberto') {
       return <Badge className="bg-green-500">Aberto</Badge>;
     }
     return <Badge variant="secondary">Fechado</Badge>;

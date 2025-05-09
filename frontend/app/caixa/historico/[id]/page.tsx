@@ -82,10 +82,10 @@ export default function DetalheCaixaPage() {
           <h1 className="text-2xl font-bold">Detalhes do Caixa #{caixa.id}</h1>
           <Badge
             className={
-              caixa.status === 'open' ? 'bg-green-500' : 'bg-slate-500'
+              caixa.status === 'aberto' ? 'bg-green-500' : 'bg-slate-500'
             }
           >
-            {caixa.status === 'open' ? 'Aberto' : 'Fechado'}
+            {caixa.status === 'aberto' ? 'Aberto' : 'Fechado'}
           </Badge>
         </div>
         <Button

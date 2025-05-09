@@ -19,7 +19,7 @@ return new class extends Migration
             $table->decimal('valor', 8, 2);
             $table->integer('quantity');
             $table->decimal('percentual', 5, 2)->default(5); // Comissão de 5%
-            $table->string('status')->default('pendente'); // Status da comissão (pendente, paga, etc.)
+            $table->enum('status', ['PENDENTE', 'PAGO', 'CANCELADO'])->default('PENDENTE');
             $table->timestamps();
 
             // Relacionamentos

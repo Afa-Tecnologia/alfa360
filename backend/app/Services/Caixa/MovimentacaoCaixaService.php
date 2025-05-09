@@ -7,9 +7,11 @@ use App\Models\Caixa;
 use App\Models\MovimentacaoCaixa;
 use App\Models\Pedido;
 use App\Models\PedidoPagamento;
+use App\Enums\StatusEnum;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use Exception;
 
 class MovimentacaoCaixaService {
 
@@ -28,28 +30,53 @@ class MovimentacaoCaixaService {
         ?array $additionalData = null,
         ?string $local = null
     ): MovimentacaoCaixa {
-        if ($caixa->status !== 'open') {
-            throw new \Exception('Não é possível criar movimentações em um caixa fechado.');
+        if (!$caixa || !$caixa->id) {
+            throw new Exception('Caixa inválido ou não fornecido.');
+        }
+
+        if ($caixa->status !== StatusEnum::CAIXA_OPEN) {
+            throw new Exception('Não é possível criar movimentações em um caixa fechado.');
         }
 
         return DB::transaction(function () use ($caixa, $type, $value, $description, $paymentMethod, $additionalData, $local) {
-            return MovimentacaoCaixa::create([
-                'caixa_id' => $caixa->id,
-                'user_id' => Auth::id(),
-                'type' => $type,
-                'value' => $value,
-                'description' => $description,
-                'payment_method' => $paymentMethod,
-                'status' => 'completed',
-                'additional_data' => $additionalData,
-                'local'=> $local
-            ]);
+            try {
+                $movimentacao = MovimentacaoCaixa::create([
+                    'caixa_id' => $caixa->id,
+                    'user_id' => Auth::id(),
+                    'type' => $type,
+                    'value' => $value,
+                    'description' => $description,
+                    'payment_method' => $paymentMethod,
+                    'status' => StatusEnum::MOVIMENTACAO_COMPLETED,
+                    'additional_data' => $additionalData,
+                    'local' => $local
+                ]);
+
+                if (!$movimentacao) {
+                    throw new Exception('Falha ao criar movimentação no caixa.');
+                }
+
+                Log::info('Movimentação criada com sucesso', [
+                    'caixa_id' => $caixa->id,
+                    'movimentacao_id' => $movimentacao->id,
+                    'type' => $type,
+                    'value' => $value
+                ]);
+
+                return $movimentacao;
+            } catch (Exception $e) {
+                Log::error('Erro ao criar movimentação', [
+                    'caixa_id' => $caixa->id,
+                    'error' => $e->getMessage()
+                ]);
+                throw $e;
+            }
         });
     }
 
     public function createMovimentacaoFromPedido(Caixa $caixa, Pedido $pedido): MovimentacaoCaixa
     {
-        if ($caixa->status !== 'open') {
+        if ($caixa->status !== 'aberto') {
             throw new \Exception('Não é possível criar movimentações em um caixa fechado.');
         }
 

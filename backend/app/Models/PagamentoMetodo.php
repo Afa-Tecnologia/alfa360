@@ -10,6 +10,10 @@ class PagamentoMetodo extends Model
 {
     protected $table = 'pagamento_metodos';
     protected $casts = ['config' => 'array'];
+    protected $fillable = [
+        'name',
+        'code',
+    ];
 
     public function pagamentos()
     {

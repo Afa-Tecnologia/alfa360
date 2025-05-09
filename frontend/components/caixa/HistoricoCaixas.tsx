@@ -324,10 +324,10 @@ export function HistoricoCaixas({ onSelect }: HistoricoCaixasProps) {
                         <TableCell>
                           <Badge
                             variant={
-                              caixa.status === 'open' ? 'default' : 'secondary'
+                              caixa.status === 'aberto' ? 'default' : 'secondary'
                             }
                           >
-                            {caixa.status === 'open' ? 'Aberto' : 'Fechado'}
+                            {caixa.status === 'aberto' ? 'Aberto' : 'Fechado'}
                           </Badge>
                         </TableCell>
                         <TableCell className="text-right">

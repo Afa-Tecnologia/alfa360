@@ -29,6 +29,14 @@ class Caixa extends Model
         'close_date' => 'datetime'
     ];
 
+    const STATUS_OPEN = 'aberto';
+    const STATUS_CLOSED = 'fechado';
+    const STATUS_CANCELLED = 'cancelado';
+    const STATUS_PENDING = 'pendente';
+    const STATUS_CONFIRMED = 'confirmado';
+    const STATUS_INACTIVE = 'inativo';
+    const STATUS_ACTIVE = 'ativo';
+
     public function movimentacoes(): HasMany
     {
         return $this->hasMany(MovimentacaoCaixa::class);
@@ -42,12 +50,12 @@ class Caixa extends Model
     public function calculateCurrentBalance(): float
     {
         $entradas = $this->movimentacoes()
-            ->where('status', 'confirmed')
-            ->where('type', 'entrada')
+            ->where('status', self::STATUS_CONFIRMED)
+            ->where('type', )
             ->sum('value');
 
         $saidas = $this->movimentacoes()
-            ->where('status', 'confirmed')
+            ->where('status', self::STATUS_CONFIRMED)
             ->where('type', 'saida')
             ->sum('value');
 

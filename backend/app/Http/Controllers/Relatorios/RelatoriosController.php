@@ -6,9 +6,11 @@ use App\Http\Controllers\Controller;
 use App\Services\Reports\ReportService;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
+
 class RelatoriosController extends Controller
 {
     protected $reportService;
+    
     public function __construct(ReportService $reportService) {
         $this->reportService = $reportService;
     }

@@ -26,7 +26,8 @@ import {
   ReceiptText,
   FileCog,
   User,
-  Settings
+  Settings,
+  CircleUserRound
 } from 'lucide-react';
 
 import { NavMain } from '@/components/nav-main';
@@ -40,11 +41,13 @@ import {
   SidebarRail,
 } from '@/components/ui/sidebar';
 import { userService } from '@/services/userService';
+import { User as UserType } from '@/types/auth';
 
 const HideSession = process.env.NEXT_PUBLIC_CLOUDINARY_HIDE_SESSION === 'true';
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const [navItems, setNavItems] = React.useState<any[]>([]);
+  const [user, setUser] = React.useState<UserType>({id:0, name: '', email:'', perfil:''});
 
   React.useEffect(() => {
     const fetchUserData = async () => {
@@ -56,6 +59,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         if (!loggedUser) return;
 
         const user = await userService.getById(loggedUser.id);
+        setUser(user)
 
         setNavItems([
           {
@@ -86,10 +90,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                     {
                       title: 'Relatórios',
                       url: '/dashboard/relatorios',
-                    },
-                    {
-                      title: 'Despesas',
-                      url: '/dashboard/despesas',
                     },
                   ]
                 : []),
@@ -123,73 +123,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               }
             ],
           },
-          ...(HideSession
-            ? []
-            : [
-                {
-                  title: 'Ecommerce',
-                  url: '/dashboard/ecommerce-admin',
-                  icon: Store,
-                  isActive: true,
-                  items: [
-                    {
-                      title: 'Dashboard',
-                      url: '/dashboard/ecommerce-admin',
-                    },
-                    {
-                      title: 'Pedidos',
-                      url: '/dashboard/ecommerce-admin/pedidos',
-                    },
-                    {
-                      title: 'Produtos',
-                      url: '/dashboard/ecommerce-admin/produtos',
-                    },
-                    {
-                      title: 'Estoque',
-                      url: '/dashboard/ecommerce-admin/estoque',
-                    },
-                    {
-                      title: 'Envios',
-                      url: '/dashboard/ecommerce-admin/envios',
-                    },
-                    {
-                      title: 'Clientes',
-                      url: '/dashboard/ecommerce-admin/clientes',
-                    },
-                    {
-                      title: 'Relatórios',
-                      url: '/dashboard/ecommerce-admin/relatorios',
-                    },
-                    {
-                      title: 'Configurações',
-                      url: '/dashboard/ecommerce-admin/configuracoes',
-                    },
-                  ],
-                },
-                {
-                  title: 'Configurações',
-                  url: '#',
-                  icon: Settings2,
-                  items: [
-                    {
-                      title: 'Configurações da loja',
-                      url: '#',
-                    },
-                    {
-                      title: 'Usuários do Sistema',
-                      url: '#',
-                    },
-                    {
-                      title: 'Billing',
-                      url: '#',
-                    },
-                    {
-                      title: 'Limits',
-                      url: '#',
-                    },
-                  ],
-                },
-              ]),
         ]);
       } catch (error) {
         console.error('Erro ao buscar dados do usuário:', error);
@@ -201,9 +134,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
   const data = {
     user: {
-      name: 'shadcn',
-      email: 'm@example.com',
-      avatar: '/avatars/shadcn.jpg',
+      name: user?.name,
+      email: user?.email,
+      avatar: '',
     },
     teams: [
       {

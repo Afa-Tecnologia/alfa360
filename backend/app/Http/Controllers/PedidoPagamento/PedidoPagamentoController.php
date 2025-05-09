@@ -26,12 +26,12 @@ class PedidoPagamentoController extends Controller
     {
         try{
             $data = $request->validated();
-            $pagamento = $this->pagamentosDoPedidoService->create($pedido, $data);
+            $result = $this->pagamentosDoPedidoService->create($pedido, $data);
             
             return response()->json([
                 'message' => 'Pagamento registrado com sucesso',
-                'data' => ($pagamento)
-            ], 200);
+                'data' => $result
+            ], 201);
 
         } catch (\Exception $e) {
             return response()->json([

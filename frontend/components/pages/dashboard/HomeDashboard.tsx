@@ -61,7 +61,7 @@ export function WelcomeScreenDashboard() {
     fetchData();
   }, []);
 
-  const isCaixaOpen = statusCaixa?.status === 'open';
+  const isCaixaOpen = statusCaixa?.status === 'aberto';
   const caixaId = statusCaixa?.id || 0;
 
   const handleNovaVenda = () => {

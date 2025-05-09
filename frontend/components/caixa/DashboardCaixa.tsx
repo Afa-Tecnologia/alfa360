@@ -111,7 +111,7 @@ export function DashboardCaixa({
   };
 
   // Estado do caixa
-  const isCaixaOpen = statusCaixa?.status === 'open';
+  const isCaixaOpen = statusCaixa?.status === 'aberto';
   const caixaId = statusCaixa?.id || 0;
 
   // Se não tem dados do status do caixa ainda

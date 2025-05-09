@@ -4,7 +4,7 @@ import { MovimentacaoCaixa } from '@/types/caixa';
 import { formatCurrency } from '@/utils/format';
 import { useToast } from '@/components/ui/use-toast';
 
-export type CaixaStatusType = 'none' | 'open' | 'closed';
+export type CaixaStatusType = 'none' | 'aberto' | 'fechado' | 'cancelado';
 
 interface UseCaixaManagerReturn {
   // Estados
@@ -250,7 +250,7 @@ export function useCaixaManager(): UseCaixaManagerReturn {
       }
 
       // Só busca movimentações e relatório se o caixa estiver aberto
-      if (status && status.status === 'open') {
+      if (status && status.status === 'aberto') {
         console.log('[useCaixaManager] Caixa aberto, buscando movimentações');
         await obterMovimentacoes();
         console.log('[useCaixaManager] Buscando relatório do caixa');
@@ -311,7 +311,7 @@ export function useCaixaManager(): UseCaixaManagerReturn {
       // Se status não estiver definido, use 'none'
       // Se for 'open' ou 'closed', use o status que veio da API
       const newStatus =
-        statusCaixa.status === 'open' || statusCaixa.status === 'closed'
+        statusCaixa.status === 'aberto' || statusCaixa.status === 'fechado'
           ? statusCaixa.status
           : 'none';
 
@@ -330,7 +330,7 @@ export function useCaixaManager(): UseCaixaManagerReturn {
     if (statusCaixa?.caixa) {
       setSaldoInicial(formatCurrency(Number(statusCaixa.caixa.saldo_inicial)));
 
-      if (caixaStatus === 'open') {
+      if (caixaStatus === 'aberto') {
         obterRelatorioCaixa(statusCaixa.caixa.id);
       }
 

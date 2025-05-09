@@ -13,9 +13,8 @@ class CommissionsService
         return Commission::with(['pedido', 'produto', 'vendedor'])->get();
     }
 
-    public function create(StoreComissionsRequest $data){
-        $dataValidated = $data->validated();
-        return Commission::create($dataValidated);
+    public function create($data){
+        return Commission::create($data);
     }
 
     public function calcValueOfCommission ($productValue, $percentageCommission, $piecesQuantity){

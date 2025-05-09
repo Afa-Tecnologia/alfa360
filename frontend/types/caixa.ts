@@ -22,7 +22,7 @@ export interface Caixa {
   observation?: string | null;
   open_date: string;
   close_date?: string | null;
-  status: 'open' | 'closed';
+  status: 'aberto' | 'fechado' | 'cancelado';
   created_at: string;
   updated_at: string;
   user?: {
@@ -86,7 +86,7 @@ export interface CaixaReport {
 
 export interface CaixaStatus {
   id?: string;
-  status: 'open' | 'closed' | 'none';
+  status: 'aberto' | 'fechado' | 'cancelado';
   caixa?: Caixa;
   saldoAtual?: string;
   totalEntradas?: string;

@@ -17,7 +17,7 @@ class CaixaService
     {
         $existingOpenCaixa = Caixa::where('user_id', Auth::id())
             ->with(['user:id,name'])
-            ->where('status', 'open')
+            ->where('status', Caixa::STATUS_OPEN)
             ->first();
 
         if ($existingOpenCaixa) {
@@ -29,7 +29,7 @@ class CaixaService
                 'user_id' => Auth::id(),
                 'saldo_inicial' => $saldoInicial,
                 'open_date' => Carbon::now(),
-                'status' => 'open',
+                'status' => Caixa::STATUS_OPEN,
                 'observation' => $observation
             ]);
         });
@@ -39,14 +39,14 @@ class CaixaService
     {
         $caixa = Caixa::where('user_id', Auth::id())
             ->with('user:id,name')
-            ->where('status', 'open')
+            ->where('status', Caixa::STATUS_OPEN)
             ->first();
 
         return $caixa;
     }
     public function closeCaixa(Caixa $caixa, ?string $observation = null): Caixa
     {
-        if ($caixa->status !== 'open') {
+        if ($caixa->status !== Caixa::STATUS_OPEN) {
             throw new \Exception('Este caixa já está fechado.');
         }
 
@@ -56,7 +56,7 @@ class CaixaService
             $caixa->update([
                 'saldo_final' => $saldoFinal,
                 'close_date' => Carbon::now(),
-                'status' => 'closed',
+                'status' => Caixa::STATUS_CLOSED,
                 'observation' => $observation ? $caixa->observation . "\n" . $observation : $caixa->observation
             ]);
 

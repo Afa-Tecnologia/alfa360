@@ -18,7 +18,15 @@ return new class extends Migration
             $table->decimal('saldo_final', 10, 2)->nullable();
             $table->timestamp('open_date');
             $table->timestamp('close_date')->nullable();
-            $table->string('status')->default('open');
+            $table->enum('status', [
+                'aberto',
+                'fechado',
+                'cancelado',
+                'pendente',
+                'confirmado',
+                'inativo',
+                'ativo'
+            ])->default('aberto');
             $table->text('observation')->nullable();
             $table->timestamps();
             $table->softDeletes();

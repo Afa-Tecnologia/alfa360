@@ -6,9 +6,14 @@ use App\Models\MovimentacaoCaixa;
 use App\Models\Pedido;
 use App\Models\PedidoPagamento;
 use App\Models\PagamentoMetodo;
+use App\Models\PedidosProduto;
 use Illuminate\Database\DatabaseManager;
 use Carbon\Carbon;
 use Illuminate\Http\Resources\Json\JsonResource;
+use App\Models\Caixa;
+use App\Enums\StatusEnum;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class PedidoPagamentoService
 {
@@ -25,6 +30,14 @@ class PedidoPagamentoService
      */
     public function create(Pedido $pedido, array $data)
     {
+        $pedido = Pedido::findOrFail($pedido->id);
+        if(!$pedido) {
+            throw new \InvalidArgumentException("Pedido não encontrado.");
+        }
+        if ($pedido->status == Pedido::STATUS_CANCELLED) {
+            throw new \InvalidArgumentException("Pedido cancelado.");
+        }
+
         return $this->db->transaction(function () use ($pedido, $data) {
             $metodo = PagamentoMetodo::where('code', $data['payment_method_code'])->firstOrFail();
 
@@ -37,6 +50,14 @@ class PedidoPagamentoService
             if ($data['total'] > $restante) {
               throw new \InvalidArgumentException(
                 "Valor excede o saldo restante: R\${$restante}");
+            }
+
+            $caixa = Caixa::where('status', StatusEnum::CAIXA_OPEN)
+                ->where('user_id', Auth::id())
+                ->first();
+
+            if (!$caixa) {
+                throw new \InvalidArgumentException("Não há caixa aberto para registrar o pagamento.");
             }
 
             $pagamento = $pedido->pagamentos()->create([
@@ -53,10 +74,22 @@ class PedidoPagamentoService
                 $pedido->status = Pedido::STATUS_PAYMENT_CONFIRMED;
             } else {
                 $pedido->status = Pedido::STATUS_PARTIAL_PAYMENT;
+
             }
             $pedido->save();
 
-            return $pagamento;
+            return response()->json([
+                "pagamento"=> $pagamento,
+                "metodo"=> $metodo,
+                "pedido"=> $pedido,
+            ],201);
         });
+    }
+
+    public function getPagamentosPorPedido($pedidoId){
+        $pagamento = PedidoPagamento::all()->where('pedido_id', $pedidoId);
+        return response()->json([
+            "pagamentos"=> $pagamento
+        ]);
     }
 }

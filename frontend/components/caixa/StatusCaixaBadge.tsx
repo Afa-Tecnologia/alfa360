@@ -27,7 +27,7 @@ export default function StatusCaixaBadge({ getStatus }: IStatusCaixaBadge) {
     fetchData();
   }, [getStatus]);
 
-  if (status?.status === 'open') {
+  if (status?.status === 'aberto') {
     return (
       <Badge
         variant="outline"

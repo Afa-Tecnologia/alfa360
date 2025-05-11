@@ -98,6 +98,8 @@ class EstoqueService
     {
         Log::info('Estornando estoque para: ', $itensEstoque);
         
+        $produtosAfetados = []; // Manter track dos produtos afetados
+        
         foreach ($itensEstoque as $item) {
             if (!isset($item['variante_id']) || !isset($item['quantity'])) {
                 Log::error('Item com dados incompletos para estorno: ', $item);
@@ -111,10 +113,21 @@ class EstoqueService
                 continue;
             }
             
+            // Registrar o produto para atualização posterior
+            if (!in_array($variante->produto_id, $produtosAfetados)) {
+                $produtosAfetados[] = $variante->produto_id;
+            }
+            
             $variante->quantity += $item['quantity'];
             $variante->save();
             
             Log::info("Estoque estornado para variante {$variante->id}. Novo estoque: {$variante->quantity}");
+        }
+        
+        // Atualizar o estoque total dos produtos afetados
+        foreach ($produtosAfetados as $produtoId) {
+            $this->atualizarEstoqueProduto($produtoId);
+            Log::info("Estoque total do produto {$produtoId} atualizado após estorno.");
         }
         
         return true;
@@ -129,9 +142,22 @@ class EstoqueService
      */
     public function processarVenda(Pedido $pedido, array $itens)
     {
-        DB::transaction(function () use ($pedido, $itens) {
+        $produtosAfetados = []; // Manter track dos produtos afetados
+        
+        DB::transaction(function () use ($pedido, $itens, &$produtosAfetados) {
             foreach ($itens as $item) {
+                $variante = Variantes::find($item['variante_id']);
+                if ($variante && !in_array($variante->produto_id, $produtosAfetados)) {
+                    $produtosAfetados[] = $variante->produto_id;
+                }
+                
                 $this->reduzirEstoqueVariante($item['variante_id'], $item['quantidade']);
+            }
+            
+            // Atualizar o estoque total dos produtos afetados
+            foreach ($produtosAfetados as $produtoId) {
+                $this->atualizarEstoqueProduto($produtoId);
+                Log::info("Estoque total do produto {$produtoId} atualizado após venda.");
             }
             
             // Adicional: Registrar a venda no histórico se necessário

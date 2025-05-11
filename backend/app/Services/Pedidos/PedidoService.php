@@ -12,6 +12,7 @@ use App\Services\Caixa\MovimentacaoCaixaService;
 use App\Services\EstoqueService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use App\Models\Variantes;
 
 class PedidoService
 {
@@ -51,6 +52,29 @@ class PedidoService
             // Aplicar desconto se houver
             $total = $this->aplicarDesconto($total, $data['desconto'] ?? 0);
             $pedido->update(['total' => $total]);
+            
+            // NOVO: Reduzir estoque para os produtos com variantes
+            $itensEstoque = [];
+            
+            foreach ($data['produtos'] as $item) {
+                if (isset($item['variante_id']) && !empty($item['variante_id'])) {
+                    // Verifica se existe quantidade ou quantity no item
+                    $quantidade = $item['quantidade'] ?? $item['quantity'] ?? null;
+                    
+                    if ($quantidade !== null) {
+                        $itensEstoque[] = [
+                            'variante_id' => $item['variante_id'],
+                            'quantidade' => $quantidade
+                        ];
+                    }
+                }
+            }
+            
+            // Processa a redução de estoque
+            if (!empty($itensEstoque)) {
+                Log::info('Processando redução de estoque para pedido #' . $pedido->id, ['itens' => $itensEstoque]);
+                $this->estoqueService->processarVenda($pedido, $itensEstoque);
+            }
             
             DB::commit();
             return $pedido;
@@ -228,24 +252,113 @@ class PedidoService
 
         DB::beginTransaction();
         try {
+            // Guarda os produtos antes da atualização para possível estorno de estoque
+            $produtosAntigos = $pedido->produtos()->get();
+            
             $pedido->update($data);
-            $this->processarProdutosEPedidos($pedido, $data['produtos'], $data['vendedor_id'] ?? 0);
+            
+            // Processa os produtos se estiverem no payload
+            if (isset($data['produtos']) && is_array($data['produtos'])) {
+                // Se produtos foram modificados, estornar o estoque dos produtos antigos primeiro
+                $itensEstornar = [];
+                foreach ($produtosAntigos as $produtoAntigo) {
+                    // Procurar variante associada ao produto
+                    $variante = Variantes::where('produto_id', $produtoAntigo->id)->first();
+                    if ($variante) {
+                        $itensEstornar[] = [
+                            'variante_id' => $variante->id,
+                            'quantity' => $produtoAntigo->pivot->quantidade
+                        ];
+                    }
+                }
+                
+                // Estornar estoque dos produtos antigos
+                if (!empty($itensEstornar)) {
+                    Log::info('Estornando estoque de produtos antigos para pedido #' . $pedido->id);
+                    $this->estoqueService->estornarEstoque($itensEstornar);
+                }
+                
+                // Processa os novos produtos
+                $total = $this->processarProdutosEPedidos($pedido, $data['produtos'], $data['vendedor_id'] ?? 0);
+                
+                // Reduzir estoque para os novos produtos
+                $itensNovoEstoque = [];
+                
+                foreach ($data['produtos'] as $item) {
+                    if (isset($item['variante_id']) && !empty($item['variante_id'])) {
+                        // Verifica se existe quantidade ou quantity no item
+                        $quantidade = $item['quantidade'] ?? $item['quantity'] ?? null;
+                        
+                        if ($quantidade !== null) {
+                            $itensNovoEstoque[] = [
+                                'variante_id' => $item['variante_id'],
+                                'quantidade' => $quantidade
+                            ];
+                        }
+                    }
+                }
+                
+                // Processa a redução de estoque para os novos produtos
+                if (!empty($itensNovoEstoque)) {
+                    Log::info('Atualizando estoque para novos produtos do pedido #' . $pedido->id);
+                    $this->estoqueService->processarVenda($pedido, $itensNovoEstoque);
+                }
+            }
+            
             DB::commit();
-
             return $pedido;
         } catch (\Exception $e) {
             DB::rollback();
+            Log::error('Erro ao atualizar pedido', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
             throw new \Exception("Erro ao atualizar pedido: " . $e->getMessage());
         }
     }
 
     public function delete($id)
     {
-        $pedido = Pedido::find($id);
-        if ($pedido) {
+        $pedido = Pedido::with('produtos')->find($id);
+        if (!$pedido) {
+            return null;
+        }
+        
+        DB::beginTransaction();
+        try {
+            // Estornar o estoque dos produtos
+            $itensEstornar = [];
+            
+            foreach ($pedido->produtos as $produto) {
+                // Procurar variante associada ao produto
+                $variante = Variantes::where('produto_id', $produto->id)->first();
+                if ($variante) {
+                    $itensEstornar[] = [
+                        'variante_id' => $variante->id,
+                        'quantity' => $produto->pivot->quantidade
+                    ];
+                }
+            }
+            
+            // Estornar estoque dos produtos
+            if (!empty($itensEstornar)) {
+                Log::info('Estornando estoque para pedido excluído #' . $pedido->id);
+                $this->estoqueService->estornarEstoque($itensEstornar);
+            }
+            
+            // Remover as relações e o pedido
             $pedido->produtos()->detach();
             $pedido->delete();
+            
+            DB::commit();
+            return $pedido;
+        } catch (\Exception $e) {
+            DB::rollback();
+            Log::error('Erro ao excluir pedido', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            throw new \Exception("Erro ao excluir pedido: " . $e->getMessage());
         }
-        return $pedido;
     }
 }

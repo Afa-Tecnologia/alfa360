@@ -1,5 +1,4 @@
 import { api as axiosInstance } from '@/app/api/api';
-import { fetchApi } from '@/app/api/fetch';
 export const produtosService = {
   openCaixa: (data: { saldo_inicial: number; observation?: string }) =>
     axiosInstance.post('/caixa/open', data),
@@ -24,7 +23,7 @@ export const produtosService = {
 
   getProducts: async () => {
     try {
-      const response = await fetchApi('/produtos');
+      const response = await axiosInstance.get('/produtos');
       return response;
     } catch (e) {
       console.log(e);

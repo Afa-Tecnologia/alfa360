@@ -387,11 +387,11 @@ export function OrderDetailModal({
                         {formatCurrency(paymentStatus.total)}
                       </p>
                     </div>
-                    {order?.discount > 0 && (
+                    {(order?.discount ?? 0) > 0 && (
                       <div>
                         <p className="text-sm text-gray-500">Desconto</p>
                         <p className="font-medium text-red-600">
-                          -{formatCurrency(order?.discount)}
+                          -{formatCurrency(order?.discount ?? 0)}
                         </p>
                       </div>
                     )}
@@ -542,7 +542,7 @@ export function OrderDetailModal({
                       </td>
                       <td></td>
                     </tr>
-                    {order.discount > 0 && (
+                    {(order.discount ?? 0) > 0 && (
                       <tr className="bg-gray-50">
                         <td
                           colSpan={3}
@@ -551,7 +551,7 @@ export function OrderDetailModal({
                           Desconto
                         </td>
                         <td className="px-3 py-2 text-right text-sm font-medium text-red-600">
-                          -{formatCurrency(order.discount)}
+                          -{formatCurrency(order.discount ?? 0)}
                         </td>
                         <td></td>
                       </tr>
@@ -564,7 +564,7 @@ export function OrderDetailModal({
                         Total a Pagar
                       </td>
                       <td className="px-3 py-2 text-right text-sm font-bold">
-                        {formatCurrency(order.total - (order.discount || 0))}
+                        {formatCurrency(order.total - (order.discount ?? 0))}
                       </td>
                       <td></td>
                     </tr>
@@ -593,7 +593,7 @@ export function OrderDetailModal({
                     <div>
                       <p className="text-sm text-gray-500">Total a pagar</p>
                       <p className="text-lg font-bold">
-                        {formatCurrency(paymentStatus.totalAfterDiscount)}
+                        {formatCurrency(paymentStatus.totalAfterDiscount ?? 0)}
                       </p>
                     </div>
                     <div>
@@ -702,7 +702,9 @@ export function OrderDetailModal({
                         {processingPayment
                           ? 'Processando...'
                           : paymentAmount &&
-                              paymentAmount >= paymentStatus.remaining
+                              (typeof paymentAmount === 'string'
+                                ? parseFloat(paymentAmount.replace(',', '.'))
+                                : paymentAmount) >= paymentStatus.remaining
                             ? 'Registrar Pagamento Total'
                             : 'Registrar Pagamento Parcial'}
                       </Button>

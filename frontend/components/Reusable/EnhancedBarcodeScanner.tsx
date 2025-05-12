@@ -10,6 +10,7 @@ import {
   Check,
   ChevronsUpDown,
   Loader2,
+  User,
 } from 'lucide-react';
 import {
   Dialog,
@@ -56,6 +57,10 @@ interface EnhancedBarcodeScannerProps {
   timeout?: number;
   formatPrice?: (price: number) => string;
   className?: string;
+  onClose?: () => void;
+  sellers?: any[];
+  selectedSeller?: any;
+  onSellerChange?: (seller: any) => void;
 }
 
 export function EnhancedBarcodeScanner({
@@ -67,6 +72,10 @@ export function EnhancedBarcodeScanner({
   formatPrice = (price) =>
     price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
   className = '',
+  onClose,
+  sellers,
+  selectedSeller,
+  onSellerChange,
 }: EnhancedBarcodeScannerProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [barcodeValue, setBarcodeValue] = useState('');
@@ -81,6 +90,7 @@ export function EnhancedBarcodeScanner({
     name: undefined,
   });
   const [isMounted, setIsMounted] = useState(false);
+  const [openSellerPopover, setOpenSellerPopover] = useState(false);
 
   const inputRef = useRef<HTMLInputElement>(null);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -220,6 +230,12 @@ export function EnhancedBarcodeScanner({
   const handleAddToScannedItems = () => {
     if (!currentProduct) return;
 
+    // Verificar se o vendedor foi selecionado
+    if (sellers && sellers.length > 0 && onSellerChange && !selectedSeller) {
+      alert('Por favor, selecione um vendedor antes de adicionar o produto.');
+      return;
+    }
+
     const existingItemIndex = scannedItems.findIndex(
       (item) =>
         item.code === currentProduct.code &&
@@ -232,26 +248,23 @@ export function EnhancedBarcodeScanner({
       updatedItems[existingItemIndex].quantity += 1;
       setScannedItems(updatedItems);
     } else {
-      // Adiciona novo item
-      setScannedItems([
-        ...scannedItems,
-        {
-          code: currentProduct.code,
-          quantity: 1,
-          product: currentProduct,
-          variantId: selectedVariant.id,
+      // Adiciona novo item com informações do vendedor, se disponível
+      const newItem = {
+        code: currentProduct.code,
+        quantity: 1,
+        product: {
+          ...currentProduct,
+          vendedor_id: selectedSeller?.id,
+          vendedor_nome: selectedSeller?.name,
         },
-      ]);
+        variantId: selectedVariant.id,
+      };
+      setScannedItems([...scannedItems, newItem]);
     }
 
     // Limpa produto atual e variante
     setCurrentProduct(null);
     setSelectedVariant({ id: undefined, name: undefined });
-
-    // Foca novamente o input para próxima leitura
-    if (inputRef.current) {
-      inputRef.current.focus();
-    }
   };
 
   // Função para ajustar a quantidade
@@ -284,6 +297,14 @@ export function EnhancedBarcodeScanner({
     }
   }, [scannedItems, onScan]);
 
+  // Função para fechar o scanner
+  const handleClose = () => {
+    setIsOpen(false);
+    if (onClose) {
+      onClose();
+    }
+  };
+
   // Foca o input quando o modal for aberto
   useEffect(() => {
     if (isOpen && inputRef.current) {
@@ -314,35 +335,21 @@ export function EnhancedBarcodeScanner({
     <>
       <Button
         variant="outline"
-        size={
-          buttonSize === 'sm' ? 'sm' : buttonSize === 'lg' ? 'lg' : 'default'
-        }
-        className={`${buttonClasses[buttonSize]} flex items-center gap-2 ${className}`}
-        onClick={(e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          setIsOpen(true);
-        }}
-        type="button"
+        size={buttonSize as any}
+        className={cn(buttonClasses[buttonSize], className)}
+        onClick={() => setIsOpen(true)}
       >
-        {buttonIcon || <Barcode className="h-4 w-4" />}
-        {buttonLabel && <span>{buttonLabel}</span>}
+        {buttonIcon || <Barcode className="h-4 w-4 mr-2" />}
+        {buttonLabel || 'Escanear código'}
       </Button>
 
       <Dialog
         open={isOpen}
         onOpenChange={(open) => {
-          if (!open && timeoutRef.current) {
-            clearTimeout(timeoutRef.current);
-          }
-          if (!open && scannedItems.length > 0) {
-            setScannedItems([]);
+          if (!open && onClose) {
+            onClose();
           }
           setIsOpen(open);
-          if (open) {
-            setBarcodeValue('');
-            setCurrentProduct(null);
-          }
         }}
       >
         <DialogContent
@@ -416,16 +423,18 @@ export function EnhancedBarcodeScanner({
                   </div>
                 </div>
 
-                {currentProduct.variants &&
+                {/* Variantes */}
+                {currentProduct &&
+                  currentProduct.variants &&
                   currentProduct.variants.length > 0 && (
-                    <div>
-                      <Label className="font-medium">Variante</Label>
+                    <div className="space-y-2 mt-4">
+                      <Label>Variante</Label>
                       <Popover>
                         <PopoverTrigger asChild>
                           <Button
                             variant="outline"
                             role="combobox"
-                            className="w-full justify-between mt-2"
+                            className="w-full justify-between"
                           >
                             {selectedVariant.name || 'Selecione uma variante'}
                             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -434,45 +443,36 @@ export function EnhancedBarcodeScanner({
                         <PopoverContent className="w-full p-0">
                           <Command>
                             <CommandInput placeholder="Buscar variante..." />
-                            <CommandEmpty>
-                              Nenhuma variante encontrada.
-                            </CommandEmpty>
                             <CommandList>
+                              <CommandEmpty>
+                                Nenhuma variante encontrada.
+                              </CommandEmpty>
                               <CommandGroup>
                                 {currentProduct.variants.map((variant) => (
                                   <CommandItem
                                     key={variant.id}
-                                    value={`${variant.color} ${variant.size}`}
+                                    value={`${variant.color} - ${variant.size}`}
                                     onSelect={() =>
-                                      variant.id &&
                                       handleSelectVariant(variant.id)
                                     }
-                                    className="flex items-center justify-between"
+                                    disabled={variant.quantity <= 0}
                                   >
-                                    <div className="flex items-center">
+                                    <div className="flex items-center justify-between w-full">
                                       <span>
-                                        {variant.color.charAt(0).toUpperCase() +
-                                          variant.color
-                                            .slice(1)
-                                            .toLowerCase()}{' '}
-                                        - {variant.size.toUpperCase()}
+                                        {variant.color} - {variant.size}
                                       </span>
-                                    </div>
-                                    <div className="flex items-center">
                                       <Badge
                                         variant="outline"
-                                        className={cn(
-                                          'ml-2',
-                                          variant.quantity <= 5
-                                            ? 'text-destructive border-destructive'
-                                            : ''
-                                        )}
+                                        className={`ml-2 ${
+                                          variant.quantity > 0
+                                            ? 'text-green-600'
+                                            : 'text-red-500'
+                                        }`}
                                       >
-                                        Estoque: {variant.quantity}
+                                        {variant.quantity > 0
+                                          ? `${variant.quantity} em estoque`
+                                          : 'Sem estoque'}
                                       </Badge>
-                                      {selectedVariant.id === variant.id && (
-                                        <Check className="ml-2 h-4 w-4" />
-                                      )}
                                     </div>
                                   </CommandItem>
                                 ))}
@@ -481,17 +481,82 @@ export function EnhancedBarcodeScanner({
                           </Command>
                         </PopoverContent>
                       </Popover>
-
-                      <div className="mt-4 flex justify-end">
-                        <Button
-                          onClick={handleAddToScannedItems}
-                          disabled={!selectedVariant.id}
-                        >
-                          Adicionar ao Carrinho
-                        </Button>
-                      </div>
                     </div>
                   )}
+
+                {/* Seletor de Vendedor */}
+                {sellers && sellers.length > 0 && onSellerChange && (
+                  <div className="space-y-2 mt-4">
+                    <Label htmlFor="seller">Vendedor</Label>
+                    <Popover
+                      open={openSellerPopover}
+                      onOpenChange={setOpenSellerPopover}
+                    >
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          role="combobox"
+                          className="w-full justify-between"
+                        >
+                          {selectedSeller
+                            ? selectedSeller.name
+                            : 'Selecione um vendedor'}
+                          <User className="ml-2 h-4 w-4 opacity-50" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-full p-0">
+                        <Command>
+                          <CommandInput placeholder="Buscar vendedor..." />
+                          <CommandList>
+                            <CommandEmpty>
+                              Nenhum vendedor encontrado.
+                            </CommandEmpty>
+                            <CommandGroup>
+                              {sellers.map((seller) => (
+                                <CommandItem
+                                  key={seller.id}
+                                  value={seller.name}
+                                  onSelect={() => {
+                                    onSellerChange(seller);
+                                    setOpenSellerPopover(false);
+                                  }}
+                                >
+                                  <Check
+                                    className={cn(
+                                      'mr-2 h-4 w-4',
+                                      selectedSeller?.id === seller.id
+                                        ? 'opacity-100'
+                                        : 'opacity-0'
+                                    )}
+                                  />
+                                  {seller.name}
+                                </CommandItem>
+                              ))}
+                            </CommandGroup>
+                          </CommandList>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+                )}
+
+                <div className="mt-4 flex justify-end">
+                  <Button
+                    onClick={handleAddToScannedItems}
+                    disabled={
+                      !currentProduct ||
+                      (currentProduct.variants &&
+                        currentProduct.variants.length > 0 &&
+                        !selectedVariant.id) ||
+                      (sellers &&
+                        sellers.length > 0 &&
+                        onSellerChange &&
+                        !selectedSeller)
+                    }
+                  >
+                    Adicionar
+                  </Button>
+                </div>
               </div>
             )}
 

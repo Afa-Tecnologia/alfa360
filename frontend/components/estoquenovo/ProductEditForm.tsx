@@ -185,12 +185,12 @@ export default function EditProductForm() {
           <CurrencyInput
             label="Preço de Compra"
             onChange={setPurchasePriceLocal}
-            value={purchasePriceLocal || 0}
+            value={+purchasePriceLocal || 0}
           />
           <CurrencyInput
             label="Preço de Venda"
             onChange={setSellingPriceLocal}
-            value={sellingPriceLocal || 0}
+            value={+sellingPriceLocal || 0}
           />
 
           <ScrollArea className="h-5/6 overflow-y-auto">

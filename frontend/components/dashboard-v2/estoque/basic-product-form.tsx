@@ -25,7 +25,7 @@ import { useState, useEffect } from 'react';
 interface BasicProductFormProps {
   form: UseFormReturn<any>;
   categories: { id: number; name: string }[];
-  productTypes: string[];
+  productTypes: { id: string; nome: string }[];
   generateUniqueBarcode: () => Promise<void>;
 }
 
@@ -160,22 +160,31 @@ export function BasicProductForm({
 
         <FormField
           control={form.control}
-          name="type"
+          name="tipo_de_produto_id"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Tipo</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
+              <FormLabel>Tipo de Produto</FormLabel>
+              <Select
+                onValueChange={field.onChange}
+                defaultValue={field.value || undefined}
+              >
                 <FormControl>
                   <SelectTrigger>
-                    <SelectValue placeholder="Selecione o tipo" />
+                    <SelectValue placeholder="Escolha o tipo de produto" />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  {productTypes.map((type) => (
-                    <SelectItem key={type} value={type}>
-                      {type.charAt(0).toUpperCase() + type.slice(1)}
+                  {productTypes.length > 0 ? (
+                    productTypes.map((type) => (
+                      <SelectItem key={type.id} value={type.id}>
+                        {type.nome}
+                      </SelectItem>
+                    ))
+                  ) : (
+                    <SelectItem value="loading" disabled>
+                      Carregando tipos de produtos...
                     </SelectItem>
-                  ))}
+                  )}
                 </SelectContent>
               </Select>
               <FormMessage />

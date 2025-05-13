@@ -16,6 +16,9 @@ use App\Http\Controllers\Commissions\CommissionsController;
 use App\Http\Controllers\Relatorios\RelatoriosController;
 use App\Http\Middleware\ComissionsMiddleware;
 use App\Http\Controllers\PaymentMethods\PaymentMethodController;
+use App\Http\Controllers\TiposDeProdutos\TiposDeProdutosController;
+use App\Http\Controllers\TipoDeNegocios\TipoDeNegociosController;
+use App\Http\Controllers\ConfigDoNegocio\ConfigDoNegocioController;
 // use App\Http\Controllers\API\EmployeeExpenseController;
 
 Route::get('/user', function (Request $request) {
@@ -121,6 +124,33 @@ Route::get('/test', function () {
 });
 
 Route::apiResource('payment-methods', PaymentMethodController::class);
+
+// Rotas para Tipos de Produtos
+Route::prefix('tipos-produtos')->middleware('auth:sanctum')->group(function () {
+    Route::get('/', [TiposDeProdutosController::class, 'index']);
+    Route::get('{id}', [TiposDeProdutosController::class, 'show']);
+    Route::post('/', [TiposDeProdutosController::class, 'store']);
+    Route::put('{id}', [TiposDeProdutosController::class, 'update']);
+    Route::delete('{id}', [TiposDeProdutosController::class, 'destroy']);
+});
+
+// Rotas para Tipos de Negócios
+Route::prefix('tipos-negocios')->middleware('auth:sanctum')->group(function () {
+    Route::get('/', [TipoDeNegociosController::class, 'index']);
+    Route::get('{id}', [TipoDeNegociosController::class, 'show']);
+    Route::post('/', [TipoDeNegociosController::class, 'store']);
+    Route::put('{id}', [TipoDeNegociosController::class, 'update']);
+    Route::delete('{id}', [TipoDeNegociosController::class, 'destroy']);
+});
+
+// Rotas para Configurações de Negócio
+Route::prefix('config-negocio')->middleware('auth:sanctum')->group(function () {
+    Route::get('/', [ConfigDoNegocioController::class, 'index']);
+    Route::get('{id}', [ConfigDoNegocioController::class, 'show']);
+    Route::post('/', [ConfigDoNegocioController::class, 'store']);
+    Route::put('{id}', [ConfigDoNegocioController::class, 'update']);
+    Route::delete('{id}', [ConfigDoNegocioController::class, 'destroy']);
+});
 
 // Route::middleware(['auth:sanctum'])->group(function () {
 //     Route::prefix('despesas')->group(function () {

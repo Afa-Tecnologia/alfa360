@@ -27,6 +27,8 @@ import {
   VariantFormValues,
   ProductFormValues,
 } from './product-form-schemas';
+import { tiposDeProdutosService } from '@/services/TiposDeProdutosService';
+import { TipoDeProduto } from '@/types/configuracoes';
 
 interface ProductFormDialogProps {
   open: boolean;
@@ -47,37 +49,48 @@ export function ProductFormDialog({
   const [categories, setCategories] = useState<{ id: number; name: string }[]>(
     []
   );
-  const [productTypes] = useState([
-    'roupa',
-    'sapato',
-    'acessório',
-    'bolsa',
-    'perfume',
-    'outro',
-  ]);
+  const [tiposDeProdutos, setTiposDeProdutos] = useState<TipoDeProduto[]>([]);
   const [isSuccessDialogOpen, setIsSuccessDialogOpen] = useState(false);
   const [createdProduct, setCreatedProduct] = useState<Product | null>(null);
   const { toast } = useToast();
   const isEditing = !!product;
 
-  // Buscar categorias
+  // Buscar categorias e tipos de produtos
   useEffect(() => {
-    const fetchCategories = async () => {
+    const fetchData = async () => {
       try {
-        const response = await api.get('/categorias');
-        setCategories(response.data);
+        // Buscar categorias
+        const categoriesResponse = await api.get('/categorias');
+        setCategories(categoriesResponse.data);
+
+        // Buscar tipos de produtos
+        const tiposDeProdutosResponse = await tiposDeProdutosService.getAll();
+
+        if (tiposDeProdutosResponse && tiposDeProdutosResponse.length > 0) {
+          setTiposDeProdutos(tiposDeProdutosResponse);
+        } else {
+          console.warn('Nenhum tipo de produto encontrado na API');
+          setTiposDeProdutos([]);
+          toast({
+            title: 'Aviso',
+            description:
+              'Nenhum tipo de produto cadastrado. Acesse as configurações do sistema para cadastrar.',
+          });
+        }
       } catch (error) {
-        console.error('Erro ao buscar categorias:', error);
+        console.error('Erro ao buscar dados:', error);
         toast({
           title: 'Erro',
-          description: 'Não foi possível carregar as categorias',
+          description: 'Não foi possível carregar os dados necessários',
           variant: 'destructive',
         });
       }
     };
 
-    fetchCategories();
-  }, [toast]);
+    if (open) {
+      fetchData();
+    }
+  }, [open, toast]);
 
   // Inicializar form com hook
   const form = useForm<ProductFormValues>({
@@ -89,7 +102,7 @@ export function ProductFormDialog({
       selling_price: '',
       quantity: '',
       brand: '',
-      type: '',
+      tipo_de_produto_id: '',
       code: '',
       categoria_id: '',
     },
@@ -105,7 +118,7 @@ export function ProductFormDialog({
         selling_price: product.selling_price.toString(),
         quantity: product.quantity.toString(),
         brand: product.brand,
-        type: product.type,
+        tipo_de_produto_id: product.tipo_de_produto_id,
         code: product.code || '',
         categoria_id: product.categoria_id,
       });
@@ -121,7 +134,7 @@ export function ProductFormDialog({
             stock:
               variant.stock?.toString() || variant.quantity?.toString() || '0',
             images: Array.isArray(variant.images) ? variant.images : [],
-            type: variant.type || product.type,
+            type: variant.type || '',
           }));
 
           console.log('Variantes carregadas:', formattedVariants);
@@ -146,7 +159,7 @@ export function ProductFormDialog({
         selling_price: '',
         quantity: '',
         brand: '',
-        type: '',
+        tipo_de_produto_id: '',
         code: '',
         categoria_id: '',
       });
@@ -285,13 +298,20 @@ export function ProductFormDialog({
         const variantId =
           variant.id || Date.now() + Math.floor(Math.random() * 1000);
 
+        // Obter o tipo de produto selecionado para referência
+        const tipoProduto = tiposDeProdutos.find(
+          (tipo) => tipo.id.toString() === data.tipo_de_produto_id.toString()
+        );
+
         return {
           ...variant,
           id: variantId,
           name: variant.name || autoName, // Usa o nome inserido ou gera automaticamente
           stock: Number(variant.stock),
           quantity: Number(variant.stock),
-          type: variant.type || data.type.toLowerCase(),
+          type:
+            variant.type ||
+            (tipoProduto ? tipoProduto.nome.toLowerCase() : 'outro'),
           active: true,
           // Garante que images seja um array
           images: Array.isArray(variant.images) ? variant.images : [],
@@ -305,6 +325,7 @@ export function ProductFormDialog({
         selling_price: Number(data.selling_price),
         quantity: Number(data.quantity),
         categoria_id: Number(data.categoria_id),
+        tipo_de_produto_id: Number(data.tipo_de_produto_id),
         variants: processedVariants,
       };
 
@@ -411,7 +432,10 @@ export function ProductFormDialog({
                 <BasicProductForm
                   form={form}
                   categories={categories}
-                  productTypes={productTypes}
+                  productTypes={tiposDeProdutos.map((tipo) => ({
+                    id: tipo.id.toString(),
+                    nome: tipo.nome,
+                  }))}
                   generateUniqueBarcode={generateUniqueBarcode}
                 />
               )}

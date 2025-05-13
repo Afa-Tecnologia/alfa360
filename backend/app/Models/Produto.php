@@ -13,7 +13,7 @@ class Produto extends Model
         'selling_price',
         'quantity',
         'categoria_id',
-        'type',
+        'tipo_de_produto_id',
         'brand', 
         'code'
     ];
@@ -35,6 +35,14 @@ class Produto extends Model
     public function categoria()
     {
         return $this->belongsTo(Categoria::class, 'categoria_id');
+    }
+
+    /**
+     * Relação com o tipo de produto.
+     */
+    public function tipoDeProduto()
+    {
+        return $this->belongsTo(TiposDeProdutos::class, 'tipo_de_produto_id');
     }
 
     /**

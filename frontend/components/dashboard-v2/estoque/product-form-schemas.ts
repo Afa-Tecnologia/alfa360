@@ -27,7 +27,11 @@ export const productFormSchema = z.object({
       message: 'A quantidade deve ser um número positivo',
     }),
   brand: z.string().min(1, { message: 'A marca é obrigatória' }),
-  type: z.string().min(1, { message: 'O tipo é obrigatório' }),
+  tipo_de_produto_id: z
+    .union([z.string(), z.number()])
+    .refine((val) => val !== '', {
+      message: 'O tipo de produto é obrigatório',
+    }),
   code: z.string().optional(),
   categoria_id: z.union([z.string(), z.number()]).refine((val) => val !== '', {
     message: 'A categoria é obrigatória',

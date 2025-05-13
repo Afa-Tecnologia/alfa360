@@ -17,6 +17,12 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         // User::factory(10)->create();
+                // Executar os novos seeders para as entidades de configuração
+                $this->call([
+                    TipoDeNegociosSeeder::class,
+                    TiposDeProdutosSeeder::class,
+                    ConfigDoNegocioSeeder::class,
+                ]);
 
         User::factory()->create([
             'name' => 'Admin',
@@ -45,6 +51,7 @@ class DatabaseSeeder extends Seeder
             "quantity" => 10,
             "categoria_id" => 1,
             "type" => "roupa",
+            "tipo_de_produto_id" => 1,
             "brand"=> "lesamis",
             "code"=> 1232
         ]);
@@ -70,6 +77,8 @@ class DatabaseSeeder extends Seeder
             "cep" => "12345-678",
             "date_of_birth" => "1990-05-15"
         ]);
+
+
 
         // // Employee expense seeder
         // $this->call(EmployeeExpenseSeeder::class);

@@ -32,7 +32,7 @@ class ProdutoController extends Controller
             $productValidated = $request->validate([
                 'name' => 'required|string',
                 'description' => 'required|string',
-                'type' => 'required|in:roupa,sapato,acessorio',
+                'tipo_de_produto_id' => 'required|exists:tipo_de_produto,id',
                 'categoria_id' => 'required|exists:categorias,id',
                 'brand' => 'nullable|string',
                 'selling_price' => 'required|numeric',
@@ -44,8 +44,8 @@ class ProdutoController extends Controller
             [
                 'name.required' => 'O nome do produto é obrigatório.',
                 'description.required' => 'A descrição do produto é obrigatória.',
-                'type.required' => 'O tipo do produto é obrigatório.',
-                'type.in' => 'O tipo deve ser: roupa, sapato ou acessório.',
+                'tipo_de_produto_id.required' => 'O tipo do produto é obrigatório.',
+                'tipo_de_produto_id.exists' => 'O tipo de produto selecionado não existe.',
                 'categoria_id.required' => 'A categoria é obrigatória.',
                 'categoria_id.exists' => 'A categoria selecionada não existe.',
                 'selling_price.required' => 'O preço de venda é obrigatório.',
@@ -80,7 +80,7 @@ class ProdutoController extends Controller
             $productValidated = $request->validate([
                 'name' => 'nullable|string',
                 'description' => 'nullable|string',
-                'type' => 'nullable|in:roupa,sapato,acessorio',
+                'tipo_de_produto_id' => 'nullable|exists:tipo_de_produto,id',
                 'categoria_id' => 'nullable|exists:categorias,id',
                 'brand' => 'nullable|string',
                 'selling_price' => 'nullable|numeric',

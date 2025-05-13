@@ -11,7 +11,8 @@ import {
 } from '@/components/ui/select';
 import { formatCurrency } from '@/utils/formatters';
 import { PaymentMethod } from '@/stores/paymentMethodStore';
-import { CheckCircle2 } from 'lucide-react';
+import { CheckCircle2, CreditCard } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
 
 interface PaymentRegistrationFormProps {
   remaining: number;
@@ -42,13 +43,14 @@ export function PaymentRegistrationForm({
   // Handle already paid orders
   if (isFullyPaid) {
     return (
-      <div className="text-center py-6">
-        <CheckCircle2 className="mx-auto h-12 w-12 text-green-600" />
-        <h3 className="mt-2 text-lg font-medium text-gray-900">
-          Pagamento Completo
-        </h3>
-        <p className="mt-1 text-sm text-gray-500">
-          Este pedido já foi totalmente pago.
+      <div className="flex flex-col items-center justify-center py-8 text-center">
+        <div className="rounded-full bg-green-100 p-3 mb-3">
+          <CheckCircle2 className="h-8 w-8 text-green-600" />
+        </div>
+        <h3 className="text-lg font-medium">Pagamento Completo</h3>
+        <p className="mt-2 text-sm text-muted-foreground max-w-sm">
+          Este pedido já foi totalmente pago. Não é necessário registrar novos
+          pagamentos.
         </p>
       </div>
     );
@@ -69,19 +71,27 @@ export function PaymentRegistrationForm({
       : paymentAmount > 0);
 
   return (
-    <div className="space-y-4">
-      <div className="mb-4 p-4 bg-gray-50 rounded-md">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-sm text-gray-500">Total a pagar</p>
-            <p className="text-lg font-bold">{formatCurrency(remaining)}</p>
+    <div className="space-y-5">
+      <Card className="overflow-hidden">
+        <CardContent className="p-4 bg-muted/30">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+            <div>
+              <p className="text-sm text-muted-foreground">Total a pagar</p>
+              <p className="text-xl font-bold">{formatCurrency(remaining)}</p>
+            </div>
+            <div className="flex items-center text-muted-foreground text-sm">
+              <CreditCard className="h-4 w-4 mr-1.5" />
+              <span>Registre o pagamento abaixo</span>
+            </div>
           </div>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
 
       <div className="space-y-4">
         <div>
-          <Label htmlFor="paymentMethod">Forma de Pagamento</Label>
+          <Label htmlFor="paymentMethod" className="text-sm font-medium">
+            Forma de Pagamento
+          </Label>
           <Select
             value={selectedMethodId?.toString() || ''}
             onValueChange={(value) => {
@@ -92,7 +102,7 @@ export function PaymentRegistrationForm({
               }
             }}
           >
-            <SelectTrigger id="paymentMethod">
+            <SelectTrigger id="paymentMethod" className="mt-1.5">
               <SelectValue placeholder="Selecione a forma de pagamento" />
             </SelectTrigger>
             <SelectContent>
@@ -106,9 +116,13 @@ export function PaymentRegistrationForm({
         </div>
 
         <div>
-          <Label htmlFor="paymentAmount">Valor do Pagamento</Label>
-          <div className="relative">
-            <span className="absolute left-3 top-2.5">R$</span>
+          <Label htmlFor="paymentAmount" className="text-sm font-medium">
+            Valor do Pagamento
+          </Label>
+          <div className="relative mt-1.5">
+            <span className="absolute left-3 top-2.5 text-muted-foreground">
+              R$
+            </span>
             <Input
               id="paymentAmount"
               type="number"
@@ -117,26 +131,31 @@ export function PaymentRegistrationForm({
               max={remaining}
               value={paymentAmount}
               onChange={(e) => onSetPaymentAmount(e.target.value)}
-              className="pl-10"
+              className="pl-9"
               placeholder="0,00"
             />
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              className="absolute right-2 top-1.5 text-xs"
-              onClick={() => onSetPaymentAmount(remaining)}
-            >
-              Valor Total
-            </Button>
+            <div className="absolute right-1 top-1 h-8">
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="text-xs h-6 px-2"
+                onClick={() => onSetPaymentAmount(remaining)}
+              >
+                Total
+              </Button>
+            </div>
           </div>
-          <p className="text-xs text-gray-500 mt-1">
-            Valor máximo: {formatCurrency(remaining)}
+          <p className="text-xs text-muted-foreground mt-1.5 flex justify-between">
+            <span>Valor máximo: {formatCurrency(remaining)}</span>
+            {isFullPayment && (
+              <span className="text-green-600">Pagamento total</span>
+            )}
           </p>
         </div>
       </div>
 
-      <div className="mt-6">
+      <div className="pt-2">
         <Button
           className="w-full"
           onClick={onRegisterPayment}

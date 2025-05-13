@@ -83,9 +83,14 @@ class PedidoPagamentoService
     }
 
     public function getPagamentosPorPedido($pedidoId){
-        $pagamento = PedidoPagamento::all()->where('pedido_id', $pedidoId);
-        return response()->json([
-            "pagamentos"=> $pagamento
-        ]);
+
+       return $this->db->transaction(function () use ($pedidoId) {
+        $pagamentos = PedidoPagamento::where('pedido_id', $pedidoId)->get()->map(function($pagamento){
+            $metodo = PagamentoMetodo::where('id', $pagamento->payment_method_id)->first();
+            $pagamento->metodo = $metodo;
+            return $pagamento;
+        });
+        return $pagamentos;
+       });
     }
 }

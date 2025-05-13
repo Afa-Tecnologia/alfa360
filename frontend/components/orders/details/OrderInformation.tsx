@@ -1,6 +1,7 @@
 import { OrderDetail } from '@/types/order';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { Calendar, User, UserCircle, Tag } from 'lucide-react';
 
 interface OrderInformationProps {
   order: OrderDetail;
@@ -28,22 +29,43 @@ export function OrderInformation({ order }: OrderInformationProps) {
   };
 
   return (
-    <div className="grid grid-cols-2 gap-4">
-      <div>
-        <h3 className="font-medium text-sm text-gray-500">Data do Pedido</h3>
-        <p>{formatDateSafely(order.created_at)}</p>
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div className="flex items-start gap-2">
+        <Calendar className="h-4 w-4 mt-0.5 text-muted-foreground flex-shrink-0" />
+        <div>
+          <h3 className="text-sm font-medium text-muted-foreground">
+            Data do Pedido
+          </h3>
+          <p className="font-medium">{formatDateSafely(order.created_at)}</p>
+        </div>
       </div>
-      <div>
-        <h3 className="font-medium text-sm text-gray-500">Cliente</h3>
-        <p>Cliente #{order.cliente_id}</p>
+
+      <div className="flex items-start gap-2">
+        <User className="h-4 w-4 mt-0.5 text-muted-foreground flex-shrink-0" />
+        <div>
+          <h3 className="text-sm font-medium text-muted-foreground">Cliente</h3>
+          <p className="font-medium">Cliente #{order.cliente_id}</p>
+        </div>
       </div>
-      <div>
-        <h3 className="font-medium text-sm text-gray-500">Vendedor</h3>
-        <p>{order.vendedor?.name || 'Não especificado'}</p>
+
+      <div className="flex items-start gap-2">
+        <UserCircle className="h-4 w-4 mt-0.5 text-muted-foreground flex-shrink-0" />
+        <div>
+          <h3 className="text-sm font-medium text-muted-foreground">
+            Vendedor
+          </h3>
+          <p className="font-medium">
+            {order.vendedor?.name || 'Não especificado'}
+          </p>
+        </div>
       </div>
-      <div>
-        <h3 className="font-medium text-sm text-gray-500">Tipo</h3>
-        <p>{order.type || 'Não especificado'}</p>
+
+      <div className="flex items-start gap-2">
+        <Tag className="h-4 w-4 mt-0.5 text-muted-foreground flex-shrink-0" />
+        <div>
+          <h3 className="text-sm font-medium text-muted-foreground">Tipo</h3>
+          <p className="font-medium">{order.type || 'Não especificado'}</p>
+        </div>
       </div>
     </div>
   );

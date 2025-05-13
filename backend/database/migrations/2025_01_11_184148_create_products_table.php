@@ -18,7 +18,7 @@ return new class extends Migration
             $table->decimal('purchase_price', 8, 2);
             $table->decimal('selling_price', 8, 2);
             $table->integer('quantity');
-            $table->enum('type', ['roupa', 'sapato', 'acessorio']);
+            $table->foreignId('tipo_de_produto_id')->constrained('tipo_de_produto');
             $table->string('brand');
             $table->string('code');
             $table->foreignId('categoria_id')->nullable()->constrained('categorias')->onDelete('set null');

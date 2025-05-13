@@ -4,6 +4,7 @@ namespace App\Services\Produtos;
 use App\Models\Produto;
 use App\Services\Variantes\VariantesService;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use App\Services\EstoqueService;
 class ProdutoService
 {
@@ -27,6 +28,8 @@ class ProdutoService
     public function create(array $data)
     {
         return DB::transaction(function () use ($data) {
+            // Log para debug
+            Log::info('Dados recebidos para criação de produto:', $data);
             
             $produto = Produto::create($data);
             $stock = 0;

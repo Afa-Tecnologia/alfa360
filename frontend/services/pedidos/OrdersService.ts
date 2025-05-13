@@ -72,14 +72,13 @@ class OrdersService {
   private mapOrderData(item: any): Order {
     return {
       id: item.id,
-      createdAt: item.createdAt || new Date().toISOString(),
-      customerName:
-        item.customerName || `Cliente #${item.cliente_id || 'desconhecido'}`,
+      createdAt: item.created_at || new Date().toISOString(),
+      customerName: `Cliente #${item.cliente_id || 'desconhecido'}`,
       total: item.total || 0,
       status: item.status || 'PENDING',
-      vendorName: item.vendorName || 'N/A',
-      paymentMethod: item.paymentMethod || 'N/A',
-      discount: item.discount || 0,
+      vendorName: item.vendedor?.name || 'N/A',
+      paymentMethod: 'N/A',
+      discount: item.desconto || 0,
       paidAmount: item.paidAmount || 0,
     };
   }
@@ -152,18 +151,10 @@ class OrdersService {
    */
   async recordPartialPayment(
     orderId: number,
-    paymentMethodId: number,
-    amount: number
+    paymentData: { payment_method_code: string; total: number }
   ): Promise<any> {
     try {
       // Registrar o pagamento
-      const paymentData = {
-        pedido_id: orderId,
-        payment_method_id: paymentMethodId,
-        amount,
-        status: 'CAPTURED',
-      };
-
       const paymentResponse = await api.post(
         `/pagamentos/${orderId}`,
         paymentData
@@ -198,18 +189,10 @@ class OrdersService {
    */
   async confirmFullPayment(
     orderId: number,
-    paymentMethodId: number,
-    amount: number
+    paymentData: { payment_method_code: string; total: number }
   ): Promise<any> {
     try {
       // Registrar o pagamento
-      const paymentData = {
-        pedido_id: orderId,
-        payment_method_id: paymentMethodId,
-        amount,
-        status: 'CAPTURED',
-      };
-
       const paymentResponse = await api.post(
         `/pagamentos/${orderId}`,
         paymentData
@@ -235,6 +218,21 @@ class OrdersService {
         error.response?.data?.message || 'Erro ao confirmar pagamento completo',
         'error'
       );
+      throw error;
+    }
+  }
+
+  /**
+   * Busca pagamentos de um pedido específico
+   */
+  async getOrderPayments(orderId: number): Promise<any> {
+    try {
+      const response = await api.get(`/pagamentos/${orderId}`);
+      return {
+        pagamentos: response.data,
+      };
+    } catch (error: any) {
+      console.error(`Erro ao buscar pagamentos do pedido ${orderId}:`, error);
       throw error;
     }
   }

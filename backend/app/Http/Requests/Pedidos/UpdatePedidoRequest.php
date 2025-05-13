@@ -35,6 +35,7 @@ class UpdatePedidoRequest extends FormRequest
             'vendedor_id' => 'sometimes|exists:users,id',
             'cliente_id' => 'sometimes|exists:clientes,id',
             'type' => 'sometimes|in:ecommerce,loja',
+            'status' => 'sometimes|in:PENDING,PROCESSING,PAYMENT_CONFIRMED,PARTIAL_PAYMENT,CONDITIONAL,ORDERED,CANCELLED',
             'payment_method' => 'sometimes|in:MONEY,CREDIT CARD,DEBIT CARD,PIX,CONDITIONAL,TRANSFER',
             'desconto' => 'sometimes|numeric|min:0',
             'produtos' => 'sometimes|array',

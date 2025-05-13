@@ -15,8 +15,8 @@ export type Product = {
   id?: number | string;
   name: string;
   description: string;
-  type: string,
-  code?: string,
+  tipo_de_produto_id?: number | string;
+  code?: string;
   categoria_id: number | string;
   purchase_price: number | string;
   selling_price: number | string;
@@ -28,13 +28,13 @@ export type Product = {
 
 type ProductStore = {
   products: Product[];
-  setProducts: (products: Product[]) => void
-  
+  setProducts: (products: Product[]) => void;
+
   product: Product;
   setCurrentProduct: (product: Product) => void;
 
   addProduct: (product: Product) => void;
-  
+
   updateProduct: (updatedProduct: Product) => void;
   deleteProduct: (id: number | string) => void;
 
@@ -45,11 +45,10 @@ type ProductStore = {
   setSelectedCategoria: (categoria: string | number) => void;
 
   sellingPrice: number;
-  setSellingPrice: (selling_price:number) => void;
+  setSellingPrice: (selling_price: number) => void;
 
-  purchasePrice:number,
-  setPurchasePrice: (purchase_price:number) => void
-
+  purchasePrice: number;
+  setPurchasePrice: (purchase_price: number) => void;
 };
 
 export const mockProducts = [
@@ -62,8 +61,8 @@ export const mockProducts = [
     quantity: 200,
     brand: 'Lesamis',
     type: 'sapato',
-    categoria_id:1,
-    code: "1928",
+    categoria_id: 1,
+    code: '1928',
     variants: [
       {
         id: '1-1',
@@ -80,7 +79,7 @@ export const mockProducts = [
         size: 'M',
         stock: 8,
         images: ['/images/camisa-azul1.jpg'],
-      }
+      },
     ],
   },
   {
@@ -92,15 +91,15 @@ export const mockProducts = [
     quantity: 200,
     brand: 'Lesamis',
     type: 'roupa',
-    code: "19283",
-    categoria_id:1,
+    code: '19283',
+    categoria_id: 1,
     variants: [
       {
         id: '2-1',
         name: 'Tênis Preto 40',
         color: 'Preto',
         size: '40',
-     
+
         stock: 10,
         images: ['/images/tenis-preto1.jpg', '/images/tenis-preto2.jpg'],
       },
@@ -109,7 +108,7 @@ export const mockProducts = [
         name: 'Tênis Branco 42',
         color: 'Branco',
         size: '42',
-     
+
         stock: 5,
         images: ['/images/tenis-branco.jpg'],
       },
@@ -124,8 +123,8 @@ export const mockProducts = [
     quantity: 200,
     brand: 'Lesamis',
     type: 'roupa',
-    categoria_id:1,
-    code: "19284",
+    categoria_id: 1,
+    code: '19284',
     variants: [
       {
         id: '3-1',
@@ -154,8 +153,8 @@ export const mockProducts = [
     quantity: 200,
     brand: 'Lesamis',
     type: 'roupa',
-    categoria_id:1,
-    code: "192844",
+    categoria_id: 1,
+    code: '192844',
     variants: [
       {
         id: '4-1',
@@ -202,11 +201,13 @@ export const useProductStore = create<ProductStore>((set) => ({
   selectedCategoria: '',
   setSelectedCategoria: (categoria) => set({ selectedCategoria: categoria }),
 
-  sellingPrice:0,
-  setSellingPrice: (selling_price:number) => set({sellingPrice:selling_price}),
+  sellingPrice: 0,
+  setSellingPrice: (selling_price: number) =>
+    set({ sellingPrice: selling_price }),
 
-  purchasePrice:0,
-  setPurchasePrice: (purchase_price:number) => set({purchasePrice: purchase_price}),
+  purchasePrice: 0,
+  setPurchasePrice: (purchase_price: number) =>
+    set({ purchasePrice: purchase_price }),
 
   addProduct: (product) =>
     set((state) => ({ products: [...state.products, product] })),
@@ -224,7 +225,7 @@ export const useProductStore = create<ProductStore>((set) => ({
     })),
 
   // 🔥 Função para adicionar uma variante a um produto existente
-  addVariant: (productId:number | string , variant:Variant) =>
+  addVariant: (productId: number | string, variant: Variant) =>
     set((state) => ({
       products: state.products.map((p) =>
         p.id === productId ? { ...p, variants: [...p.variants, variant] } : p
@@ -232,7 +233,11 @@ export const useProductStore = create<ProductStore>((set) => ({
     })),
 
   // 🔥 Função para editar uma variante específica
-  updateVariant: (productId:number | string , variantId:number | string, updatedVariant:Variant) =>
+  updateVariant: (
+    productId: number | string,
+    variantId: number | string,
+    updatedVariant: Variant
+  ) =>
     set((state) => ({
       products: state.products.map((p) =>
         p.id === productId
@@ -247,7 +252,7 @@ export const useProductStore = create<ProductStore>((set) => ({
     })),
 
   // 🔥 Função para remover uma variante específica
-  deleteVariant: (productId:number | any, variantId:number | any) =>
+  deleteVariant: (productId: number | any, variantId: number | any) =>
     set((state) => ({
       products: state.products.map((p) =>
         p.id === productId

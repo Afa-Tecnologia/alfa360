@@ -3,6 +3,7 @@
 namespace App\Services\Reports;
 
 use App\Models\Pedido;
+use App\Models\PedidoPagamento;
 use App\Models\User;
 use App\Services\Interfaces\OrdersReportServiceInterface;
 use App\Services\Reports\Helpers\ReportDateHelper;
@@ -75,10 +76,12 @@ class OrdersReportService implements OrdersReportServiceInterface
                     ? $vendedores[$vendedorId]->name 
                     : 'Vendedor não informado';
                 // Obter o método de pagamento do primeiro pagamento (se existir)
-                $paymentMethod = 'Não informado';
-                if ($order->pagamentos->isNotEmpty() && $order->pagamentos->first()->metodo) {
-                    $paymentMethod = $order->pagamentos->first()->metodo->name;
-                }
+                $metodoPagamento = PedidoPagamento::where('pedido_id', $order->id)->first();
+                $paymentMethod = $metodoPagamento->metodo->name ?? 'Não informado';
+                // $paymentMethod = 'Não informado';
+                // if ($order->pagamentos->isNotEmpty() && $order->pagamentos->first()->metodo) {
+                //     $paymentMethod = $order->pagamentos->first()->metodo->name;
+                // }
                 return [
                     'id' => $order->id,
                     'createdAt' => $order->created_at->toISOString(),

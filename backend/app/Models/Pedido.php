@@ -71,6 +71,11 @@ class Pedido extends Model
         return $this->hasMany(PedidoPagamento::class);
     }
 
+    public function vendedor()
+    {
+        return $this->belongsTo(User::class, 'vendedor_id');
+    }
+
       // Total pago até o momento
       public function getTotalPagoAttribute(): float
       {

@@ -18,13 +18,47 @@ export interface Order {
   paidAmount?: number;
 }
 
-export interface OrderDetail extends Order {
-  items: OrderItem[];
-  customer: {
+export interface OrderDetail {
+  id: number;
+  cliente_id: number;
+  type: string;
+  status: OrderStatus;
+  desconto: number;
+  total: number;
+  created_at: string;
+  updated_at: string;
+  vendedor: {
     id: number;
     name: string;
-  };
-  payments: OrderPayment[];
+  } | null;
+  categoria: {
+    id: number;
+    name: string;
+  } | null;
+  produtos: {
+    id: number;
+    name: string;
+    description: string;
+    purchase_price: number;
+    selling_price: number;
+    quantity: number;
+    type: string | null;
+    tipo_de_produto_id: number;
+    brand: string;
+    code: string;
+    categoria_id: number;
+    created_at: string;
+    updated_at: string;
+    pivot: {
+      pedido_id: number;
+      produto_id: number;
+      quantidade: number;
+      preco_unitario: number;
+      vendedor_id: number | null;
+      created_at: string;
+      updated_at: string;
+    };
+  }[];
 }
 
 export interface OrderItem {
@@ -43,10 +77,20 @@ export interface OrderPayment {
   pedido_id: number;
   payment_method_id: number;
   payment_method_name?: string;
-  amount: number;
+  total: string;
   status: string;
+  transaction_details: any;
+  paid_at: string | null;
   created_at: string;
   updated_at: string;
+  metodo?: {
+    id: number;
+    code: string;
+    name: string;
+    config: any;
+    created_at: string;
+    updated_at: string;
+  };
 }
 
 export interface OrdersResponse {

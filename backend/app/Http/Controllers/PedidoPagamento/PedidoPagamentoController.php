@@ -9,6 +9,7 @@ use App\Http\Resources\PedidoPagamentoResource;
 use App\Models\Pedido;
 use App\Services\PedidoPagamento\PedidoPagamentoService;
 use Illuminate\Http\JsonResponse;
+use App\Models\PedidoPagamento;
 
 class PedidoPagamentoController extends Controller
 {
@@ -42,6 +43,8 @@ class PedidoPagamentoController extends Controller
     }
 
     public function getPagamentoPorPedido($pedidoId){
-        return $this->pagamentosDoPedidoService->getPagamentosPorPedido($pedidoId);
+        $data = $this->pagamentosDoPedidoService->getPagamentosPorPedido($pedidoId);
+        
+        return response()->json($data);
     }
 }

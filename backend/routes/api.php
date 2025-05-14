@@ -23,13 +23,17 @@ use App\Http\Controllers\ConfigDoNegocio\ConfigDoNegocioController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
-})->middleware('auth:sanctum');
+})->middleware('jwt.auth');
 
 Route::post('signup', [UserAuthController::class, 'signup']);
 Route::post('login', [UserAuthController::class, 'login']);
-Route::middleware('auth:sanctum')->post('logout', [UserAuthController::class, 'logout']);
+Route::post('refresh', [UserAuthController::class, 'refresh']);
+Route::middleware('jwt.auth')->group(function () {
+    Route::post('logout', [UserAuthController::class, 'logout']);
+    Route::get('me', [UserAuthController::class, 'me']);
+});
 
-Route::prefix('users')->middleware('auth:sanctum')->group(function () {
+Route::prefix('users')->middleware('jwt.auth')->group(function () {
     Route::get('/', [UserController::class, 'index']);
     Route::get('/vendedores', [UserController::class, 'getVendedores']);
     Route::get('{id}', [UserController::class, 'show']);
@@ -39,7 +43,7 @@ Route::prefix('users')->middleware('auth:sanctum')->group(function () {
     
 });
 
-Route::prefix('produtos')->middleware('auth:sanctum')->group(function () {
+Route::prefix('produtos')->middleware('jwt.auth')->group(function () {
     Route::get('/', [ProdutoController::class, 'index']);
     Route::get('{id}', [ProdutoController::class, 'show']);
     Route::get('/categoria/{id}', [ProdutoController::class, 'findByCategory']);
@@ -50,7 +54,7 @@ Route::prefix('produtos')->middleware('auth:sanctum')->group(function () {
     Route::delete('/', [ProdutoController::class, 'batchDelete']);
 });
 
-Route::prefix('pedidos')->middleware('auth:sanctum')->group(function () {
+Route::prefix('pedidos')->middleware('jwt.auth')->group(function () {
     Route::get('/', [PedidosController::class, 'index']);
  
     Route::get('{id}', [PedidosController::class, 'show']);
@@ -61,12 +65,12 @@ Route::prefix('pedidos')->middleware('auth:sanctum')->group(function () {
     Route::delete('{id}', [PedidosController::class, 'delete']);
 });
 
-Route::prefix('pagamentos')->middleware('auth:sanctum')->group(function () {
+Route::prefix('pagamentos')->middleware('jwt.auth')->group(function () {
     Route::get('/{pedido}',[PedidoPagamentoController::class, 'getPagamentoPorPedido']);
     Route::post('/{pedido}', [PedidoPagamentoController::class, 'store']);
 });
 
-Route::prefix('relatorios')->middleware('auth:sanctum')->group(function () {
+Route::prefix('relatorios')->middleware('jwt.auth')->group(function () {
     Route::get('/resumo', [RelatoriosController::class, 'getSalesSummary']);
     Route::get('/por-categoria', [RelatoriosController::class, 'getSalesByCategory']);
     Route::get('/produtos-mais-vendidos', [RelatoriosController::class, 'getTopProducts']);
@@ -79,7 +83,7 @@ Route::prefix('relatorios')->middleware('auth:sanctum')->group(function () {
     });
 });
 
-Route::prefix('categorias')->middleware('auth:sanctum')->group(function () {
+Route::prefix('categorias')->middleware('jwt.auth')->group(function () {
     Route::get('/', [CategoriasController::class, 'index']);
     Route::get('{id}', [CategoriasController::class, 'show']);
     Route::post('/', [CategoriasController::class, 'store']);
@@ -87,7 +91,7 @@ Route::prefix('categorias')->middleware('auth:sanctum')->group(function () {
     Route::delete('{id}', [CategoriasController::class, 'delete']);
 });
 
-Route::prefix('clientes')->middleware('auth:sanctum')->group(function () {
+Route::prefix('clientes')->middleware('jwt.auth')->group(function () {
     Route::get('/', [ClientesController::class, 'index']);
     Route::get('{id}', [ClientesController::class, 'show']);
     Route::post('/', [ClientesController::class, 'store']);
@@ -95,7 +99,7 @@ Route::prefix('clientes')->middleware('auth:sanctum')->group(function () {
     Route::delete('{id}', [ClientesController::class, 'delete']);
 });
 
-Route::prefix('variantes')->middleware('auth:sanctum')->group(function () {
+Route::prefix('variantes')->middleware('jwt.auth')->group(function () {
     Route::get('/', [VariantesController::class, 'index']);
     Route::get('{id}', [VariantesController::class, 'show']);
     Route::post('/', [VariantesController::class, 'store']);
@@ -103,7 +107,7 @@ Route::prefix('variantes')->middleware('auth:sanctum')->group(function () {
     Route::delete('{id}', [VariantesController::class, 'delete']);
 });
 
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware('jwt.auth')->group(function () {
     Route::post('/caixa/open', [CaixaController::class, 'open']);
     Route::get('/caixa/status', [CaixaController::class, 'status']);
     Route::get('/caixa/movimentacoes', [CaixaController::class, 'movimentacoes']);
@@ -126,7 +130,7 @@ Route::get('/test', function () {
 Route::apiResource('payment-methods', PaymentMethodController::class);
 
 // Rotas para Tipos de Produtos
-Route::prefix('tipos-produtos')->middleware('auth:sanctum')->group(function () {
+Route::prefix('tipos-produtos')->middleware('jwt.auth')->group(function () {
     Route::get('/', [TiposDeProdutosController::class, 'index']);
     Route::get('{id}', [TiposDeProdutosController::class, 'show']);
     Route::post('/', [TiposDeProdutosController::class, 'store']);
@@ -135,7 +139,7 @@ Route::prefix('tipos-produtos')->middleware('auth:sanctum')->group(function () {
 });
 
 // Rotas para Tipos de Negócios
-Route::prefix('tipos-negocios')->middleware('auth:sanctum')->group(function () {
+Route::prefix('tipos-negocios')->middleware('jwt.auth')->group(function () {
     Route::get('/', [TipoDeNegociosController::class, 'index']);
     Route::get('{id}', [TipoDeNegociosController::class, 'show']);
     Route::post('/', [TipoDeNegociosController::class, 'store']);
@@ -144,7 +148,7 @@ Route::prefix('tipos-negocios')->middleware('auth:sanctum')->group(function () {
 });
 
 // Rotas para Configurações de Negócio
-Route::prefix('config-negocio')->middleware('auth:sanctum')->group(function () {
+Route::prefix('config-negocio')->middleware('jwt.auth')->group(function () {
     Route::get('/', [ConfigDoNegocioController::class, 'index']);
     Route::get('{id}', [ConfigDoNegocioController::class, 'show']);
     Route::post('/', [ConfigDoNegocioController::class, 'store']);
@@ -152,7 +156,7 @@ Route::prefix('config-negocio')->middleware('auth:sanctum')->group(function () {
     Route::delete('{id}', [ConfigDoNegocioController::class, 'destroy']);
 });
 
-// Route::middleware(['auth:sanctum'])->group(function () {
+// Route::middleware(['jwt.auth'])->group(function () {
 //     Route::prefix('despesas')->group(function () {
 //         Route::get('/', [EmployeeExpenseController::class, 'index']);
 //         Route::get('/summary', [EmployeeExpenseController::class, 'summary']);

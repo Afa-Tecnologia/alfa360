@@ -1,60 +1,207 @@
 <?php
 
+
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\ValidationException;
+use Tymon\JWTAuth\Facades\JWTAuth;
+use Tymon\JWTAuth\Exceptions\JWTException;
+use Illuminate\Http\JsonResponse;
 
 class UserAuthController extends Controller
 {
-    //Registrar usuário
-    public function signup(Request $request)
+    /**
+     * Cadastra um novo usuário
+     */
+    public function signup(Request $request): JsonResponse
     {
-        $registerUserData = $request->validate([
-            'name' => 'required|string',
-            'email' => 'required|string|email|unique:users,email',
-            'password' => 'required|min:8'
+        try {
+            $data = $request->validate([
+                'name' => 'required|string|max:255',
+                'email' => 'required|string|email|max:255|unique:users,email',
+                'password' => 'required|string|min:8|confirmed'
+            ]);
 
-        ]);
-        $user = User::create([
-            'name' => $registerUserData['name'],
-            'email' => $registerUserData['email'],
-            'password' => Hash::make($registerUserData['password']),
-        ]);
-        return response()->json([
-            'message' => 'Usuário criado com sucesso',
-        ]);
-    }
+            $user = User::create([
+                'name' => $data['name'],
+                'email' => $data['email'],
+                'password' => Hash::make($data['password']),
+            ]);
 
-    //Logar 
-    public function login(Request $request)
-    {
-        $loginUserData = $request->validate([
-            'email' => 'required|string|email',
-            'password' => 'required|min:8'
-        ]);
-        $user = User::where('email', $loginUserData['email'])->first();
-        if (!$user || !Hash::check($loginUserData['password'], $user->password)) {
+            Log::info('Novo usuário registrado', ['id' => $user->id, 'ip' => $request->ip()]);
+
             return response()->json([
-                'message' => 'Credenciais Inválidas'
-            ], 401);
+                'message' => 'Cadastro realizado com sucesso',
+                'user' => $user->only(['id', 'name', 'email'])
+            ], 201);
+
+        } catch (ValidationException $e) {
+            return response()->json([
+                'message' => 'Erro de validação',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (\Throwable $e) {
+            Log::error('Erro no signup: ' . $e->getMessage());
+            return response()->json(['message' => 'Erro ao processar solicitação'], 500);
         }
-        $token = $user->createToken($user->name . '-AuthToken')->plainTextToken;
-        return response()->json([
-            'message' => "Logado com sucesso!",
-            'access_token' => $token,
-            'user' => $user
-        ]);
     }
 
-    public function logout()
+    /**
+     * Autentica o usuário e gera tokens JWT
+     */
+    public function login(Request $request): JsonResponse
     {
-        auth()->user()->tokens()->delete();
+        try {
+            $credentials = $request->validate([
+                'email' => 'required|string|email',
+                'password' => 'required|string|min:8'
+            ]);
 
-        return response()->json([
-            "message" => "Deslogado com sucesso!"
-        ]);
+            if (!Auth::guard('api')->attempt($credentials)) {
+                return response()->json(['message' => 'Credenciais inválidas'], 401);
+            }
+
+            $user = Auth::guard('api')->user();
+
+            $accessToken = JWTAuth::fromUser($user);
+            $refreshToken = JWTAuth::customClaims([
+                'exp' => now()->addDays(7)->timestamp,
+                'token_type' => 'refresh'
+            ])->fromUser($user);
+
+            Log::info('Login bem-sucedido', [
+                'user_id' => $user->id,
+                'ip' => $request->ip(),
+                'agent' => $request->userAgent()
+            ]);
+
+            return response()->json([
+                'message' => 'Login realizado com sucesso',
+                'user' => $user->only(['id', 'name', 'email', 'role', 'perfil']),
+                'token_type' => 'bearer',
+                'expires_in' => config('jwt.ttl') * 60
+            ])
+            ->cookie('jwt_token', $accessToken, 90, '/', null, true, true, false, 'Lax')
+            ->cookie('jwt_refresh_token', $refreshToken, 10080, '/', null, true, true, false, 'Lax');
+
+        } catch (ValidationException $e) {
+            return response()->json(['message' => 'Erro de validação', 'errors' => $e->errors()], 422);
+        } catch (\Throwable $e) {
+            Log::error('Erro no login: ' . $e->getMessage());
+            return response()->json(['message' => 'Erro ao processar login'], 500);
+        }
+    }
+
+    /**
+     * Invalida os tokens JWT e remove cookies
+     */
+    public function logout(Request $request): JsonResponse
+    {
+        try {
+            $token = $request->cookie('jwt_token') ??
+                     $this->extractTokenFromHeader($request->header('Authorization'));
+
+            if ($token) {
+                JWTAuth::setToken($token)->invalidate();
+            }
+
+            Auth::guard('api')->logout();
+
+            return response()->json(['message' => 'Logout realizado com sucesso'])
+                ->withCookie(cookie()->forget('jwt_token'))
+                ->withCookie(cookie()->forget('jwt_refresh_token'));
+
+        } catch (JWTException $e) {
+            Log::warning('Erro ao invalidar token: ' . $e->getMessage());
+            return response()->json(['message' => 'Logout forçado, token inválido ou expirado'])
+                ->withCookie(cookie()->forget('jwt_token'))
+                ->withCookie(cookie()->forget('jwt_refresh_token'));
+        } catch (\Throwable $e) {
+            Log::error('Erro no logout: ' . $e->getMessage());
+            return response()->json(['message' => 'Erro ao processar logout'], 500);
+        }
+    }
+
+    /**
+     * Gera novos tokens a partir do refresh token
+     */
+    public function refresh(Request $request): JsonResponse
+    {
+        $refreshToken = $request->cookie('jwt_refresh_token') ?? $request->input('refresh_token');
+
+        if (!$refreshToken) {
+            return response()->json(['message' => 'Token de atualização não fornecido'], 401);
+        }
+
+        try {
+            JWTAuth::setToken($refreshToken);
+            $payload = JWTAuth::getPayload();
+
+            $userId = $payload->get('sub');
+            $user = User::find($userId);
+
+            if (!$user) {
+                return response()->json(['message' => 'Usuário não encontrado'], 404);
+            }
+
+            // Invalida o token usado
+            JWTAuth::invalidate();
+
+            $newAccessToken = JWTAuth::fromUser($user);
+            $newRefreshToken = JWTAuth::customClaims([
+                'exp' => now()->addDays(7)->timestamp,
+                'token_type' => 'refresh'
+            ])->fromUser($user);
+
+            return response()->json([
+                'message' => 'Token renovado com sucesso',
+                'token_type' => 'bearer',
+                'expires_in' => config('jwt.ttl') * 60
+            ])
+            ->cookie('jwt_token', $newAccessToken, 15, '/', null, true, true, false, 'Lax')
+            ->cookie('jwt_refresh_token', $newRefreshToken, 10080, '/', null, true, true, false, 'Lax');
+
+        } catch (JWTException $e) {
+            Log::error('Erro ao renovar token: ' . $e->getMessage());
+            return response()->json(['message' => 'Token inválido ou expirado'], 401);
+        } catch (\Throwable $e) {
+            Log::error('Erro ao atualizar token: ' . $e->getMessage());
+            return response()->json(['message' => 'Erro interno ao atualizar token'], 500);
+        }
+    }
+
+    /**
+     * Retorna o usuário autenticado
+     */
+    public function me(Request $request): JsonResponse
+    {
+        try {
+            $user = Auth::guard('api')->user();
+
+            if (!$user) {
+                return response()->json(['message' => 'Usuário não autenticado'], 401);
+            }
+
+            return response()->json(['user' => $user->only(['id', 'name', 'email', 'role', 'perfil'])]);
+
+        } catch (\Throwable $e) {
+            Log::error('Erro ao buscar usuário: ' . $e->getMessage());
+            return response()->json(['message' => 'Erro interno ao buscar usuário'], 500);
+        }
+    }
+
+    /**
+     * Extrai o token do header Authorization
+     */
+    private function extractTokenFromHeader(?string $header): ?string
+    {
+        if (!$header || !str_starts_with($header, 'Bearer ')) return null;
+        return substr($header, 7);
     }
 }

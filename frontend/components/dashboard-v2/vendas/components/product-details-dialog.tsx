@@ -100,6 +100,10 @@ export function ProductDetailsDialog({
 
   // Formatar data
   const formatDate = (date: Date) => {
+    // Check if date is valid before formatting
+    if (!(date instanceof Date) || isNaN(date.getTime())) {
+      return 'Data indisponível';
+    }
     return new Intl.DateTimeFormat('pt-BR').format(date);
   };
 

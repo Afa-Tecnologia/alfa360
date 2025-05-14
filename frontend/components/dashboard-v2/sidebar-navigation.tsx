@@ -28,6 +28,9 @@ import { userService } from '@/services/userService';
 import { User as UserType } from '@/types/auth';
 import { useRouter } from 'next/navigation';
 import useAuthStore from '@/stores/authStore';
+import { deleteServerCookie } from '@/app/api/auth';
+import { gerarNotificacao } from '@/utils/toast';
+import { api } from '@/app/api/api';
 
 const menuItems = [
   {
@@ -98,20 +101,14 @@ export function SidebarNavigation({
   const pathname = usePathname();
   const [user, setUser] = useState<UserType | null>(null);
   const router = useRouter();
-  const deleteAuthStorage = useAuthStore((state) => state.deleteAuthStorage);
 
   // Buscar dados do usuário
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const storage = localStorage.getItem('auth-storage');
-        if (!storage) return;
-
-        const loggedUser = JSON.parse(storage).state?.user;
-        if (!loggedUser) return;
-
-        const userData = await userService.getById(loggedUser.id);
-        setUser(userData);
+        api.get('/me').then((response: any) => {
+          setUser(response.data.user);
+        });
       } catch (error) {
         console.error('Erro ao buscar dados do usuário:', error);
       }
@@ -121,9 +118,12 @@ export function SidebarNavigation({
   }, []);
 
   const handleLogout = () => {
-    deleteAuthStorage();
+    deleteServerCookie();
+    gerarNotificacao('success', 'Deslogado com sucesso!');
     router.push('/login');
   };
+
+
 
   // Filtra os itens do menu com base no perfil do usuário
   const filteredMenuItems = menuItems.filter(
@@ -148,6 +148,7 @@ export function SidebarNavigation({
         variants={sidebarVariants}
         transition={{ duration: 0.3, ease: 'easeInOut' }}
       >
+        
         <div className="flex h-16 items-center justify-between border-b border-white/10 px-4">
           {!isCollapsed && (
             <motion.div
@@ -192,6 +193,7 @@ export function SidebarNavigation({
 
         <div className="mt-auto border-t border-white/10 p-4">
           <div className="flex items-center gap-4">
+            
             <Avatar>
               <AvatarFallback className="bg-primary/10 text-primary">
                 {user?.name?.charAt(0) || 'U'}

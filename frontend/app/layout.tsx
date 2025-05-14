@@ -25,8 +25,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en"  suppressHydrationWarning>
-      <body className={inter.className} >
+    <html lang="en" suppressHydrationWarning>
+      <body className={inter.className}>
         <ThemeProvider
           attribute="class"
           defaultTheme="light"
@@ -36,7 +36,6 @@ export default function RootLayout({
           <ToastContainer />
           {children}
         </ThemeProvider>
-
       </body>
     </html>
   );

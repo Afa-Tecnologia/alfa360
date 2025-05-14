@@ -5,6 +5,7 @@ namespace App\Exceptions;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
 use Throwable;
 use Illuminate\Auth\AuthenticationException;
+use Illuminate\Validation\ValidationException;
 
 class Handler extends ExceptionHandler
 {
@@ -54,6 +55,21 @@ public function render($request, Throwable $exception)
         return response()->json([
             'message' => 'Token inválido ou inexistente. Por favor, faça login novamente.',
         ], 401);
+    }
+
+    if ($request->expectsJson()) {
+        if ($exception instanceof ValidationException) {
+            return response()->json([
+                'message' => 'Os dados fornecidos são inválidos.',
+                'errors' => $exception->errors(),
+            ], 422);
+        }
+        
+        if ($exception instanceof \Exception) {
+            return response()->json([
+                'message' => 'Ocorreu um erro no servidor.',
+            ], 500);
+        }
     }
 
     return parent::render($request, $exception);

@@ -29,3 +29,29 @@ export function formatDate(dateString: string): string {
     minute: '2-digit',
   }).format(date);
 }
+
+/**
+ * Limpa os cookies de autenticação e redireciona para a página de login
+ * @param returnUrl URL para retornar após o login (opcional)
+ */
+export function clearAuthAndRedirect(returnUrl?: string): void {
+  if (typeof document !== 'undefined') {
+    // Limpar cookies de autenticação
+    document.cookie =
+      'jwt_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+    document.cookie =
+      'jwt_refresh_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+
+    // Limpar localStorage se estiver sendo usado
+    localStorage.removeItem('auth_tokens');
+
+    // Redirecionar para login
+    if (typeof window !== 'undefined') {
+      const redirectUrl = returnUrl
+        ? `/login?returnUrl=${encodeURIComponent(returnUrl)}`
+        : '/login';
+
+      window.location.href = redirectUrl;
+    }
+  }
+}

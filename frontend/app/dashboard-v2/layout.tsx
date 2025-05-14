@@ -9,6 +9,7 @@ import { Header } from '@/components/dashboard-v2/header';
 import { usePathname } from 'next/navigation';
 import { useRouter } from 'next/navigation';
 import useAuthStore from '@/stores/authStore';
+import { getAuthToken } from '../api/auth';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -38,14 +39,19 @@ export default function DashboardLayout({
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
-  const { isAuthenticated } = useAuthStore();
+
+  
 
   // Verificar autenticação
   useEffect(() => {
-    if (!isAuthenticated) {
-      router.push('/login');
+    async function checkAuth() {
+      const token = await getAuthToken();
+      if (!token) {
+        router.push('/login');
+      }
     }
-  }, [isAuthenticated, router]);
+    checkAuth();
+  }, []);
 
   // Detectar tamanho da tela
   useEffect(() => {

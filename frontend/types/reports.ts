@@ -12,19 +12,24 @@ export interface SalesSummary {
 }
 
 export interface CategorySales {
-  categoryId: number;
-  categoryName: string;
-  totalSales: number;
-  totalRevenue: number;
-  percentage: number;
+  id: number;
+  name: string;
+  revenue: number;
+  items: number;
 }
 
 export interface ProductSales {
-  productId: number;
-  productName: string;
+  id: number;
+  name: string;
   quantity: number;
-  totalRevenue: number;
-  percentage: number;
+  revenue: number;
+  category?: string;
+  sku?: string;
+  averagePrice?: number;
+  productId?: number;
+  productName?: string;
+  totalRevenue?: number;
+  percentage?: number;
 }
 
 export interface Commission {
@@ -38,6 +43,10 @@ export interface Commission {
   status: string;
   created_at: string;
   updated_at: string;
+  data_venda?: string;
+  venda_id?: number;
+  valor_venda?: number;
+  porcentagem?: number;
   vendedor?: {
     id: number;
     name: string;
@@ -68,7 +77,7 @@ export interface CommissionSummary {
 
 export interface RevenueByPeriod {
   period: string;
-  revenue: number;
+  value: number;
 }
 
 export interface SalesReportFilters {

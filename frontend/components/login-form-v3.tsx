@@ -76,15 +76,12 @@ export function LoginFormV3({
     try {
       setIsLoading(true);
       const response = await api.post('/login', data);
-      const { access_token, user, message } = response.data;
+      const { user, message } = response.data;
 
-      if (access_token && user) {
-        loginAction(access_token);
         setUser(user);
-        setToken(access_token);
         gerarNotificacao('success', message);
-        router.push(redirectTo);
-      }
+        router.push('/dashboard-v2');
+
     } catch (error: any) {
       const { response } = error;
       if (error.code === 'ERR_NETWORK') {

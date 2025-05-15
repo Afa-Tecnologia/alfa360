@@ -17,12 +17,12 @@ export async function middleware(request: NextRequest) {
   }
 
   // Se estiver na página de login e já tiver token e refreshToken, redireciona para o dashboard
-  if (isLoginPage && token && refreshToken) {
+  if (isLoginPage && refreshToken) {
     return NextResponse.redirect(new URL(getUrl('/dashboard-v2')));
   }
 
   // Se estiver tentando acessar /dashboard-v2 mas não tem token, redireciona para login
-  if (isDashboardRoute && (!token || !refreshToken)) {
+  if (isDashboardRoute && (!refreshToken)) {
     return NextResponse.redirect(new URL(getUrl('/login')));
   }
 

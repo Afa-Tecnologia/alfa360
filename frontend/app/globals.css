@@ -75,6 +75,29 @@ body {
     --chart-5: 340 75% 55%;
   }
 }
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+  margin: 1rem; 
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+  /* sem fundo */
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: hsl(var(--primary));/* cor do "thumb" */
+  border-radius: 6px;
+  
+  border: none; /* remove qualquer borda */
+}
+
+/* Opcional: ao passar o mouse */
+::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(100, 100, 100, 0.7);
+}
 @layer base {
   * {
     @apply border-border;

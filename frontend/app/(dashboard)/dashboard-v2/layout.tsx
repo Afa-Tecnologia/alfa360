@@ -3,13 +3,13 @@
 import { useState, useEffect } from 'react';
 import { Inter } from 'next/font/google';
 import { cn } from '@/lib/utils';
-import '../globals.css';
+
 import { SidebarNavigation } from '@/components/dashboard-v2/sidebar-navigation';
 import { Header } from '@/components/dashboard-v2/header';
 import { usePathname } from 'next/navigation';
 import { useRouter } from 'next/navigation';
-import useAuthStore from '@/stores/authStore';
-import { getAuthToken } from '../api/auth';
+
+
 
 const inter = Inter({
   subsets: ['latin'],
@@ -42,16 +42,16 @@ export default function DashboardLayout({
 
   
 
-  // Verificar autenticação
-  useEffect(() => {
-    async function checkAuth() {
-      const token = await getAuthToken();
-      if (!token) {
-        router.push('/login');
-      }
-    }
-    checkAuth();
-  }, []);
+  // // Verificar autenticação
+  // useEffect(() => {
+  //   async function checkAuth() {
+  //     const token = await getAuthToken();
+  //     if (!token) {
+  //       router.push('/login');
+  //     }
+  //   }
+  //   checkAuth();
+  // }, []);
 
   // Detectar tamanho da tela
   useEffect(() => {
@@ -83,7 +83,7 @@ export default function DashboardLayout({
   const title = pageTitles[pathname] || 'Dashboard';
 
   return (
-    <div className={cn('flex min-h-screen h-screen bg-background overflow-hidden', inter.variable)}>
+   <div className={cn('flex min-h-screen h-screen bg-[#2248a3] dark:bg-[#101010]  overflow-hidden', inter.variable)}>
       {/* Overlay para quando o menu mobile estiver aberto */}
       {isMobile && isMobileSidebarOpen && (
         <div 
@@ -101,7 +101,7 @@ export default function DashboardLayout({
       />
 
       {/* Conteúdo principal */}
-      <div className="flex flex-1 flex-col overflow-hidden">
+            <div className="flex flex-1 flex-col md:rounded-xl md:m-2 bg-background overflow-hidden">
         <Header
           toggleSidebar={toggleSidebar}
           isMobile={isMobile}

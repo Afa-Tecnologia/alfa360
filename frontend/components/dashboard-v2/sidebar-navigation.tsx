@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { redirect, usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import {
   Home,
@@ -28,9 +28,7 @@ import { userService } from '@/services/userService';
 import { User as UserType } from '@/types/auth';
 import { useRouter } from 'next/navigation';
 import useAuthStore from '@/stores/authStore';
-import { deleteServerCookie } from '@/app/api/auth';
-import { gerarNotificacao } from '@/utils/toast';
-import { api } from '@/app/api/api';
+import { removeAuthToken, removeRefreshToken } from '@/app/api/auth';
 
 const menuItems = [
   {
@@ -101,14 +99,20 @@ export function SidebarNavigation({
   const pathname = usePathname();
   const [user, setUser] = useState<UserType | null>(null);
   const router = useRouter();
+  const deleteAuthStorage = useAuthStore((state) => state.deleteAuthStorage);
 
   // Buscar dados do usuário
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        api.get('/me').then((response: any) => {
-          setUser(response.data.user);
-        });
+        const storage = localStorage.getItem('auth-storage');
+        if (!storage) return;
+
+        const loggedUser = JSON.parse(storage).state?.user;
+        if (!loggedUser) return;
+
+        const userData = await userService.getById(loggedUser.id);
+        setUser(userData);
       } catch (error) {
         console.error('Erro ao buscar dados do usuário:', error);
       }
@@ -117,13 +121,11 @@ export function SidebarNavigation({
     fetchUserData();
   }, []);
 
-  const handleLogout = () => {
-    deleteServerCookie();
-    gerarNotificacao('success', 'Deslogado com sucesso!');
-    router.push('/login');
+  const handleLogout = async() => {
+    await removeAuthToken();
+  await  removeRefreshToken();
+  redirect('/login');
   };
-
-
 
   // Filtra os itens do menu com base no perfil do usuário
   const filteredMenuItems = menuItems.filter(
@@ -140,7 +142,7 @@ export function SidebarNavigation({
     return (
       <motion.div
         className={cn(
-          'fixed inset-y-0 left-0 z-50 flex flex-col bg-slate-900 text-white shadow-xl h-screen',
+          'fixed inset-y-0 left-0 z-50 flex flex-col bg-[#2248a3] dark:bg-[#101010] text-white shadow-xl h-screen ',
           isCollapsed ? 'translate-x-[-100%]' : 'translate-x-0'
         )}
         initial="collapsed"
@@ -148,8 +150,7 @@ export function SidebarNavigation({
         variants={sidebarVariants}
         transition={{ duration: 0.3, ease: 'easeInOut' }}
       >
-        
-        <div className="flex h-16 items-center justify-between border-b border-white/10 px-4">
+        <div className="flex h-16 items-center justify-between  px-4 pt-2">
           {!isCollapsed && (
             <motion.div
               initial={{ opacity: 0 }}
@@ -191,9 +192,9 @@ export function SidebarNavigation({
           </nav>
         </div>
 
-        <div className="mt-auto border-t border-white/10 p-4">
+{/* footer */}
+        <div className="mt-auto  p-4">
           <div className="flex items-center gap-4">
-            
             <Avatar>
               <AvatarFallback className="bg-primary/10 text-primary">
                 {user?.name?.charAt(0) || 'U'}
@@ -223,13 +224,13 @@ export function SidebarNavigation({
 
   return (
     <motion.div
-      className="flex h-screen flex-col border-r bg-slate-900 text-white"
+      className="flex h-screen flex-col bg-[#2248a3] dark:bg-[#101010] text-white"
       initial="expanded"
       animate={isCollapsed ? 'collapsed' : 'expanded'}
       variants={sidebarVariants}
       transition={{ duration: 0.3, ease: 'easeInOut' }}
     >
-      <div className="flex h-16 items-center justify-between border-b border-white/10 px-4">
+      <div className="flex h-16 items-center justify-between  px-4 pt-2">
         {!isCollapsed && (
           <motion.div
             initial={{ opacity: 0 }}
@@ -283,7 +284,7 @@ export function SidebarNavigation({
         </nav>
       </div>
 
-      <div className="mt-auto border-t border-white/10 p-4">
+      <div className="mt-auto  p-4">
         {isCollapsed ? (
           <div className="flex justify-center">
             <Avatar>

@@ -6,6 +6,7 @@ import { BellIcon, Menu, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
+import { ThemeToggle } from '../theme-toggle';
 
 interface HeaderProps {
   toggleSidebar: () => void;
@@ -55,9 +56,9 @@ export function Header({
   });
 
   return (
-    <motion.header
+       <motion.header
       className={cn(
-        'sticky top-0 z-30 flex h-16 items-center justify-between border-b bg-background/95 px-4 backdrop-blur transition-shadow duration-200',
+        'sticky top-0 z-30 flex h-16 items-center justify-between  border-b border-opacity-5 bg-background/95 px-4 backdrop-blur transition-shadow duration-200',
         isScrolled && 'shadow-md'
       )}
       initial={{ opacity: 0, y: -10 }}
@@ -101,6 +102,7 @@ export function Header({
           <BellIcon className="h-5 w-5" />
           <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-primary"></span>
         </Button>
+        <ThemeToggle/>
       </div>
     </motion.header>
   );

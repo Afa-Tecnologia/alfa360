@@ -66,7 +66,7 @@ export function ProdutosTab({
 
   // Filtrar produtos com base no termo de pesquisa
   const filteredProducts = topProducts.filter((product) =>
-    product.productName.toLowerCase().includes(searchTerm.toLowerCase())
+    product.productName?.toLowerCase().includes(searchTerm.toLowerCase()) 
   );
 
   // Dados para o gráfico de barras

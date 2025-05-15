@@ -30,7 +30,7 @@ import { DollarSignIcon, TrendingUpIcon, ShoppingBagIcon } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 
 interface CategoriasTabProps {
-  categorySales: CategorySales[];
+  categorySales: any[];
   loading: boolean;
   formatCurrency: (value: number) => string;
 }

@@ -92,17 +92,15 @@ export function useOrdersManagement({
         setDetailLoading(true);
 
         if (isFullPayment) {
-          await ordersService.confirmFullPayment(
-            orderId,
-            paymentMethodId,
-            amount
-          );
+          await ordersService.confirmFullPayment(orderId, {
+            payment_method_code: paymentMethodId.toString(),
+            total: amount,
+          });
         } else {
-          await ordersService.recordPartialPayment(
-            orderId,
-            paymentMethodId,
-            amount
-          );
+          await ordersService.recordPartialPayment(orderId, {
+            payment_method_code: paymentMethodId.toString(),
+            total: amount,
+          });
         }
 
         // Recarregar dados
@@ -149,24 +147,24 @@ export function useOrdersManagement({
   // Calcular valores de pagamento
   const calculatePaymentValues = useCallback((order: OrderDetail) => {
     const total = order.total || 0;
-    const discount = order.discount || 0;
-    const totalAfterDiscount = total - discount;
+    const desconto = order.desconto || 0;
+    const totalAfterDiscount = total - desconto;
 
-    const paid =
-      order.payments?.reduce(
-        (sum, payment) =>
-          sum + (payment.status === 'CAPTURED' ? payment.amount : 0),
+    const pago =
+      order.pagamentos?.reduce(
+        (sum, pagamento) =>
+          sum + (pagamento.status === 'CAPTURED' ? pagamento.total : 0),
         0
       ) || 0;
 
-    const remaining = Math.max(0, totalAfterDiscount - paid);
+    const remaining = Math.max(0, totalAfterDiscount - pago);
     const isFullyPaid = remaining === 0;
 
     return {
       total,
-      discount,
+      desconto,
       totalAfterDiscount,
-      paid,
+      pago,
       remaining,
       isFullyPaid,
     };

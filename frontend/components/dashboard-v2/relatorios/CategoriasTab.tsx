@@ -77,9 +77,9 @@ export function CategoriasTab({
   const treemapData = {
     name: 'Categorias',
     children: categorySales.map((category) => ({
-      name: category.categoryName,
+      name: category.name,
       size: category.totalRevenue,
-      percentage: category.percentage,
+      percentage: category.totalRevenue / category.totalSales,
     })),
   };
 
@@ -379,15 +379,15 @@ export function CategoriasTab({
                         <tbody>
                           {sortedCategories.map((category) => (
                             <tr
-                              key={category.categoryId}
+                              key={category.id}
                               className="border-b hover:bg-muted/50"
                             >
                               <td className="py-3 px-4">
                                 <div className="font-medium">
-                                  {category.categoryName}
+                                  {category.name}
                                 </div>
                                 <div className="text-xs text-muted-foreground">
-                                  ID: {category.categoryId}
+                                  ID: {category.id}
                                 </div>
                               </td>
                               <td className="text-center py-3 px-4">
@@ -426,10 +426,10 @@ export function CategoriasTab({
                         Distribuição de Vendas
                       </h3>
                       {sortedCategories.map((category, index) => (
-                        <div key={category.categoryId} className="space-y-1">
+                        <div key={category.id} className="space-y-1">
                           <div className="flex justify-between">
                             <span className="text-sm font-medium">
-                              {category.categoryName}
+                              {category.name}
                             </span>
                             <span className="text-sm text-gray-500">
                               {category.totalSales} unidades •{' '}

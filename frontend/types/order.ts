@@ -49,6 +49,7 @@ export interface OrderDetail {
     categoria_id: number;
     created_at: string;
     updated_at: string;
+    pagamentos: any[];
     pivot: {
       pedido_id: number;
       produto_id: number;
@@ -58,7 +59,39 @@ export interface OrderDetail {
       created_at: string;
       updated_at: string;
     };
+
   }[];
+
+  pagamentos: {
+    id: number;
+    pedido_id: number;
+    payment_method_id: number;
+    payment_method_name: string;
+    total: number;
+    status: string;
+    created_at: string;
+    updated_at: string;
+  }[];
+}
+
+export interface OrderPayment {
+  id: number;
+  pedido_id: number;
+  payment_method_id: number;
+  total: string;
+  status: string;
+  transaction_details: any;
+  paid_at: string | null;
+  created_at: string;
+  updated_at: string;
+  metodo?: {
+    id: number;
+    code: string;
+    name: string;
+    config: any;
+    created_at: string;
+    updated_at: string;
+  };
 }
 
 export interface OrderItem {

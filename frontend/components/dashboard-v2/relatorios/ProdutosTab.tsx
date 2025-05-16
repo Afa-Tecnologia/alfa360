@@ -66,27 +66,39 @@ export function ProdutosTab({
 
   // Filtrar produtos com base no termo de pesquisa
   const filteredProducts = topProducts.filter((product) =>
-    product.productName.toLowerCase().includes(searchTerm.toLowerCase())
+    product.productName?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   // Dados para o gráfico de barras
-  const barChartData = topProducts.slice(0, 8).map((product) => ({
-    name:
-      product.productName.length > 20
-        ? product.productName.substring(0, 20) + '...'
-        : product.productName,
-    value: product.totalRevenue,
-    quantity: product.quantity,
-  }));
+  const barChartData = topProducts.slice(0, 8).map((product) => {
+    let name = '';
+    if (product.productName) {
+      name =
+        product.productName?.length > 20
+          ? product.productName?.substring(0, 20) + '...'
+          : product.productName;
+    }
+    return {
+      name,
+      value: product.totalRevenue,
+      quantity: product.quantity,
+    };
+  });
 
   // Dados para o gráfico de pizza
-  const pieChartData = topProducts.slice(0, 6).map((product) => ({
-    name:
-      product.productName.length > 15
-        ? product.productName.substring(0, 15) + '...'
-        : product.productName,
-    value: product.quantity,
-  }));
+  const pieChartData = topProducts.slice(0, 6).map((product) => {
+    let name = '';
+    if (product.productName) {
+      name =
+        product.productName?.length > 15
+          ? product.productName?.substring(0, 15) + '...'
+          : product.productName;
+    }
+    return {
+      name,
+      value: product.quantity,
+    };
+  });
 
   return (
     <div className="space-y-4">
@@ -152,7 +164,7 @@ export function ProdutosTab({
               <div className="text-2xl font-bold">
                 {formatCurrency(
                   topProducts.reduce(
-                    (sum, product) => sum + product.totalRevenue,
+                    (sum, product) => sum + (product.totalRevenue || 0),
                     0
                   )
                 )}
@@ -176,7 +188,7 @@ export function ProdutosTab({
                 {formatCurrency(
                   topProducts.length > 0
                     ? topProducts.reduce(
-                        (sum, product) => sum + product.totalRevenue,
+                        (sum, product) => sum + (product.totalRevenue || 0),
                         0
                       ) /
                         topProducts.reduce(
@@ -231,7 +243,7 @@ export function ProdutosTab({
                           {product.quantity} unidades
                         </span>
                         <span className="text-sm font-medium">
-                          {formatCurrency(product.totalRevenue)}
+                          {formatCurrency(product.totalRevenue || 0)}
                         </span>
                       </div>
                     </div>
@@ -246,10 +258,12 @@ export function ProdutosTab({
                         }
                       />
                       <div className="flex justify-between text-xs text-gray-500">
-                        <span>{product.percentage.toFixed(1)}% das vendas</span>
+                        <span>
+                          {product.percentage?.toFixed(1)}% das vendas
+                        </span>
                         <span>
                           {formatCurrency(
-                            product.totalRevenue / product.quantity
+                            (product.totalRevenue || 0) / (product.quantity || 1)
                           )}{' '}
                           / unidade
                         </span>
@@ -420,16 +434,16 @@ export function ProdutosTab({
                         </td>
                         <td className="text-center py-3 px-4">
                           <div className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">
-                            {product.percentage.toFixed(1)}%
+                            {product.percentage?.toFixed(1)}%
                           </div>
                         </td>
                         <td className="text-right py-3 px-4">
                           {formatCurrency(
-                            product.totalRevenue / product.quantity
+                            (product.totalRevenue || 0) / (product.quantity || 1)
                           )}
                         </td>
                         <td className="text-right py-3 px-4 font-medium">
-                          {formatCurrency(product.totalRevenue)}
+                          {formatCurrency(product.totalRevenue || 0)}
                         </td>
                       </tr>
                     ))}
@@ -450,7 +464,7 @@ export function ProdutosTab({
                       <td className="text-right py-3 px-4 font-medium">
                         {formatCurrency(
                           filteredProducts.reduce(
-                            (sum, p) => sum + p.totalRevenue,
+                            (sum, p) => sum + (p.totalRevenue || 0),
                             0
                           )
                         )}

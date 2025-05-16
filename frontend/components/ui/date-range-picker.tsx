@@ -18,7 +18,7 @@ import {
 interface DatePickerWithRangeProps {
   className?: string;
   date?: DateRange | undefined;
-  onDateChange: (date: DateRange) => void;
+  onDateChange: (date: DateRange | undefined) => void;
   align?: 'start' | 'center' | 'end';
 }
 
@@ -64,6 +64,7 @@ export function DatePickerWithRange({
             onSelect={onDateChange}
             numberOfMonths={2}
             locale={ptBR}
+            required={false}
           />
         </PopoverContent>
       </Popover>

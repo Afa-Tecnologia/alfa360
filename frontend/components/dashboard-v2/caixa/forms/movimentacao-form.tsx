@@ -89,14 +89,11 @@ export function MovimentacaoForm({
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
       setSubmitting(true);
-      console.log('DEBUG - Iniciando submissão do formulário de movimentação');
-      console.log('DEBUG - Valores:', values);
 
       const valor = parseFloat(values.valor.replace(',', '.'));
-      console.log('DEBUG - Valor convertido:', valor);
+
 
       if (isNaN(valor) || valor <= 0) {
-        console.log('DEBUG - Valor inválido');
         toast({
           title: 'Valor inválido',
           description: 'Insira um valor numérico positivo.',
@@ -106,7 +103,6 @@ export function MovimentacaoForm({
       }
 
       if (!caixaId) {
-        console.log('DEBUG - caixaId não encontrado:', caixaId);
         toast({
           title: 'Erro ao registrar movimentação',
           description: 'ID do caixa não encontrado. Tente novamente.',
@@ -115,14 +111,7 @@ export function MovimentacaoForm({
         return;
       }
 
-      console.log('DEBUG - Chamando createMovimentacao com:', {
-        caixa_id: caixaId,
-        type: tipo,
-        value: valor,
-        description: values.descricao,
-        payment_method: values.metodo_pagamento,
-        local: values.local,
-      });
+
 
       await createMovimentacao({
         caixa_id: caixaId,
@@ -133,7 +122,7 @@ export function MovimentacaoForm({
         local: values.local,
       });
 
-      console.log('DEBUG - Movimentação registrada com sucesso');
+
       toast({
         title: 'Movimentação registrada',
         description: `A ${tipo === 'entrada' ? 'entrada' : 'saída'} foi registrada com sucesso.`,

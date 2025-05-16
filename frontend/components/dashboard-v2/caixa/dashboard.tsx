@@ -88,9 +88,7 @@ export function CaixaDashboard({
   const isCaixaOpen = statusCaixa?.status === 'aberto';
   const caixaId = statusCaixa?.id ? Number(statusCaixa.id) : undefined;
 
-  console.log('DEBUG - statusCaixa:', JSON.stringify(statusCaixa, null, 2));
-  console.log('DEBUG - caixa objeto:', statusCaixa);
-  console.log('DEBUG - caixaId:', caixaId, 'tipo:', typeof caixaId);
+
 
   // Se não tem dados do status do caixa ainda
   if (!statusCaixa) {

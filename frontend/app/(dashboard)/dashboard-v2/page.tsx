@@ -26,7 +26,7 @@ import {
 } from 'lucide-react';
 import { formatCurrency } from '@/utils/format';
 import { Skeleton } from '@/components/ui/skeleton';
-import { api } from '../api/api';
+import { api } from '../../api/api';
 import { Button } from '@/components/ui/button';
 
 // Dados mockados para demonstração

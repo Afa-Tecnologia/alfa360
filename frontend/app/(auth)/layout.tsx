@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { Geist, Geist_Mono, Inter } from 'next/font/google';
-import './globals.css';
+import '../globals.css';
 import { ToastContainer } from 'react-toastify';
 import { ThemeProvider } from '@/components/theme-provider';
 const geistSans = Geist({

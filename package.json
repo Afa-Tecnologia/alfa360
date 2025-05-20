@@ -1,7 +1,7 @@
 {
-  "name": "alfamanager-main",
+  "name": "alfa360",
   "version": "1.0.0",
-  "description": "Sistema Alfa Manager - Gerenciador de Estoque, Caixa e Vendas",
+  "description": "Sistema Alfa 360 - Gerenciador de Estoque, Caixa e Vendas",
   "main": "index.js",
   "directories": {
     "frontend": "frontend",

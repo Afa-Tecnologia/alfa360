@@ -1,3 +1,3 @@
 <?php
 
-define('COMISSAO_PERCENTUAL_PADRAO', 5);
+// define('COMISSAO_PERCENTUAL_PADRAO', 5);

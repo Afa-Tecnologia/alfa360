@@ -54,7 +54,7 @@ export default function LoginPageV3() {
                     />
                   </svg>
                 </div>
-                <span className="text-xl font-bold">ALFA MANAGER</span>
+                <span className="text-xl font-bold">ALFA 360</span>
               </div>
 
               {/* Hero content */}
@@ -122,8 +122,8 @@ export default function LoginPageV3() {
       {/* Footer */}
       <div className="absolute bottom-4 left-0 right-0 text-center text-white/50 text-xs">
         <p>
-          ALFA MANAGER v1.0 &copy; 2023-{new Date().getFullYear()} - Todos os
-          direitos reservados
+          ALFA 360 v1.0 &copy; 2025-{new Date().getFullYear()} - Todos os
+          direitos reservados - ALFA TECNOLOGIA BRASIL
         </p>
       </div>
     </div>

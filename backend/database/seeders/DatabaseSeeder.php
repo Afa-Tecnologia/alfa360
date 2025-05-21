@@ -8,48 +8,45 @@ use App\Models\Produto;
 use App\Models\User;
 use App\Models\Variantes;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
 
 class DatabaseSeeder extends Seeder
 {
-    /**
-     * Seed the application's database.
-     */
     public function run(): void
     {
-        // User::factory(10)->create();
-                // Executar os novos seeders para as entidades de configuração
-                $this->call([
-                    TipoDeNegociosSeeder::class,
-                    TiposDeProdutosSeeder::class,
-                    ConfigDoNegocioSeeder::class,
-                ]);
+        $this->call([
+            TipoDeNegociosSeeder::class,
+            TiposDeProdutosSeeder::class,
+            ConfigDoNegocioSeeder::class,
+        ]);
 
         User::factory()->create([
             'name' => 'Admin',
             'email' => 'admin@alfatecnologiabrasil.com.br',
-            'password' => '12345678',
+            'password' => Hash::make('12345678'),
             'perfil'=> 'admin'
         ]);
+
         User::factory()->create([
             'name' => 'Renata',
             'email' => 'renatapaz@gmail.com',
-            'password' => '12345678',
+            'password' => Hash::make('12345678'),
             'perfil' => 'vendedor'
         ]);
 
-        Categoria::create([
+        $categoria = Categoria::create([
             'name' => 'Saias',
             'description' => 'Todas as saias da nossa loja',
             'active' => true
         ]);
 
-        Produto::create([
+        $produto = Produto::create([
             "name" => "Saia de renda",
             "description" => "Saia de rendas",
             "purchase_price" => 50,
             "selling_price" => 87.89,
             "quantity" => 10,
-            "categoria_id" => 1,
+            "categoria_id" => $categoria->id,
             "type" => "roupa",
             "tipo_de_produto_id" => 1,
             "brand"=> "lesamis",
@@ -57,14 +54,15 @@ class DatabaseSeeder extends Seeder
         ]);
 
         Variantes::create([
-            "produto_id" => "1",
-            "name"=>"SAIA DE RENDA P",
-            "color"=>"AZUL",
+            "produto_id" => $produto->id,
+            "name" => "SAIA DE RENDA P",
+            "color" => "AZUL",
             "type" => "seila",
-            "size"=> "P",
-            "quantity"=>"50",
-            "active"=> true,
+            "size" => "P",
+            "quantity" => 50,
+            "active" => true,
         ]);
+
         Cliente::create([
             "name" => "João",
             "last_name" => "Carneiro",
@@ -77,10 +75,5 @@ class DatabaseSeeder extends Seeder
             "cep" => "12345-678",
             "date_of_birth" => "1990-05-15"
         ]);
-
-
-
-        // // Employee expense seeder
-        // $this->call(EmployeeExpenseSeeder::class);
     }
 }

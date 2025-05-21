@@ -47,7 +47,6 @@ class DatabaseSeeder extends Seeder
             "selling_price" => 87.89,
             "quantity" => 10,
             "categoria_id" => $categoria->id,
-            "type" => "roupa",
             "tipo_de_produto_id" => 1,
             "brand"=> "lesamis",
             "code"=> 1232

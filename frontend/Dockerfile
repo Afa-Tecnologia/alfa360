@@ -11,6 +11,10 @@ COPY frontend/ .
 
 # Variáveis de ambiente em tempo de build (apenas ARG, não ENV)
 ARG NEXT_PUBLIC_API_URL
+ARG NEXT_PUBLIC_ACCESS_URL
+ARG NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME
+ARG NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET
+ARG NEXT_PUBLIC_CLOUDINARY_HIDE_SESSION
 
 # Build da aplicação Next.js no modo standalone
 RUN npm run build

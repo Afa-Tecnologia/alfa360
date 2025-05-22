@@ -45,6 +45,10 @@ services:
       dockerfile: frontend/Dockerfile
       args:
         NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
+        NEXT_PUBLIC_ACCESS_URL: ${NEXT_PUBLIC_ACCESS_URL}
+        NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME: ${NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}
+        NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET: ${NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET}
+        NEXT_PUBLIC_CLOUDINARY_HIDE_SESSION: ${NEXT_PUBLIC_CLOUDINARY_HIDE_SESSION}
     container_name: frontend
     volumes:
       - ./frontend/public:/app/public

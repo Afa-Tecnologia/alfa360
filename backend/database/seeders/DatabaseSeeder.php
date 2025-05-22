@@ -20,17 +20,18 @@ class DatabaseSeeder extends Seeder
             ConfigDoNegocioSeeder::class,
         ]);
 
+        
         User::factory()->create([
             'name' => 'Admin',
             'email' => 'admin@alfatecnologiabrasil.com.br',
-            'password' => Hash::make('12345678'),
+            'password' => '12345678',
             'perfil'=> 'admin'
         ]);
 
         User::factory()->create([
             'name' => 'Renata',
             'email' => 'renatapaz@gmail.com',
-            'password' => Hash::make('12345678'),
+            'password' => '12345678',
             'perfil' => 'vendedor'
         ]);
 
@@ -74,5 +75,7 @@ class DatabaseSeeder extends Seeder
             "cep" => "12345-678",
             "date_of_birth" => "1990-05-15"
         ]);
+
+        
     }
 }

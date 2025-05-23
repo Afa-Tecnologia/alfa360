@@ -20,7 +20,7 @@ interface LoginFormData {
 
 export function LoginFormV3({
   className,
-  redirectTo = '/dashboard-v2',
+  redirectTo = '/dashboard',
 }: React.ComponentPropsWithoutRef<'div'> & { redirectTo?: string }) {
   const [isLoading, setIsLoading] = useState(false);
   const [currentView, setCurrentView] = useState<'email' | 'password'>('email');
@@ -80,7 +80,7 @@ export function LoginFormV3({
 
         setUser(user);
         gerarNotificacao('success', message);
-        router.push('/dashboard-v2');
+        router.push('/dashboard');
 
     } catch (error: any) {
       const { response } = error;

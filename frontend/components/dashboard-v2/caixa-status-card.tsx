@@ -45,7 +45,7 @@ export function CaixaStatusCard() {
   }, []);
 
   const handleNavigateToCaixa = () => {
-    router.push('/dashboard-v2/caixa');
+    router.push('/dashboard/caixa');
   };
 
   const formatarData = (data: string) => {

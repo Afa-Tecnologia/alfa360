@@ -33,54 +33,54 @@ import { removeAuthToken, removeRefreshToken } from '@/app/api/auth';
 const menuItems = [
   {
     name: 'Dashboard',
-    href: '/dashboard-v2',
+    href: '/dashboard',
     icon: Home,
   },
   {
     name: 'Vendas',
-    href: '/dashboard-v2/vendas',
+    href: '/dashboard/vendas',
     icon: ShoppingCart,
   },
   {
     name: 'Estoque',
-    href: '/dashboard-v2/estoque',
+    href: '/dashboard/estoque',
     icon: Package,
   },
   {
     name: 'Categorias',
-    href: '/dashboard-v2/categorias',
+    href: '/dashboard/categorias',
     icon: Tag,
   },
   {
     name: 'Caixa',
-    href: '/dashboard-v2/caixa',
+    href: '/dashboard/caixa',
     icon: CreditCard,
   },
   {
     name: 'Relatórios',
-    href: '/dashboard-v2/relatorios',
+    href: '/dashboard/relatorios',
     icon: BarChart3,
     adminOnly: true,
   },
   {
     name: 'Pedidos',
-    href: '/dashboard-v2/pedidos',
+    href: '/dashboard/pedidos',
     icon: Receipt,
   },
   {
     name: 'Clientes',
-    href: '/dashboard-v2/clientes',
+    href: '/dashboard/clientes',
     icon: Users,
   },
   {
     name: 'Usuários',
-    href: '/dashboard-v2/usuarios',
+    href: '/dashboard/usuarios',
     icon: User,
     adminOnly: true,
   },
   {
     name: 'Configurações',
-    href: '/dashboard-v2/configuracoes',
+    href: '/dashboard/configuracoes',
     icon: Settings,
   },
 ];

@@ -18,7 +18,7 @@ const actions = [
   {
     title: 'Nova Venda',
     icon: ShoppingCart,
-    href: '/dashboard-v2/vendas',
+    href: '/dashboard/vendas',
     color:
       'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
     description: 'Iniciar uma nova venda',
@@ -26,14 +26,14 @@ const actions = [
   {
     title: 'Estoque',
     icon: Package,
-    href: '/dashboard-v2/estoque',
+    href: '/dashboard/estoque',
     color: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
     description: 'Gerenciar produtos',
   },
   {
     title: 'Relatórios',
     icon: BarChart3,
-    href: '/dashboard-v2/relatorios',
+    href: '/dashboard/relatorios',
     color:
       'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400',
     description: 'Ver desempenho',
@@ -41,7 +41,7 @@ const actions = [
   {
     title: 'Clientes',
     icon: Users,
-    href: '/dashboard-v2/clientes',
+    href: '/dashboard/clientes',
     color:
       'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400',
     description: 'Gerenciar clientes',
@@ -49,7 +49,7 @@ const actions = [
   {
     title: 'Categorias',
     icon: Tag,
-    href: '/dashboard-v2/categorias',
+    href: '/dashboard/categorias',
     color:
       'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
     description: 'Organizar produtos',
@@ -57,7 +57,7 @@ const actions = [
   {
     title: 'Caixa',
     icon: CreditCard,
-    href: '/dashboard-v2/caixa',
+    href: '/dashboard/caixa',
     color: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
     description: 'Gerenciar caixa',
   },

@@ -10,7 +10,7 @@ import { Input } from '@/components/ui/input';
 import { api } from '@/app/api/api';
 import { loginAction } from '@/app/api/actions';
 import { gerarNotificacao } from '@/utils/toast';
-import { useRouter } from 'next/navigation';
+import { redirect, useRouter } from 'next/navigation';
 import useAuthStore from '@/stores/authStore';
 
 interface LoginFormData {
@@ -25,7 +25,6 @@ export function LoginFormV3({
   const [isLoading, setIsLoading] = useState(false);
   const [currentView, setCurrentView] = useState<'email' | 'password'>('email');
   const [email, setEmail] = useState('');
-  const [isClient, setIsClient] = useState(false);
 
   const {
     register,
@@ -39,26 +38,6 @@ export function LoginFormV3({
   const setUser = useAuthStore((state) => state.setUser);
   const setToken = useAuthStore((state) => state.setToken);
   const router = useRouter();
-
-  // Verificar se estamos no cliente
-  useEffect(() => {
-    setIsClient(true);
-
-    // Verificar se já está autenticado
-    if (isClient) {
-      try {
-        const storage = localStorage.getItem('auth-storage');
-        if (storage) {
-          const authData = JSON.parse(storage);
-          if (authData?.state?.isAuthenticated) {
-            router.push(redirectTo);
-          }
-        }
-      } catch (error) {
-        console.error('Erro ao verificar autenticação:', error);
-      }
-    }
-  }, [isClient, router, redirectTo]);
 
   const handleEmailNext = async () => {
     const isValid = await trigger('email');
@@ -78,10 +57,9 @@ export function LoginFormV3({
       const response = await api.post('/login', data);
       const { user, message } = response.data;
 
-        setUser(user);
-        gerarNotificacao('success', message);
-        router.push('/dashboard');
-
+      setUser(user);
+      gerarNotificacao('success', message);
+      router.push('/dashboard');
     } catch (error: any) {
       const { response } = error;
       if (error.code === 'ERR_NETWORK') {

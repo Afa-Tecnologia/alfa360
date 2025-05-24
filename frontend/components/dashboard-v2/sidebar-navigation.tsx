@@ -29,6 +29,8 @@ import { User as UserType } from '@/types/auth';
 import { useRouter } from 'next/navigation';
 import useAuthStore from '@/stores/authStore';
 import { removeAuthToken, removeRefreshToken } from '@/app/api/auth';
+import { logout } from '@/lib/auth/logout-server';
+import { toast } from 'react-toastify';
 
 const menuItems = [
   {
@@ -122,8 +124,7 @@ export function SidebarNavigation({
   }, []);
 
   const handleLogout = async() => {
-    await removeAuthToken();
-  await  removeRefreshToken();
+await logout()
   redirect('/login');
   };
 

@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 export async function middleware(request: NextRequest) {
+ const pathname = request.nextUrl.pathname;
 
-  const { pathname } = request.nextUrl;
   const publicPaths = ['/login'];
 
   const token = request.cookies.get('jwt_token');

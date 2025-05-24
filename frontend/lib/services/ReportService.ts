@@ -1,5 +1,5 @@
 import { api } from '@/app/api/api';
-import { getUrl } from '@/lib/get-url';
+
 import {
   CategorySales,
   Commission,
@@ -26,7 +26,7 @@ class ReportService {
       if (filters?.categoryId)
         queryParams.append('categoria_id', filters.categoryId.toString());
 
-      const url = getUrl(`${this.path}/resumo?${queryParams.toString()}`);
+      const url = `${this.path}/resumo?${queryParams.toString()}`;
       const response = await api.get(url);
       return response.data;
     } catch (error) {
@@ -48,9 +48,9 @@ class ReportService {
       if (filters?.vendorId)
         queryParams.append('vendedor_id', filters.vendorId.toString());
 
-      const url = getUrl(
+      const url =
         `${this.path}/por-categoria?${queryParams.toString()}`
-      );
+     
       const response = await api.get(url);
       return response.data;
     } catch (error) {
@@ -76,9 +76,9 @@ class ReportService {
         queryParams.append('categoria_id', filters.categoryId.toString());
       queryParams.append('limit', limit.toString());
 
-      const url = getUrl(
+      const url = 
         `${this.path}/produtos-mais-vendidos?${queryParams.toString()}`
-      );
+      
       const response = await api.get(url);
       return response.data;
     } catch (error) {
@@ -90,7 +90,7 @@ class ReportService {
   // Buscar comissões do mês atual
   async getCurrentMonthCommissions(): Promise<Commission[]> {
     try {
-      const url = getUrl(`${this.path}/comissoes`);
+      const url = `${this.path}/comissoes`
       const response = await api.get(url);
       return response.data;
     } catch (error) {
@@ -102,7 +102,7 @@ class ReportService {
   // Buscar comissões por vendedor
   async getCommissionsByVendor(vendorId: number): Promise<CommissionSummary> {
     try {
-      const url = getUrl(`${this.path}/comissoes/vendedor/${vendorId}`);
+      const url = `${this.path}/comissoes/vendedor/${vendorId}`;
       const response = await api.get(url);
 
       console.log('Resposta original da API:', response.data);
@@ -146,9 +146,9 @@ class ReportService {
       queryParams.append('data_inicial', startDate);
       queryParams.append('data_final', endDate);
 
-      const url = getUrl(
+      const url = 
         `${this.path}/comissoes/vendedor/${vendorId}/comissoes?${queryParams.toString()}`
-      );
+      
       const response = await api.get(url);
       return response.data;
     } catch (error) {
@@ -175,9 +175,9 @@ class ReportService {
         queryParams.append('vendedor_id', filters.vendorId.toString());
       queryParams.append('period', period);
 
-      const url = getUrl(
+      const url = 
         `${this.path}/receita-por-periodo?${queryParams.toString()}`
-      );
+      
       const response = await api.get(url);
       return response.data;
     } catch (error) {
@@ -196,7 +196,7 @@ class ReportService {
       queryParams.append('data_inicial', startDate);
       queryParams.append('data_final', endDate);
 
-      const url = getUrl(`${this.path}/comissoes?${queryParams.toString()}`);
+      const url = `${this.path}/comissoes?${queryParams.toString()}`
       console.log('Buscando todas as comissões:', url);
 
       const response = await api.get(url);
@@ -239,7 +239,7 @@ class ReportService {
       queryParams.append('page', filters.page.toString());
       queryParams.append('limit', filters.limit.toString());
 
-      const url = getUrl(`${this.path}/pedidos?${queryParams.toString()}`);
+      const url =`${this.path}/pedidos?${queryParams.toString()}`
       const response = await api.get(url);
       return response.data;
     } catch (error) {

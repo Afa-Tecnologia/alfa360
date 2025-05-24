@@ -93,11 +93,11 @@ export default function DashboardPage() {
 
     return () => clearTimeout(timer);
   }, []);
-  const refreshToken = () => {
-    api.post('/refresh').then((response: any) => {
-      console.log(response);
-    });
-  };
+  // const refreshToken = () => {
+  //   api.post('/refresh').then((response: any) => {
+  //     console.log(response);
+  //   });
+  // };
 
   // Componente para renderizar métricas em estado de carregamento
   const MetricsLoading = () => (
@@ -146,7 +146,7 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-6">
-      <Button onClick={() => refreshToken()}>Refresh Token</Button>
+      {/* <Button onClick={() => refreshToken()}>Refresh Token</Button> */}
       {/* Status do Caixa */}
       <CaixaStatusCard />
 

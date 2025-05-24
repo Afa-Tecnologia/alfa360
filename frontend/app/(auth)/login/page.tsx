@@ -114,7 +114,7 @@ export default function LoginPageV3() {
             transition={{ duration: 0.5 }}
             className="p-6 md:p-8 flex items-center justify-center bg-white/80 backdrop-blur-sm dark:bg-slate-900/70"
           >
-            <LoginFormV3 redirectTo="/dashboard-v2" />
+            <LoginFormV3 redirectTo="/dashboard" />
           </motion.div>
         </div>
       </div>

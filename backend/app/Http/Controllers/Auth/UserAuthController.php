@@ -81,14 +81,19 @@ class UserAuthController extends Controller
                 'agent' => $request->userAgent()
             ]);
 
+            // Obtenha o domínio da solicitação atual
+            $domain = $request->getHost();
+            // Se for localhost, use null (comportamento padrão)
+            $cookieDomain = str_contains($domain, 'localhost') ? null : '.'.$this->extractRootDomain($domain);
+
             return response()->json([
                 'message' => 'Login realizado com sucesso',
                 'user' => $user->only(['id', 'name', 'email', 'role', 'perfil']),
                 'token_type' => 'bearer',
                 'expires_in' => config('jwt.ttl') * 60
             ])
-            ->cookie('jwt_token', $accessToken, 90, '/', null, true, true, false, 'Lax')
-            ->cookie('jwt_refresh_token', $refreshToken, 10080, '/', null, true, true, false, 'Lax');
+            ->cookie('jwt_token', $accessToken, 90, '/', $cookieDomain, true, true, false, 'None')
+            ->cookie('jwt_refresh_token', $refreshToken, 10080, '/', $cookieDomain, true, true, false, 'None');
 
         } catch (ValidationException $e) {
             return response()->json(['message' => 'Erro de validação', 'errors' => $e->errors()], 422);
@@ -159,13 +164,18 @@ class UserAuthController extends Controller
                 'token_type' => 'refresh'
             ])->fromUser($user);
 
+            // Obtenha o domínio da solicitação atual
+            $domain = $request->getHost();
+            // Se for localhost, use null (comportamento padrão)
+            $cookieDomain = str_contains($domain, 'localhost') ? null : '.'.$this->extractRootDomain($domain);
+
             return response()->json([
                 'message' => 'Token renovado com sucesso',
                 'token_type' => 'bearer',
                 'expires_in' => config('jwt.ttl') * 60
             ])
-            ->cookie('jwt_token', $newAccessToken, 15, '/', null, true, true, false, 'Lax')
-            ->cookie('jwt_refresh_token', $newRefreshToken, 10080, '/', null, true, true, false, 'Lax');
+            ->cookie('jwt_token', $newAccessToken, 15, '/', $cookieDomain, true, true, false, 'None')
+            ->cookie('jwt_refresh_token', $newRefreshToken, 10080, '/', $cookieDomain, true, true, false, 'None');
 
         } catch (JWTException $e) {
             Log::error('Erro ao renovar token: ' . $e->getMessage());
@@ -203,5 +213,22 @@ class UserAuthController extends Controller
     {
         if (!$header || !str_starts_with($header, 'Bearer ')) return null;
         return substr($header, 7);
+    }
+
+    /**
+     * Extrai o domínio raiz da URL
+     */
+    private function extractRootDomain(string $host): string
+    {
+        $hostParts = explode('.', $host);
+        $count = count($hostParts);
+        
+        // Para domínios simples como 'example.com'
+        if ($count <= 2) {
+            return $host;
+        }
+        
+        // Para subdomínios como 'tenant.alfa360.alfatecnologia.tech'
+        return implode('.', array_slice($hostParts, -2));
     }
 }

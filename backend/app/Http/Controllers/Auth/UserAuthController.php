@@ -81,10 +81,12 @@ class UserAuthController extends Controller
                 'agent' => $request->userAgent()
             ]);
 
-            // Obtenha o domínio da solicitação atual
-            $domain = $request->getHost();
-            // Se for localhost, use null (comportamento padrão)
-            $cookieDomain = str_contains($domain, 'localhost') ? null : '.'.$this->extractRootDomain($domain);
+            // // Obtenha o domínio da solicitação atual
+            // $domain = $request->getHost();
+            // // Se for localhost, use null (comportamento padrão)
+            // $cookieDomain = str_contains($domain, 'localhost') ? null : '.'.$this->extractRootDomain($domain);
+            $cookieDomain = app()->environment('local') ? null : 'alfa360.alfatecnologia.tech';
+
 
             return response()->json([
                 'message' => 'Login realizado com sucesso',
@@ -118,9 +120,11 @@ class UserAuthController extends Controller
 
             Auth::guard('api')->logout();
 
+            $cookieDomain = app()->environment('local') ? null : 'alfa360.alfatecnologia.tech';
+
             return response()->json(['message' => 'Logout realizado com sucesso'])
-                ->withCookie(cookie()->forget('jwt_token'))
-                ->withCookie(cookie()->forget('jwt_refresh_token'));
+                ->withCookie(cookie('jwt_token', null, -1, '/', $cookieDomain, true, true, false, 'None'))
+                ->withCookie(cookie('jwt_refresh_token', null, -1, '/', $cookieDomain, true, true, false, 'None'));
 
         } catch (JWTException $e) {
             Log::warning('Erro ao invalidar token: ' . $e->getMessage());
@@ -164,10 +168,12 @@ class UserAuthController extends Controller
                 'token_type' => 'refresh'
             ])->fromUser($user);
 
-            // Obtenha o domínio da solicitação atual
-            $domain = $request->getHost();
-            // Se for localhost, use null (comportamento padrão)
-            $cookieDomain = str_contains($domain, 'localhost') ? null : '.'.$this->extractRootDomain($domain);
+            // // Obtenha o domínio da solicitação atual
+            // $domain = $request->getHost();
+            // // Se for localhost, use null (comportamento padrão)
+            // $cookieDomain = str_contains($domain, 'localhost') ? null : '.'.$this->extractRootDomain($domain);
+            
+            $cookieDomain = app()->environment('local') ? null : 'alfa360.alfatecnologia.tech';
 
             return response()->json([
                 'message' => 'Token renovado com sucesso',

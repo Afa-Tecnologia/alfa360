@@ -38,22 +38,7 @@ export default function DashboardLayout({
   const [isMobile, setIsMobile] = useState(false);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const pathname = usePathname();
-  const router = useRouter();
 
-  
-
-  // // Verificar autenticação
-  // useEffect(() => {
-  //   async function checkAuth() {
-  //     const token = await getAuthToken();
-  //     if (!token) {
-  //       router.push('/login');
-  //     }
-  //   }
-  //   checkAuth();
-  // }, []);
-
-  // Detectar tamanho da tela
   useEffect(() => {
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 1024);

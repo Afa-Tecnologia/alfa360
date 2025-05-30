@@ -93,4 +93,12 @@ class PedidoPagamentoService
         return $pagamentos;
        });
     }
+
+    public function estornarPagamento($pedidoId){
+        $pagamentos = PedidoPagamento::where('pedido_id', $pedidoId)->get();
+        foreach($pagamentos as $pagamento){
+            $pagamento->status = PedidoPagamento::STATUS_CANCELLED; 
+            $pagamento->save();
+        }
+    }
 }

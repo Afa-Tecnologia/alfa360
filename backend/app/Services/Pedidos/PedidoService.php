@@ -13,6 +13,8 @@ use App\Services\EstoqueService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Models\Variantes;
+use Exception;
+use Symfony\Component\HttpFoundation\Response;
 
 class PedidoService
 {
@@ -222,14 +224,30 @@ class PedidoService
 
     public function getAll()
     {
-        return Pedido::with(['produtos','pagamentos', 'cliente' => function($query) {
+        return Pedido::with(['produtos','produtos.variants','pagamentos', 'cliente' => function($query) {
             $query->select('id', 'name', 'last_name');
         }])->get();
     }
 
     public function getById($id)
     {
-        return Pedido::with(['vendedor', 'categoria', 'produtos'])->findOrFail($id);
+        $pedido = Pedido::where('id', $id)
+        ->with([
+            'produtos.variants', // variantes dentro dos produtos
+            'cliente',
+            'pagamentos'
+        ])
+        ->first();
+
+        if (!$pedido) {
+            return response()->json(
+                ['error' => 'Pedido não encontrado'],
+                Response::HTTP_NOT_FOUND
+            );
+        }
+        
+        return $pedido;
+
     }
 
     public function getProdutoPorCategoria($id)

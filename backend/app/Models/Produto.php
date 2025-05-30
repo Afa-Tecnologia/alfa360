@@ -50,7 +50,7 @@ class Produto extends Model
      */
     public function variants()
     {
-        return $this->hasMany(Variantes::class, 'produto_id');
+        return $this->hasMany(Variantes::class, 'produto_id', 'id');
     }
 
     public function comissao()

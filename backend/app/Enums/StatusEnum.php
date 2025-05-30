@@ -20,4 +20,5 @@ class StatusEnum
     const MOVIMENTACAO_PENDING = 'pending';
     const MOVIMENTACAO_COMPLETED = 'completed';
     const MOVIMENTACAO_CANCELLED = 'cancelled';
+    const MOVIMENTACAO_ESTORNADO = 'estornado';
 } 

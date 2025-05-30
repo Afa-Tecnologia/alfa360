@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { Geist, Geist_Mono, Inter } from 'next/font/google';
-import '../globals.css';
+
 import { ToastContainer } from 'react-toastify';
 import { ThemeProvider } from '@/components/theme-provider';
 const geistSans = Geist({
@@ -19,14 +19,13 @@ export const metadata: Metadata = {
 };
 const inter = Inter({ subsets: ['latin'] });
 
-export default function RootLayout({
+export default function LoginLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body className={inter.className}>
+ 
         <ThemeProvider
           attribute="class"
           defaultTheme="light"
@@ -36,7 +35,6 @@ export default function RootLayout({
           <ToastContainer />
           {children}
         </ThemeProvider>
-      </body>
-    </html>
+ 
   );
 }

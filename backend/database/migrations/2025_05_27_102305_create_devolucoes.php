@@ -17,7 +17,7 @@ return new class extends Migration
             $table->foreignId('pedido_id')->constrained('pedidos')->onDelete('cascade');
             $table->foreignId('cliente_id')->constrained('clientes');
             $table->enum('estado', ['pendente', 'aprovado', 'rejeitado', 'processado'])->default('pendente');
-            $table->enum('motivo', ['defeito', 'garantia', 'cancelamento','arrependimento', 'outro'])->default('troca');
+            $table->enum('motivo', ['defeito', 'garantia', 'cancelamento','arrependimento', 'outro']);
             $table->enum('tipo', ['total', 'parcial'])->default('troca');
             $table->text('observacao')->nullable();
             $table->dateTime('data_solicitacao');

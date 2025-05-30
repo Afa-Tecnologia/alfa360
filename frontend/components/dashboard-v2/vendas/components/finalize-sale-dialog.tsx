@@ -375,7 +375,7 @@ export function FinalizeSaleDialog({
       orderStatus = 'PARTIAL_PAYMENT';
     } else if (paymentType === 'CREDIT') {
       // Venda fiado (promissória)
-      orderStatus = 'CONDITIONAL';
+      orderStatus = 'PENDING';
     } else if (paymentType === 'CONDITIONAL') {
       // Venda condicional
       orderStatus = 'CONDITIONAL';

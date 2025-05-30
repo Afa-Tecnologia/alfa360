@@ -57,12 +57,12 @@ export function OrderDetailModal({
     handleRegisterPayment,
     handleSetPaymentMethod,
   } = useOrderDetails(orderId, onStatusUpdate);
-
+  console.log('orderPayments:', order);
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         className={cn(
-          'max-w-3xl w-[95vw] max-h-[90vh] overflow-y-auto p-4 md:p-6',
+          'max-w-5xl w-[95vw] max-h-[90vh] overflow-y-auto p-4 md:p-6',
           'flex flex-col'
         )}
       >
@@ -91,16 +91,11 @@ export function OrderDetailModal({
                 </div>
               )}
             </DialogTitle>
-            <DialogClose asChild>
-              <Button variant="ghost" size="icon" className="h-8 w-8">
-                <X className="h-4 w-4" />
-                <span className="sr-only">Fechar</span>
-              </Button>
-            </DialogClose>
+           
           </div>
         </DialogHeader>
 
-        <div className="flex-grow my-4 overflow-auto">
+        <div className="flex-grow p-4 overflow-auto">
           <Tabs
             defaultValue="details"
             value={activeTab}

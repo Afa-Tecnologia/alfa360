@@ -38,6 +38,10 @@ class PedidosProduto extends Model
         return $this->belongsTo(Produto::class);
     }
 
+    public function devolucaoItens() {
+        return $this->hasMany(DevolucaoItem::class, 'pedido_produto_id');
+    }
+
     protected function serializeDate(\DateTimeInterface $date)
     {
         return $date->format('d-m-Y H:i:s');

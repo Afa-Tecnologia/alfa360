@@ -37,6 +37,20 @@ class Handler extends ExceptionHandler
         });
     }
 
+    protected function unauthenticated($request, AuthenticationException $exception)
+{
+    return response()->json([
+        'message' => 'Unauthenticated.',
+        'errors' => [
+            [
+                'status' => '401',
+                'title' => 'Unauthorized',
+                'detail' => 'You are not authenticated or your token is invalid.'
+            ]
+        ]
+    ], 401);
+}
+
 //     public function render($request, Throwable $exception)
 // {
 //     if ($exception instanceof \Illuminate\Validation\ValidationException) {

@@ -19,7 +19,7 @@ return [
 
     'allowed_methods' => ['*'],
 
-    'allowed_origins' => ['https://alfa360.alfatecnologia.tech'],
+    'allowed_origins' => ['https://alfa360.alfatecnologia.tech', 'http://localhost:3000'],
 
     'allowed_origins_patterns' => [],
 

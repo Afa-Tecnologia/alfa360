@@ -19,7 +19,13 @@ use App\Http\Controllers\PaymentMethods\PaymentMethodController;
 use App\Http\Controllers\TiposDeProdutos\TiposDeProdutosController;
 use App\Http\Controllers\TipoDeNegocios\TipoDeNegociosController;
 use App\Http\Controllers\ConfigDoNegocio\ConfigDoNegocioController;
+use App\Http\Controllers\Devolucao\DevolucaoController;
+use App\Http\Controllers\DevolucaoItem\DevolucaoItemController;
+use LaravelJsonApi\Laravel\Facades\JsonApiRoute;
+use LaravelJsonApi\Laravel\Http\Controllers\JsonApiController;
+
 // use App\Http\Controllers\API\EmployeeExpenseController;
+// Rotas para Devolucões
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -69,6 +75,15 @@ Route::prefix('pagamentos')->middleware('jwt.auth')->group(function () {
     Route::get('/{pedido}',[PedidoPagamentoController::class, 'getPagamentoPorPedido']);
     Route::post('/{pedido}', [PedidoPagamentoController::class, 'store']);
 });
+
+JsonApiRoute::server('v1')
+    ->prefix('v1')
+    ->middleware('jwt.auth')
+    ->resources(function ($server) {
+        $server->resource('devolucoes', DevolucaoController::class);
+    });
+
+
 
 Route::prefix('relatorios')->middleware('jwt.auth')->group(function () {
     Route::get('/resumo', [RelatoriosController::class, 'getSalesSummary']);

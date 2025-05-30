@@ -35,6 +35,11 @@ class Pedido extends Model
             ->withTimestamps();
     }
 
+    // public function variantes()
+    // {
+    //     return $this->hasMany(Variantes::class, 'produto_id');
+    // }
+
     public function movimentacaoCaixa(): HasOne
     {
         return $this->hasOne(MovimentacaoCaixa::class);

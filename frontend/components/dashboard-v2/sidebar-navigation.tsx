@@ -159,7 +159,7 @@ await logout()
               transition={{ delay: 0.2 }}
               className="flex items-center gap-2"
             >
-              <span className="text-xl font-bold">ALFA Manager</span>
+              <span className="text-xl font-bold">ALFA 360</span>
             </motion.div>
           )}
           <Button
@@ -239,7 +239,7 @@ await logout()
             transition={{ delay: 0.2 }}
             className="flex items-center gap-2"
           >
-            <span className="text-xl font-bold">ALFA Manager</span>
+            <span className="text-xl font-bold">ALFA 360</span>
           </motion.div>
         )}
         <Button

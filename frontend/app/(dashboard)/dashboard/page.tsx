@@ -28,6 +28,12 @@ import { formatCurrency } from '@/utils/format';
 import { Skeleton } from '@/components/ui/skeleton';
 import { api } from '../../api/api';
 import { Button } from '@/components/ui/button';
+import { CardsVendas } from '@/components/dashboard-v2/cards-vendas';
+import CardMetricMonth from '@/components/dashboard-v2/card-metric-month';
+import CardMetricToday from '@/components/dashboard-v2/card-metric-today';
+import CardMetricClientActives from '@/components/dashboard-v2/card-client-metric';
+import CardProductStock from '@/components/dashboard-v2/card-metric-stock';
+import CardProdutosPopulares from '@/components/dashboard-v2/card-products';
 
 // Dados mockados para demonstração
 const metricsData = {
@@ -160,52 +166,12 @@ export default function DashboardPage() {
         transition={{ duration: 0.5, delay: 0.2 }}
       >
         <h2 className="text-xl font-semibold mb-4">Métricas</h2>
-
-        {isLoading ? (
-          <MetricsLoading />
-        ) : (
-          <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
-            <MetricCard
-              title="Vendas Hoje"
-              value={formatCurrency(metricsData.vendasHoje)}
-              description="Comparado com ontem"
-              icon={<ShoppingBag className="h-5 w-5" />}
-              trend={{ value: 12.5, isPositive: true }}
-              color="green"
-              index={0}
-            />
-
-            <MetricCard
-              title="Vendas do Mês"
-              value={formatCurrency(metricsData.vendasMes)}
-              description="Comparado com mês anterior"
-              icon={<DollarSign className="h-5 w-5" />}
-              trend={{ value: 8.3, isPositive: true }}
-              color="blue"
-              index={1}
-            />
-
-            <MetricCard
-              title="Clientes Ativos"
-              value={metricsData.clientesAtivos}
-              description="Comparado com mês anterior"
-              icon={<Users className="h-5 w-5" />}
-              trend={{ value: 4.6, isPositive: true }}
-              color="purple"
-              index={2}
-            />
-
-            <MetricCard
-              title="Produtos em Estoque"
-              value={metricsData.produtosEstoque}
-              description={`${metricsData.produtosBaixoEstoque} com estoque baixo`}
-              icon={<Package className="h-5 w-5" />}
-              trend={{ value: 2.1, isPositive: false }}
-              color="orange"
-              index={3}
-            />
-          </div>
-        )}
+        <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
+          <CardMetricToday />
+          <CardMetricMonth />
+          <CardMetricClientActives />
+          <CardProductStock />
+        </div>
       </motion.div>
 
       {/* Últimas Atividades e Produtos Populares */}
@@ -216,87 +182,10 @@ export default function DashboardPage() {
         className="grid gap-6 grid-cols-1 md:grid-cols-2"
       >
         {/* Últimas Vendas */}
-        {isLoading ? (
-          <LatestSalesLoading />
-        ) : (
-          <Card>
-            <CardHeader className="pb-2">
-              <div className="flex items-center justify-between">
-                <CardTitle>Últimas Vendas</CardTitle>
-                <Clock className="h-4 w-4 text-muted-foreground" />
-              </div>
-              <CardDescription>Vendas mais recentes realizadas</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ScrollArea className="h-[280px]">
-                <div className="space-y-4">
-                  {metricsData.ultimasVendas.map((venda) => (
-                    <div
-                      key={venda.id}
-                      className="flex justify-between items-center pb-3 border-b"
-                    >
-                      <div>
-                        <p className="font-medium">{venda.cliente}</p>
-                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                          <span>{formatarData(venda.data)}</span>
-                          <span>•</span>
-                          <span>{venda.itens} itens</span>
-                        </div>
-                      </div>
-                      <div className="flex items-center">
-                        <span className="font-semibold">
-                          {formatCurrency(venda.valor)}
-                        </span>
-                        <ArrowUpRight className="ml-1 h-4 w-4 text-green-500" />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                <ScrollBar orientation="vertical" />
-              </ScrollArea>
-            </CardContent>
-          </Card>
-        )}
+        <CardsVendas />
 
         {/* Produtos Populares */}
-        {isLoading ? (
-          <LatestSalesLoading />
-        ) : (
-          <Card>
-            <CardHeader className="pb-2">
-              <div className="flex items-center justify-between">
-                <CardTitle>Produtos Populares</CardTitle>
-                <TrendingUp className="h-4 w-4 text-muted-foreground" />
-              </div>
-              <CardDescription>
-                Produtos mais vendidos no período
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ScrollArea className="h-[280px]">
-                <div className="space-y-4">
-                  {metricsData.produtosPopulares.map((produto) => (
-                    <div
-                      key={produto.id}
-                      className="flex justify-between items-center pb-3 border-b"
-                    >
-                      <div>
-                        <p className="font-medium">{produto.nome}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {produto.quantidade} unidades vendidas
-                        </p>
-                      </div>
-                      <div className="font-semibold">
-                        {formatCurrency(produto.valor)}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                <ScrollBar orientation="vertical" />
-              </ScrollArea>
-            </CardContent>
-          </Card>
-        )}
+       <CardProdutosPopulares />
       </motion.div>
     </div>
   );

@@ -224,7 +224,7 @@ export function LoginFormV3({
 
         <div className="mt-6 pt-6 border-t border-border/30">
           <p className="text-center text-sm text-muted-foreground">
-            Desenvolvido por Alfa Tecnologia - Junior Teixeira &copy;
+            Desenvolvido por Alfa Tecnologia &copy;
           </p>
         </div>
       </div>

@@ -1,20 +1,11 @@
-
 import { api } from '@/app/api/api';
-
-type ItemDevolucao = {
-  produto_id: number;
-  variante_id: number;
-  quantidade: number;
-  valor_unitario: number;
-};
 
 type CriarDevolucaoParams = {
   pedido_id: number;
   cliente_id: number;
   motivo: string;
   tipo: 'parcial' | 'total';
-  observacoes?: string;
-  itens: ItemDevolucao[];
+  observacao?: string;
 };
 
 export async function criarDevolucao({
@@ -22,20 +13,30 @@ export async function criarDevolucao({
   cliente_id,
   motivo,
   tipo,
-  observacoes,
-  itens,
+  observacao,
 }: CriarDevolucaoParams) {
   try {
     const response = await api.post('/devolucoes', {
       data: {
         type: 'devolucoes',
         attributes: {
-          pedido_id,
-          cliente_id,
           motivo,
           tipo,
-          observacoes,
-          itens,
+          observacao,
+        },
+        relationships: {
+          pedido: {
+            data: {
+              type: 'pedidos',
+              id: String(pedido_id),
+            },
+          },
+          cliente: {
+            data: {
+              type: 'clientes',
+              id: String(cliente_id),
+            },
+          },
         },
       },
     });

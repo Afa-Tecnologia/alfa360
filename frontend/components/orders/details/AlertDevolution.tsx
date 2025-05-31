@@ -33,31 +33,23 @@ export function AlertDialogDevolution({
     valor_unitario: produto.pivot.preco_unitario,
   }));
 console.log("order: ", order);
-  const handleDevolucao = async () => {
+ const handleDevolucao = async () => {
     setLoading(true);
     try {
-  const item = devolucao[0]; // apenas o primeiro item
-    const response = await criarDevolucao({
-      pedido_id: order.id,
-      cliente_id: order.cliente_id,
-      motivo: 'arrependimento',
-      tipo: 'parcial',
-      observacoes: 'Produto com defeito',
-      itens: [
-        {
-          produto_id: item.produto_id,
-          variante_id: 1, // use o que vem do produto
-          quantidade: item.quantidade,
-          valor_unitario: 150.0,
-        },
-      ],
-    });
+      const response = await criarDevolucao({
+        pedido_id: order.id,
+        cliente_id: order.cliente_id,
+        motivo: 'arrependimento',
+        tipo: order.status,
+        observacao: 'Cliente devolveu 1 unidade por defeito',
+      });
 
-    console.log('Devolução criada com sucesso:', response);
-  } catch (error) {
-    console.error('Erro ao criar devolução:', error);
-  } finally {
-    setLoading(false);
+      console.log('Devolução criada com sucesso:', response);
+    } catch (error) {
+      console.error('Erro ao criar devolução:', error);
+    } finally {
+      setLoading(false);
+      onOpenChange(false);
     }
   };
 

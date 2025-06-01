@@ -65,85 +65,50 @@ api.interceptors.response.use(
     const isRefreshEndpoint = originalRequest?.url?.endsWith('/refresh');
     const alreadyRetried = originalRequest._retry;
 
-    // 🚨 Caso o /refresh esteja retornando 401, redireciona direto
     if (isUnauthorized && isRefreshEndpoint) {
-      console.warn(' Refresh token falhou. Redirecionando para login.');
-      await removeAuthToken();
-      await removeRefreshToken();
+      console.warn('Refresh token falhou. Redirecionando para login.');
+      try {
+        await api.post('/logout-cookies', {}, { withCredentials: true });
+      } catch {}
       window.location.href = '/login';
       return Promise.reject(error);
     }
 
-    // ⚠️ Se for 401 e não é tentativa de refresh
     if (isUnauthorized && !isRefreshEndpoint) {
       if (alreadyRetried) {
-        console.warn(
-          '⚠️ Token já foi tentado uma vez. Redirecionando para login.'
-        );
-        await removeAuthToken();
-        await removeRefreshToken();
+        console.warn('Token já foi tentado. Redirecionando para login.');
+        try {
+          await api.post('/logout-cookies', {}, { withCredentials: true });
+        } catch {}
         window.location.href = '/login';
         return Promise.reject(error);
       }
 
       originalRequest._retry = true;
 
-      const refreshToken = await getRefreshToken();
-
-      if (!refreshToken) {
-        console.warn(
-          '⚠️ Sem refresh token disponível. Redirecionando para login.'
-        );
-        await removeAuthToken();
-        await removeRefreshToken();
-        window.location.href = '/login';
-        return Promise.reject(error);
-      }
-
       if (isRefreshing) {
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });
-        }).then((token) => {
-          if (originalRequest.headers) {
-            originalRequest.headers.Authorization = `Bearer ${token}`;
-          }
-          return api(originalRequest);
-        });
+        }).then(() => api(originalRequest));
       }
 
       isRefreshing = true;
 
       try {
-        const response = await plainAxios.post(REFRESH_API_URL, {
-          refresh_token: refreshToken,
-        });
+        const response = await plainAxios.post('/refresh', {}, { withCredentials: true });
 
         if (response.status === 200) {
-          const newAccessToken = response.data.access_token;
-
-          processQueue(null, newAccessToken);
-
-          if (originalRequest.headers) {
-            originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
-          }
-
+          processQueue(null); // nada a passar, o cookie foi renovado
           return api(originalRequest);
         } else {
-          throw new Error('❌ Falha ao renovar token');
+          throw new Error('Falha ao renovar token');
         }
       } catch (err) {
-        console.error('❌ Erro ao tentar renovar token', err);
-
-        if (typeof window !== 'undefined') {
-          console.warn('Redirecionando para login após falha no refresh');
-          try {
-            await api.post('/logout-cookies');
-          } catch (logoutError) {
-            console.error('Erro ao chamar /api/logout', logoutError);
-          }
-
-          window.location.href = '/login';
-        }
+          console.error('❌ Erro ao tentar renovar token', err);
+        try {
+          await api.post('/logout-cookies', {}, { withCredentials: true });
+        } catch {}
+        window.location.href = '/login';
         return Promise.reject(err);
       } finally {
         isRefreshing = false;
@@ -153,3 +118,4 @@ api.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+

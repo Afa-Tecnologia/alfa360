@@ -137,6 +137,23 @@ class UserAuthController extends Controller
         }
     }
 
+
+public function logoutNotTokenHeader(Request $request): JsonResponse
+{
+    try {
+        return response()->json(['message' => 'Cookies limpos com sucesso'])
+            ->withCookie(cookie()->forget('jwt_token'))
+            ->withCookie(cookie()->forget('jwt_refresh_token'));
+    } catch (\Throwable $e) {
+        \Log::error('Erro ao limpar cookies: ' . $e->getMessage());
+
+        return response()->json(['message' => 'Erro ao processar logout'], 500);
+    }
+}
+
+
+
+
     /**
      * Gera novos tokens a partir do refresh token
      */

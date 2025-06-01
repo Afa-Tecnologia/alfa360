@@ -133,15 +133,11 @@ api.interceptors.response.use(
         }
       } catch (err) {
         console.error('❌ Erro ao tentar renovar token', err);
-       
 
         if (typeof window !== 'undefined') {
           console.warn('Redirecionando para login após falha no refresh');
           try {
-             await fetch('/api/log-out', {
-        method: 'POST',
-       
-      });
+            await api.post('/logout-cookies');
           } catch (logoutError) {
             console.error('Erro ao chamar /api/logout', logoutError);
           }

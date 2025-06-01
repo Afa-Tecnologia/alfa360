@@ -62,13 +62,22 @@ api.interceptors.response.use(
     const originalRequest: any = error.config;
 
     const isUnauthorized = error.response?.status === 401;
-    const isRefreshEndpoint = originalRequest?.url?.includes('/refresh');
+    const isRefreshEndpoint = originalRequest?.url?.endsWith('/refresh');
     const alreadyRetried = originalRequest._retry;
 
-    // Se for 401 e não é tentativa de refresh
+    // 🚨 Caso o /refresh esteja retornando 401, redireciona direto
+    if (isUnauthorized && isRefreshEndpoint) {
+      console.warn(' Refresh token falhou. Redirecionando para login.');
+      await removeAuthToken();
+      await removeRefreshToken();
+      window.location.href = '/login';
+      return Promise.reject(error);
+    }
+
+    // ⚠️ Se for 401 e não é tentativa de refresh
     if (isUnauthorized && !isRefreshEndpoint) {
-      // Evita loop
       if (alreadyRetried) {
+        console.warn('⚠️ Token já foi tentado uma vez. Redirecionando para login.');
         await removeAuthToken();
         await removeRefreshToken();
         window.location.href = '/login';
@@ -79,15 +88,14 @@ api.interceptors.response.use(
 
       const refreshToken = await getRefreshToken();
 
-      // Se não tem refresh token, redireciona
       if (!refreshToken) {
+        console.warn('⚠️ Sem refresh token disponível. Redirecionando para login.');
         await removeAuthToken();
         await removeRefreshToken();
         window.location.href = '/login';
         return Promise.reject(error);
       }
 
-      // Verifica se já tem outro refresh em andamento
       if (isRefreshing) {
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });
@@ -117,9 +125,10 @@ api.interceptors.response.use(
 
           return api(originalRequest);
         } else {
-          throw new Error('Falha ao renovar token');
+          throw new Error('❌ Falha ao renovar token');
         }
       } catch (err) {
+        console.error('❌ Erro ao tentar renovar token', err);
         processQueue(err, null);
         await removeAuthToken();
         await removeRefreshToken();
@@ -133,4 +142,5 @@ api.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+
 

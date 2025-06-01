@@ -136,8 +136,12 @@ api.interceptors.response.use(
        
 
         if (typeof window !== 'undefined') {
+          console.warn('Redirecionando para login após falha no refresh');
           try {
-            await fetch('/api/log-out', { method: 'POST' }); // limpa os cookies no servidor
+             await fetch('/api/log-out', {
+        method: 'POST',
+       
+      });
           } catch (logoutError) {
             console.error('Erro ao chamar /api/logout', logoutError);
           }

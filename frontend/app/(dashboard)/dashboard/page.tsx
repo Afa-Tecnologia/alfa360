@@ -89,57 +89,8 @@ const metricsData = {
 };
 
 export default function DashboardPage() {
-  const [isLoading, setIsLoading] = useState(true);
 
-  // Simular carregamento de dados
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 1500);
-
-    return () => clearTimeout(timer);
-  }, []);
-  // const refreshToken = () => {
-  //   api.post('/refresh').then((response: any) => {
-  //     console.log(response);
-  //   });
-  // };
-
-  // Componente para renderizar métricas em estado de carregamento
-  const MetricsLoading = () => (
-    <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
-      {[1, 2, 3, 4].map((i) => (
-        <Card key={i} className="overflow-hidden">
-          <CardHeader className="pb-2">
-            <Skeleton className="h-4 w-24" />
-          </CardHeader>
-          <CardContent>
-            <Skeleton className="h-8 w-32" />
-          </CardContent>
-        </Card>
-      ))}
-    </div>
-  );
-
-  // Componente para renderizar últimas vendas em estado de carregamento
-  const LatestSalesLoading = () => (
-    <Card>
-      <CardHeader>
-        <Skeleton className="h-5 w-32" />
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-4">
-          {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="flex justify-between items-center">
-              <Skeleton className="h-5 w-36" />
-              <Skeleton className="h-5 w-24" />
-            </div>
-          ))}
-        </div>
-      </CardContent>
-    </Card>
-  );
-
+ 
   // Formatar data para exibição
   const formatarData = (data: string) => {
     return new Date(data).toLocaleString('pt-BR', {

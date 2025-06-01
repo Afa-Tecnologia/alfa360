@@ -61,35 +61,50 @@ api.interceptors.response.use(
   async (error: AxiosError) => {
     const originalRequest: any = error.config;
 
-    // Se receber 401 e não for uma tentativa de refresh
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    const isUnauthorized = error.response?.status === 401;
+    const isRefreshEndpoint = originalRequest?.url?.includes('/refresh');
+    const alreadyRetried = originalRequest._retry;
+
+    // Se for 401 e não é tentativa de refresh
+    if (isUnauthorized && !isRefreshEndpoint) {
+      // Evita loop
+      if (alreadyRetried) {
+        await removeAuthToken();
+        await removeRefreshToken();
+        window.location.href = '/login';
+        return Promise.reject(error);
+      }
+
       originalRequest._retry = true;
 
+      const refreshToken = await getRefreshToken();
+
+      // Se não tem refresh token, redireciona
+      if (!refreshToken) {
+        await removeAuthToken();
+        await removeRefreshToken();
+        window.location.href = '/login';
+        return Promise.reject(error);
+      }
+
+      // Verifica se já tem outro refresh em andamento
       if (isRefreshing) {
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });
-        })
-          .then((token) => {
-            if (originalRequest.headers) {
-              originalRequest.headers.Authorization = `Bearer ${token as string}`;
-            }
-            return api(originalRequest);
-          })
-          .catch((err) => Promise.reject(err));
+        }).then((token) => {
+          if (originalRequest.headers) {
+            originalRequest.headers.Authorization = `Bearer ${token}`;
+          }
+          return api(originalRequest);
+        });
       }
 
       isRefreshing = true;
 
       try {
-        const refreshToken = await getRefreshToken();
-        // console.log('Refresh token:', refreshToken);
-
-        // Usa a instância sem interceptores
         const response = await plainAxios.post(REFRESH_API_URL, {
           refresh_token: refreshToken,
         });
-
-        // console.log('Resposta do refresh:', response);
 
         if (response.status === 200) {
           const newAccessToken = response.data.access_token;
@@ -104,17 +119,12 @@ api.interceptors.response.use(
         } else {
           throw new Error('Falha ao renovar token');
         }
-      } catch (refreshError: any) {
-        console.error('Erro ao atualizar o token:', refreshError);
-
-        processQueue(refreshError, null);
-
+      } catch (err) {
+        processQueue(err, null);
         await removeAuthToken();
         await removeRefreshToken();
-
         window.location.href = '/login';
-
-        return Promise.reject(refreshError);
+        return Promise.reject(err);
       } finally {
         isRefreshing = false;
       }
@@ -123,3 +133,4 @@ api.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+

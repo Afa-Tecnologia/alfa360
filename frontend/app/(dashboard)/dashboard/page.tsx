@@ -35,59 +35,6 @@ import CardMetricClientActives from '@/components/dashboard-v2/card-client-metri
 import CardProductStock from '@/components/dashboard-v2/card-metric-stock';
 import CardProdutosPopulares from '@/components/dashboard-v2/card-products';
 
-// Dados mockados para demonstração
-const metricsData = {
-  vendasHoje: 1253.75,
-  vendasMes: 32450.9,
-  clientesAtivos: 128,
-  produtosEstoque: 532,
-  produtosBaixoEstoque: 12,
-  ultimasVendas: [
-    {
-      id: 1,
-      cliente: 'João Silva',
-      valor: 124.9,
-      data: '2023-09-01T14:30:00',
-      itens: 3,
-    },
-    {
-      id: 2,
-      cliente: 'Maria Oliveira',
-      valor: 356.5,
-      data: '2023-09-01T15:45:00',
-      itens: 7,
-    },
-    {
-      id: 3,
-      cliente: 'Carlos Santos',
-      valor: 89.9,
-      data: '2023-09-01T16:20:00',
-      itens: 2,
-    },
-    {
-      id: 4,
-      cliente: 'Ana Pereira',
-      valor: 215.3,
-      data: '2023-09-01T17:10:00',
-      itens: 5,
-    },
-    {
-      id: 5,
-      cliente: 'Roberto Almeida',
-      valor: 175.6,
-      data: '2023-09-01T18:05:00',
-      itens: 4,
-    },
-  ],
-  produtosPopulares: [
-    { id: 1, nome: 'Smartphone X12', quantidade: 32, valor: 1899.9 },
-    { id: 2, nome: 'Fone de Ouvido Bluetooth', quantidade: 28, valor: 159.9 },
-    { id: 3, nome: 'Notebook Pro 15"', quantidade: 15, valor: 4599.9 },
-    { id: 4, nome: 'Carregador Tipo C', quantidade: 45, valor: 59.9 },
-    { id: 5, nome: 'Mouse Sem Fio', quantidade: 37, valor: 89.9 },
-  ],
-};
-
 export default function DashboardPage() {
 
  
@@ -103,7 +50,7 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-6">
-      {/* <Button onClick={() => refreshToken()}>Refresh Token</Button> */}
+
       {/* Status do Caixa */}
       <CaixaStatusCard />
 

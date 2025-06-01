@@ -82,7 +82,7 @@ export default function CardProdutosPopulares() {
       <CardContent>
         <ScrollArea className="h-[280px] pr-2">
           <div className="space-y-4">
-            {sortedProducts.map((produto) => (
+            {sortedProducts?.map((produto) => (
               <div
                 key={produto.id}
                 className="flex justify-between items-center pb-3 border-b"

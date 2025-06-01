@@ -14,10 +14,8 @@ import { useMemo } from 'react';
 import { Skeleton } from '../ui/skeleton';
 
 export default function CardMetricToday() {
-  
   const today = new Date().toISOString().split('T')[0];
   const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0]; // 86400000ms = 1 dia
-
 
   const { orders: ordersToday, loading: loadingToday } = useOrdersManagement({
     initialFilters: {
@@ -27,48 +25,49 @@ export default function CardMetricToday() {
     },
   });
 
+  const { orders: ordersYesterday, loading: loadingYesterday } =
+    useOrdersManagement({
+      initialFilters: {
+        limit: 100,
+        startDate: yesterday,
+        endDate: yesterday,
+      },
+    });
 
-  const { orders: ordersYesterday, loading: loadingYesterday } = useOrdersManagement({
-    initialFilters: {
-      limit: 100,
-      startDate: yesterday,
-      endDate: yesterday,
-    },
-  });
-
- 
   const totalHoje = useMemo(() => {
-    return ordersToday?.reduce((acc, order) => acc + order.total, 0) ?? 0;
+    return (
+      ordersToday?.reduce((acc, order) => acc + Number(order.total) || 0, 0) ??
+      0
+    );
   }, [ordersToday]);
 
-  
-  const totalOntem = useMemo(() => {
-    return ordersYesterday?.reduce((acc, order) => acc + order.total, 0) ?? 0;
-  }, [ordersYesterday]);
-
+const totalOntem = useMemo(() => {
+  return ordersYesterday?.reduce((acc, order) => acc + (Number(order.total) || 0), 0) ?? 0;
+}, [ordersYesterday]);
 
   const trend = useMemo(() => {
     if (totalOntem === 0) {
-    return {
-      isPositive: true,
-      value: 0,
-    };
-  }
+      return {
+        isPositive: true,
+        value: 0,
+      };
+    }
 
     const diff = totalHoje - totalOntem;
     const value = (diff / totalOntem) * 100;
 
+    const safeValue = Number(value);
     return {
-      isPositive: value >= 0,
-      value: parseFloat(Math.abs(value).toFixed(1)) || 0,
+      isPositive: safeValue >= 0,
+      value: isNaN(safeValue) ? 0 : parseFloat(Math.abs(safeValue).toFixed(1)),
     };
   }, [totalHoje, totalOntem]);
 
   const loading = loadingToday || loadingYesterday;
 
- const MetricsLoading = () => (
+  const MetricsLoading = () => (
     <div className="">
-      {[1, ].map((i) => (
+      {[1].map((i) => (
         <Card key={i} className="overflow-hidden">
           <CardHeader className="pb-2">
             <Skeleton className="h-4 w-24" />

@@ -77,7 +77,9 @@ api.interceptors.response.use(
     // ⚠️ Se for 401 e não é tentativa de refresh
     if (isUnauthorized && !isRefreshEndpoint) {
       if (alreadyRetried) {
-        console.warn('⚠️ Token já foi tentado uma vez. Redirecionando para login.');
+        console.warn(
+          '⚠️ Token já foi tentado uma vez. Redirecionando para login.'
+        );
         await removeAuthToken();
         await removeRefreshToken();
         window.location.href = '/login';
@@ -89,7 +91,9 @@ api.interceptors.response.use(
       const refreshToken = await getRefreshToken();
 
       if (!refreshToken) {
-        console.warn('⚠️ Sem refresh token disponível. Redirecionando para login.');
+        console.warn(
+          '⚠️ Sem refresh token disponível. Redirecionando para login.'
+        );
         await removeAuthToken();
         await removeRefreshToken();
         window.location.href = '/login';
@@ -129,10 +133,17 @@ api.interceptors.response.use(
         }
       } catch (err) {
         console.error('❌ Erro ao tentar renovar token', err);
-        processQueue(err, null);
-        await removeAuthToken();
-        await removeRefreshToken();
-        window.location.href = '/login';
+       
+
+        if (typeof window !== 'undefined') {
+          try {
+            await fetch('/api/log-out', { method: 'POST' }); // limpa os cookies no servidor
+          } catch (logoutError) {
+            console.error('Erro ao chamar /api/logout', logoutError);
+          }
+
+          window.location.href = '/login';
+        }
         return Promise.reject(err);
       } finally {
         isRefreshing = false;
@@ -142,5 +153,3 @@ api.interceptors.response.use(
     return Promise.reject(error);
   }
 );
-
-

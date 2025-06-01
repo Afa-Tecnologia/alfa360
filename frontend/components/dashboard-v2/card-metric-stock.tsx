@@ -75,7 +75,7 @@ export default function CardProductStock() {
         </CardHeader>
         <CardContent>
           <div className="flex items-baseline">
-            <div className="text-2xl font-bold">{products.length}</div>
+            <div className="text-2xl font-bold">{products?.length}</div>
             {trend && (
               <Badge
                 variant="outline"

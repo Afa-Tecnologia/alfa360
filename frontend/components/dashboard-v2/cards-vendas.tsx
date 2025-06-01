@@ -53,7 +53,7 @@ export function CardsVendas() {
       <CardContent>
         <ScrollArea className="h-[280px]">
           <div className="space-y-4">
-            {orders.map((item) => (
+            {orders?.map((item) => (
               <div
                 key={item.id}
                 className="flex justify-between items-center pb-3 border-b"

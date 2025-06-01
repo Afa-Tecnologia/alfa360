@@ -25,6 +25,7 @@ export default function CardMetricMonth() {
       endDate: new Date().toISOString().split('T')[0],
     },
   });
+  console
   const hoje = new Date();
   const trintaDiasAtras = new Date(hoje);
   trintaDiasAtras.setDate(trintaDiasAtras.getDate() - 30);
@@ -45,18 +46,20 @@ export default function CardMetricMonth() {
     const trintaDiasAtras = new Date(hoje);
     trintaDiasAtras.setDate(trintaDiasAtras.getDate() - 30);
 
+    const sessentaDiasAtras = new Date(hoje);
+    sessentaDiasAtras.setDate(sessentaDiasAtras.getDate() - 60);
+
     const totalAtual = orders
       .filter((order) => new Date(order.createdAt) >= trintaDiasAtras)
-      .reduce((acc, order) => acc + order.total, 0);
+      .reduce((acc, order) => acc + Number(order.total) || 0, 0);
 
     const totalAnterior = orders
       .filter(
         (order) =>
           new Date(order.createdAt) < trintaDiasAtras &&
-          new Date(order.createdAt) >=
-            new Date(trintaDiasAtras.setDate(trintaDiasAtras.getDate() - 30))
+          new Date(order.createdAt) >= sessentaDiasAtras
       )
-      .reduce((acc, order) => acc + order.total, 0);
+      .reduce((acc, order) => acc + Number(order.total) || 0, 0);
 
     const variacao =
       totalAnterior > 0
@@ -74,7 +77,7 @@ export default function CardMetricMonth() {
   }, [orders]);
   const MetricsLoading = () => (
     <div className="">
-      {[1, ].map((i) => (
+      {[1].map((i) => (
         <Card key={i} className="overflow-hidden">
           <CardHeader className="pb-2">
             <Skeleton className="h-4 w-24" />
@@ -94,7 +97,7 @@ export default function CardMetricMonth() {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
     >
-      <Card className={cn('overflow-hidden') }>
+      <Card className={cn('overflow-hidden')}>
         <CardHeader className="pb-2">
           <div className="flex items-center justify-between">
             <CardTitle className="text-sm font-medium text-muted-foreground">
@@ -111,7 +114,13 @@ export default function CardMetricMonth() {
           ) : (
             <div className="flex items-baseline">
               <div className="text-2xl font-bold">
-                R$ {totalAtual.toFixed(2)}
+                <div className="text-2xl font-bold">
+                  R${' '}
+                  {(typeof totalAtual === 'number' && !isNaN(totalAtual)
+                    ? totalAtual
+                    : 0
+                  ).toFixed(2)}
+                </div>
               </div>
 
               {trend && (

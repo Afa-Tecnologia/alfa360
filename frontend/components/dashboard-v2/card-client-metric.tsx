@@ -78,7 +78,7 @@ export default function CardMetricClientActives() {
         </CardHeader>
         <CardContent>
           <div className="flex items-baseline">
-            <div className="text-2xl font-bold">{users.length}</div>
+            <div className="text-2xl font-bold">{users?.length}</div>
 
             {trend && (
               <Badge

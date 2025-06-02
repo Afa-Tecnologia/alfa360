@@ -180,7 +180,7 @@ class UserAuthController extends Controller
                 'token_type' => 'bearer',
                 'expires_in' => config('jwt.ttl') * 60
             ])
-            ->cookie('jwt_token', $newAccessToken, 15, '/', $cookieDomain, true, true, false, 'None')
+            ->cookie('jwt_token', $newAccessToken, 90, '/', $cookieDomain, true, true, false, 'None')
             ->cookie('jwt_refresh_token', $newRefreshToken, 10080, '/', $cookieDomain, true, true, false, 'None');
 
         } catch (JWTException $e) {

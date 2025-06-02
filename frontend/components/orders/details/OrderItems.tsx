@@ -1,5 +1,11 @@
+"use client"
+
 import { OrderDetail } from '@/types/order';
 import { formatCurrency } from '@/utils/formatters';
+import { DevoltionsTable } from './TableDevolutions';
+import { DesktopViewTable } from './DesktopViewTable';
+import { AlertDialogDevolution } from './AlertDevolution';
+import { useState } from 'react';
 
 interface OrderItemsProps {
   order: OrderDetail;
@@ -9,6 +15,8 @@ interface OrderItemsProps {
  * Component to display order items
  */
 export function OrderItems({ order }: OrderItemsProps) {
+
+    const [openDevolution, setOpenDevolution] = useState(false)
   if (!order.produtos || order.produtos.length === 0) {
     return (
       <div className="py-4 text-center text-gray-500">
@@ -17,6 +25,8 @@ export function OrderItems({ order }: OrderItemsProps) {
     );
   }
 
+
+  
   // Calcular total
   const subtotal = order.produtos.reduce(
     (sum, produto) =>
@@ -81,97 +91,17 @@ export function OrderItems({ order }: OrderItemsProps) {
     </div>
   );
 
-  // Versão para desktop (tabela)
-  const DesktopView = () => (
-    <div className="overflow-x-auto rounded-md border hidden sm:block">
-      <table className="min-w-full divide-y divide-gray-200">
-        <thead className="bg-muted/50">
-          <tr>
-            <th className="px-3 py-2 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-              Produto
-            </th>
-            <th className="px-3 py-2 text-right text-xs font-medium text-muted-foreground uppercase tracking-wider">
-              Qtd
-            </th>
-            <th className="px-3 py-2 text-right text-xs font-medium text-muted-foreground uppercase tracking-wider">
-              Valor Unit.
-            </th>
-            <th className="px-3 py-2 text-right text-xs font-medium text-muted-foreground uppercase tracking-wider">
-              Subtotal
-            </th>
-            <th className="px-3 py-2 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-              Vendedor
-            </th>
-          </tr>
-        </thead>
-        <tbody className="bg-background divide-y divide-gray-200">
-          {order.produtos.map((produto) => (
-            <tr key={produto.id} className="hover:bg-muted/50">
-              <td className="px-3 py-2 whitespace-nowrap text-sm font-medium">
-                {produto.name}
-              </td>
-              <td className="px-3 py-2 whitespace-nowrap text-sm text-right">
-                {produto.pivot.quantidade}
-              </td>
-              <td className="px-3 py-2 whitespace-nowrap text-sm text-right">
-                {formatCurrency(produto.pivot.preco_unitario)}
-              </td>
-              <td className="px-3 py-2 whitespace-nowrap text-sm font-medium text-right">
-                {formatCurrency(
-                  produto.pivot.quantidade * produto.pivot.preco_unitario
-                )}
-              </td>
-              <td className="px-3 py-2 whitespace-nowrap text-sm">
-                {produto.pivot.vendedor_id
-                  ? `Vendedor #${produto.pivot.vendedor_id}`
-                  : 'N/A'}
-              </td>
-            </tr>
-          ))}
-          <tr className="bg-muted/50">
-            <td
-              colSpan={3}
-              className="px-3 py-2 text-right text-sm font-medium"
-            >
-              Total
-            </td>
-            <td className="px-3 py-2 text-right text-sm font-medium">
-              {formatCurrency(subtotal)}
-            </td>
-            <td></td>
-          </tr>
-          {desconto > 0 && (
-            <tr className="bg-muted/50">
-              <td
-                colSpan={3}
-                className="px-3 py-2 text-right text-sm font-medium"
-              >
-                Desconto
-              </td>
-              <td className="px-3 py-2 text-right text-sm font-medium text-red-600">
-                -{formatCurrency(desconto)}
-              </td>
-              <td></td>
-            </tr>
-          )}
-          <tr className="bg-muted/50">
-            <td colSpan={3} className="px-3 py-2 text-right text-sm font-bold">
-              Total a Pagar
-            </td>
-            <td className="px-3 py-2 text-right text-sm font-bold">
-              {formatCurrency(total)}
-            </td>
-            <td></td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  );
+ 
 
   return (
-    <>
+    <div className='flex gap-12 flex-col '>
       <MobileView />
-      <DesktopView />
-    </>
+      <DesktopViewTable order={order}  />
+    
+      <div className='pt-5'>
+        <h2 className="text-1xl font-bold mb-4">Devoluções</h2>
+      <DevoltionsTable/>
+      </div>
+    </div>
   );
 }

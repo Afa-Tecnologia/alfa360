@@ -29,60 +29,58 @@ import { User as UserType } from '@/types/auth';
 import { useRouter } from 'next/navigation';
 import useAuthStore from '@/stores/authStore';
 import { removeAuthToken, removeRefreshToken } from '@/app/api/auth';
-import { logout } from '@/lib/auth/logout-server';
-import { toast } from 'react-toastify';
 
 const menuItems = [
   {
-    name: 'Dashboard',
-    href: '/dashboard',
+    name: 'Dashboard Admin',
+    href: '/dashboard/admin',
     icon: Home,
   },
   {
     name: 'Vendas',
-    href: '/dashboard/vendas',
+    href: '/dashboard/admin/vendas',
     icon: ShoppingCart,
   },
   {
     name: 'Estoque',
-    href: '/dashboard/estoque',
+    href: '/dashboard/admin/estoque',
     icon: Package,
   },
   {
     name: 'Categorias',
-    href: '/dashboard/categorias',
+    href: '/dashboard/admin/categorias',
     icon: Tag,
   },
   {
     name: 'Caixa',
-    href: '/dashboard/caixa',
+    href: '/dashboard/admin/caixa',
     icon: CreditCard,
   },
   {
     name: 'Relatórios',
-    href: '/dashboard/relatorios',
+    href: '/dashboard/admin/relatorios',
     icon: BarChart3,
     adminOnly: true,
   },
   {
     name: 'Pedidos',
-    href: '/dashboard/pedidos',
+    href: '/dashboard/admin/pedidos',
     icon: Receipt,
   },
   {
     name: 'Clientes',
-    href: '/dashboard/clientes',
+    href: '/dashboard/admin/clientes',
     icon: Users,
   },
   {
     name: 'Usuários',
-    href: '/dashboard/usuarios',
+    href: '/dashboard/admin/usuarios',
     icon: User,
     adminOnly: true,
   },
   {
     name: 'Configurações',
-    href: '/dashboard/configuracoes',
+    href: '/dashboard/admin/configuracoes',
     icon: Settings,
   },
 ];
@@ -93,7 +91,7 @@ interface SidebarNavigationProps {
   isMobile: boolean;
 }
 
-export function SidebarNavigation({
+export function SidebarNavigationAdmin({
   isCollapsed,
   toggleSidebar,
   isMobile,
@@ -124,7 +122,8 @@ export function SidebarNavigation({
   }, []);
 
   const handleLogout = async() => {
-await logout()
+    await removeAuthToken();
+  await  removeRefreshToken();
   redirect('/login');
   };
 
@@ -159,7 +158,7 @@ await logout()
               transition={{ delay: 0.2 }}
               className="flex items-center gap-2"
             >
-              <span className="text-xl font-bold">ALFA 360</span>
+              <span className="text-xl font-bold">ALFA Manager</span>
             </motion.div>
           )}
           <Button
@@ -239,7 +238,7 @@ await logout()
             transition={{ delay: 0.2 }}
             className="flex items-center gap-2"
           >
-            <span className="text-xl font-bold">ALFA 360</span>
+            <span className="text-xl font-bold">ALFA Manager</span>
           </motion.div>
         )}
         <Button

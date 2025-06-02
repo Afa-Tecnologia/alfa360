@@ -34,6 +34,7 @@ Route::get('/user', function (Request $request) {
 Route::post('signup', [UserAuthController::class, 'signup']);
 Route::post('login', [UserAuthController::class, 'login']);
 Route::post('refresh', [UserAuthController::class, 'refresh']);
+Route::post('/logout-cookies', [UserAuthController::class, 'logoutNotTokenHeader']);
 Route::middleware('jwt.auth')->group(function () {
     Route::post('logout', [UserAuthController::class, 'logout']);
     Route::get('me', [UserAuthController::class, 'me']);

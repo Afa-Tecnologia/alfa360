@@ -58,6 +58,12 @@ import {
   usePaymentMethodStore,
 } from '@/stores/paymentMethodStore';
 
+
+type FormState = {
+  name: string;
+  code: string;
+  error?: string; // opcional, se preferir
+};
 export function MetodosPagamentoTab() {
   const { toast } = useToast();
   const {
@@ -77,11 +83,10 @@ export function MetodosPagamentoTab() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Form state
-  const [formState, setFormState] = useState({
-    name: '',
-    code: '',
-  });
-
+const [formState, setFormState] = useState<FormState>({
+  name: '',
+  code: '',
+});
   // Buscar dados ao carregar o componente
   useEffect(() => {
     fetchPaymentMethods();
@@ -121,13 +126,30 @@ export function MetodosPagamentoTab() {
   };
 
   // Atualizar o form state
-  const handleFormChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormState((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
+function handleFormChange(e: React.ChangeEvent<HTMLInputElement>) {
+  const { name, value } = e.target;
+
+  let error = '';
+  let newValue = value;
+
+  // Se for o campo "code", aplicamos validação
+  if (name === 'code') {
+    const upperValue = value.toUpperCase();
+
+    if (upperValue && !/^[A-Z_]+$/.test(upperValue)) {
+      error = 'Use apenas letras maiúsculas e underscores (ex: MONEY, PIX)';
+      newValue = ''; // Limpa o input
+    } else {
+      newValue = upperValue; // Converte automaticamente para maiúsculas
+    }
+  }
+
+  setFormState((prev) => ({
+    ...prev,
+    [name]: newValue,
+    error,
+  }));
+}
 
   // Salvar método de pagamento (criar ou atualizar)
   const handleSavePaymentMethod = async () => {
@@ -352,20 +374,23 @@ export function MetodosPagamentoTab() {
                 Ex: Dinheiro, Cartão de Crédito, PIX
               </p>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="code">Código</Label>
-              <Input
-                id="code"
-                name="code"
-                value={formState.code}
-                onChange={handleFormChange}
-                placeholder="Digite o código do método de pagamento"
-              />
-              <p className="text-xs text-muted-foreground">
-                Um código único para identificar o método (ex: MONEY,
-                CREDIT_CARD, PIX)
-              </p>
-            </div>
+          <div className="space-y-2">
+  <Label htmlFor="code">Código</Label>
+  <Input
+    id="code"
+    name="code"
+    value={formState.code}
+    onChange={handleFormChange}
+    placeholder="Digite o código do método de pagamento"
+    className={formState.error ? 'border-red-500' : ''}
+  />
+  <p className="text-xs text-muted-foreground">
+    Um código único para identificar o método (ex: MONEY, CREDIT_CARD, PIX)
+  </p>
+  {formState.error && (
+    <p className="text-xs text-red-500">{formState.error}</p>
+  )}
+  </div>
           </div>
           <DialogFooter>
             <Button

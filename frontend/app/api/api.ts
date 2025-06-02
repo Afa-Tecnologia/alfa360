@@ -1,82 +1,53 @@
-// // utils/api.ts
-// import useAuthStore from '@/stores/authStore';
-// import axios from 'axios';
-// import { getAuthToken, removeAuthToken } from './auth';
-
-// export const api = axios.create({
-//   baseURL: process.env.NEXT_PUBLIC_API_URL,
-//   headers: {
-//     'Content-Type': 'application/json',
-//   },
-//   withCredentials: true,
-// });
-
-// api.interceptors.request.use(
-//   async (config) => {
-
-//     const token = await getAuthToken();
-//       if (token) {
-//         config.headers.Authorization = `Bearer ${token}`;
-//       }
-
-//     return config;
-//   },
-//   (error) => Promise.reject(error)
-// );
-
-// // Interceptor de resposta para capturar erro 401 e redirecionar para login
-// api.interceptors.response.use(
-//   (response) => response,
-//   (error) => {
-//     if (error.response?.status === 401) {
-//       removeAuthToken();
-//       window.location.href = '/login'; // Redireciona para a página de login
-//     }
-//     return Promise.reject(error);
-//   }
-// );
-
-// utils/api.ts
-
-const REFRESH_API_URL = `${process.env.NEXT_PUBLIC_API_URL}/refresh`;
 import axios, { AxiosError } from 'axios';
 import {
   getAuthToken,
   getRefreshToken,
   removeAuthToken,
   removeRefreshToken,
+  // Caso você precise salvar o novo token após o refresh
 } from './auth';
 
+const REFRESH_API_URL = `${process.env.NEXT_PUBLIC_API_URL}/refresh`;
+
+// Instância principal com interceptores
 export const api = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL,
   headers: {
     'Content-Type': 'application/json',
   },
-  withCredentials: true, // Importante para cookies
+  withCredentials: true,
 });
 
-// Variável para controlar se uma operação de refresh está em andamento
-let isRefreshing = false;
-// Fila de requisições pendentes que aguardam o refresh do token
-let failedQueue: any[] = [];
+// Instância sem interceptores para fazer refresh
+const plainAxios = axios.create({
+  baseURL: process.env.NEXT_PUBLIC_API_URL,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+  withCredentials: true,
+});
 
-// Função para processar a fila de requisições pendentes
-const processQueue = (error: any, token = null) => {
+let isRefreshing = false;
+let failedQueue: {
+  resolve: (token: string) => void;
+  reject: (error: any) => void;
+}[] = [];
+const processQueue = (error: any, token: string | null = null) => {
   failedQueue.forEach((prom) => {
     if (error) {
       prom.reject(error);
     } else {
-      prom.resolve(token);
+      prom.resolve(token as string);
     }
   });
-
   failedQueue = [];
 };
 
+// Interceptor de requisição para incluir o token
 api.interceptors.request.use(
   async (config) => {
     const token = await getAuthToken();
-    if (token) {
+    if (token && config.headers) {
       config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
@@ -84,37 +55,114 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Interceptor de resposta para capturar erro 401 e tentar refresh token
+// Interceptor de resposta para capturar erro 401 e tentar refresh
+// api.interceptors.response.use(
+//   (response) => response,
+//   async (error: AxiosError) => {
+//     const originalRequest: any = error.config;
+
+//     const isUnauthorized = error.response?.status === 401;
+//     const isRefreshEndpoint = originalRequest?.url?.endsWith('/refresh');
+//     const alreadyRetried = originalRequest._retry;
+
+//     if (isUnauthorized && isRefreshEndpoint) {
+//       console.warn('Refresh token falhou. Redirecionando para login.');
+//       try {
+//         await api.post('/logout-cookies', {}, { withCredentials: true });
+//       } catch {}
+//       window.location.href = '/login';
+//       return Promise.reject(error);
+//     }
+
+//     if (isUnauthorized && !isRefreshEndpoint) {
+//       if (alreadyRetried) {
+//         console.warn('Token já foi tentado. Redirecionando para login.');
+//         try {
+//           await api.post('/logout-cookies', {}, { withCredentials: true });
+//         } catch {}
+//         window.location.href = '/login';
+//         return Promise.reject(error);
+//       }
+
+//       originalRequest._retry = true;
+
+//       if (isRefreshing) {
+//         return new Promise((resolve, reject) => {
+//           failedQueue.push({ resolve, reject });
+//         }).then(() => api(originalRequest));
+//       }
+
+//       isRefreshing = true;
+
+//       try {
+//         const response = await plainAxios.post('/refresh', {}, { withCredentials: true });
+
+//         if (response.status === 200) {
+//           processQueue(null); // nada a passar, o cookie foi renovado
+//           return api(originalRequest);
+//         } else {
+//           throw new Error('Falha ao renovar token');
+//         }
+//       } catch (err) {
+//           console.error('❌ Erro ao tentar renovar token', err);
+//         try {
+//           await api.post('/logout-cookies', {}, { withCredentials: true });
+//         } catch {}
+//         window.location.href = '/login';
+//         return Promise.reject(err);
+//       } finally {
+//         isRefreshing = false;
+//       }
+//     }
+
+//     return Promise.reject(error);
+//   }
+// );
 api.interceptors.response.use(
- (response) => response,
+  (response) => response,
   async (error: AxiosError) => {
     const originalRequest: any = error.config;
 
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    const isUnauthorized = error.response?.status === 401;
+    const isRefreshEndpoint = originalRequest?.url?.endsWith('/refresh');
+    const alreadyRetried = originalRequest._retry;
+
+    if (isUnauthorized && isRefreshEndpoint) {
+      console.warn('Refresh token falhou. Redirecionando para login.');
+      window.location.href = '/login';
+      return Promise.reject(error);
+    }
+
+    if (isUnauthorized && !isRefreshEndpoint) {
+      if (alreadyRetried) {
+        console.warn('Token já foi tentado. Redirecionando para login.');
+        window.location.href = '/login';
+        return Promise.reject(error);
+      }
+
       originalRequest._retry = true;
 
       if (isRefreshing) {
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });
-        })
-          .then(() => api(originalRequest))
-          .catch((err) => Promise.reject(err));
+        }).then(() => api(originalRequest));
       }
 
       isRefreshing = true;
 
       try {
-        const refreshToken = await getRefreshToken();
-        await api.post('/refresh', { refresh_token: refreshToken });
+        const response = await plainAxios.post('/refresh', {}, { withCredentials: true });
 
-        processQueue(null);
-        return api(originalRequest);
-      } catch (refreshError) {
-        processQueue(refreshError, null);
-        removeAuthToken();
-        removeRefreshToken();
+        if (response.status === 200) {
+          processQueue(null); // token renovado com sucesso
+          return api(originalRequest);
+        } else {
+          throw new Error('Falha ao renovar token');
+        }
+      } catch (err) {
+        console.error('❌ Erro ao tentar renovar token', err);
         window.location.href = '/login';
-        return Promise.reject(refreshError);
+        return Promise.reject(err);
       } finally {
         isRefreshing = false;
       }
@@ -123,3 +171,4 @@ api.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+

@@ -249,6 +249,7 @@ public function refresh(Request $request): JsonResponse
         // invalida o token antigo
         JWTAuth::setToken($refreshToken)->invalidate();
 
+
         $cookieDomain = app()->environment('local') ? null : 'alfa360.alfatecnologia.tech';
         
         // Configurações de cookie mais compatíveis
@@ -285,6 +286,7 @@ public function refresh(Request $request): JsonResponse
         return response()->json(['message' => 'Erro interno do servidor'], 500);
     }
 }
+
 
 /**
  * Método auxiliar para verificar se um token é válido sem considerar expiração

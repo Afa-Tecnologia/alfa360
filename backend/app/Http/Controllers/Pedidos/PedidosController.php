@@ -155,19 +155,14 @@ class PedidosController extends Controller
     // Método para obter um produto por ID
     public function show($id)
     {
+
         $pedido = $this->pedidoService->getById($id);
 
-        if (!$pedido) {
-            return response()->json(
-                ['error' => 'Pedido não encontrado'],
-                Response::HTTP_NOT_FOUND
-            );
-        }
+        
+        // // Inclui os produtos associados ao pedido
+        // $pedido->load('produtos'); // Garantir que os produtos sejam carregados com o pedido
 
-        // Inclui os produtos associados ao pedido
-        $pedido->load('produtos'); // Garantir que os produtos sejam carregados com o pedido
-
-        return ApiResponseService::json($pedido);
+        return $pedido;
     }
 
     // Método para obter um produto pelo nome

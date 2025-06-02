@@ -32,9 +32,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        // Registra as interfaces e implementações para o módulo de despesas de funcionários
-        $this->app->bind(EmployeeExpenseRepositoryInterface::class, EmployeeExpenseRepository::class);
-        $this->app->bind(EmployeeExpenseServiceInterface::class, EmployeeExpenseService::class);
+
 
         // Registrar os serviços de relatórios individuais
         $this->app->bind(SalesSummaryServiceInterface::class, SalesSummaryService::class);

@@ -16,236 +16,295 @@ use Illuminate\Http\JsonResponse;
 
 class UserAuthController extends Controller
 {
-    /**
-     * Cadastra um novo usuário
-     */
-    public function signup(Request $request): JsonResponse
-    {
-        try {
-            $data = $request->validate([
-                'name' => 'required|string|max:255',
-                'email' => 'required|string|email|max:255|unique:users,email',
-                'password' => 'required|string|min:8|confirmed'
-            ]);
-
-            $user = User::create([
-                'name' => $data['name'],
-                'email' => $data['email'],
-                'password' => Hash::make($data['password']),
-            ]);
-
-            Log::info('Novo usuário registrado', ['id' => $user->id, 'ip' => $request->ip()]);
-
-            return response()->json([
-                'message' => 'Cadastro realizado com sucesso',
-                'user' => $user->only(['id', 'name', 'email'])
-            ], 201);
-
-        } catch (ValidationException $e) {
-            return response()->json([
-                'message' => 'Erro de validação',
-                'errors' => $e->errors()
-            ], 422);
-        } catch (\Throwable $e) {
-            Log::error('Erro no signup: ' . $e->getMessage());
-            return response()->json(['message' => 'Erro ao processar solicitação'], 500);
-        }
-    }
-
-    /**
-     * Autentica o usuário e gera tokens JWT
-     */
-    public function login(Request $request): JsonResponse
-    {
-        try {
-            $credentials = $request->validate([
-                'email' => 'required|string|email',
-                'password' => 'required|string|min:8'
-            ]);
-
-            if (!Auth::guard('api')->attempt($credentials)) {
-                return response()->json(['message' => 'Credenciais inválidas'], 401);
-            }
-
-            $user = Auth::guard('api')->user();
-
-            $accessToken = JWTAuth::fromUser($user);
-            $refreshToken = JWTAuth::customClaims([
-                'exp' => now()->addDays(7)->timestamp,
-                'token_type' => 'refresh'
-            ])->fromUser($user);
-
-            Log::info('Login bem-sucedido', [
-                'user_id' => $user->id,
-                'ip' => $request->ip(),
-                'agent' => $request->userAgent()
-            ]);
-
-            // Obtenha o domínio da solicitação atual
-            $domain = $request->getHost();
-            // Se for localhost, use null (comportamento padrão)
-            $cookieDomain = str_contains($domain, 'localhost') ? null : '.'.$this->extractRootDomain($domain);
-
-            return response()->json([
-                'message' => 'Login realizado com sucesso',
-                'user' => $user->only(['id', 'name', 'email', 'role', 'perfil']),
-                'token_type' => 'bearer',
-                'expires_in' => config('jwt.ttl') * 60
-            ])
-            ->cookie('jwt_token', $accessToken, 90, '/', $cookieDomain, true, true, false, 'None')
-            ->cookie('jwt_refresh_token', $refreshToken, 10080, '/', $cookieDomain, true, true, false, 'None');
-
-        } catch (ValidationException $e) {
-            return response()->json(['message' => 'Erro de validação', 'errors' => $e->errors()], 422);
-        } catch (\Throwable $e) {
-            Log::error('Erro no login: ' . $e->getMessage());
-            return response()->json(['message' => 'Erro ao processar login'], 500);
-        }
-    }
-
-    /**
-     * Invalida os tokens JWT e remove cookies
-     */
-    public function logout(Request $request): JsonResponse
-    {
-        try {
-            $token = $request->cookie('jwt_token') ??
-                     $this->extractTokenFromHeader($request->header('Authorization'));
-
-            if ($token) {
-                JWTAuth::setToken($token)->invalidate();
-            }
-
-            Auth::guard('api')->logout();
-
-            return response()->json(['message' => 'Logout realizado com sucesso'])
-                ->withCookie(cookie()->forget('jwt_token'))
-                ->withCookie(cookie()->forget('jwt_refresh_token'));
-
-        } catch (JWTException $e) {
-            Log::warning('Erro ao invalidar token: ' . $e->getMessage());
-            return response()->json(['message' => 'Logout forçado, token inválido ou expirado'])
-                ->withCookie(cookie()->forget('jwt_token'))
-                ->withCookie(cookie()->forget('jwt_refresh_token'));
-        } catch (\Throwable $e) {
-            Log::error('Erro no logout: ' . $e->getMessage());
-            return response()->json(['message' => 'Erro ao processar logout'], 500);
-        }
-    }
-
-
-public function logoutNotTokenHeader(Request $request): JsonResponse
+/**
+ * Cadastra um novo usuário
+ */
+public function signup(Request $request): JsonResponse
 {
     try {
-        return response()->json(['message' => 'Cookies limpos com sucesso'])
+        $data = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users,email',
+            'password' => 'required|string|min:8|confirmed'
+        ]);
+
+        $user = User::create([
+            'name' => $data['name'],
+            'email' => $data['email'],
+            'password' => Hash::make($data['password']),
+        ]);
+
+        Log::info('Novo usuário registrado', ['id' => $user->id, 'ip' => $request->ip()]);
+
+        return response()->json([
+            'message' => 'Cadastro realizado com sucesso',
+            'user' => $user->only(['id', 'name', 'email'])
+        ], 201);
+
+    } catch (ValidationException $e) {
+        return response()->json([
+            'message' => 'Erro de validação',
+            'errors' => $e->errors()
+        ], 422);
+    } catch (\Throwable $e) {
+        Log::error('Erro no signup: ' . $e->getMessage());
+        return response()->json(['message' => 'Erro ao processar solicitação'], 500);
+    }
+}
+
+/**
+ * Autentica o usuário e gera tokens JWT
+ */
+public function login(Request $request): JsonResponse
+{
+    try {
+        $credentials = $request->validate([
+            'email' => 'required|string|email',
+            'password' => 'required|string|min:8'
+        ]);
+
+        if (!Auth::guard('api')->attempt($credentials)) {
+            return response()->json(['message' => 'Credenciais inválidas'], 401);
+        }
+
+        $user = Auth::guard('api')->user();
+
+        $accessToken = JWTAuth::fromUser($user);
+        $refreshToken = JWTAuth::customClaims([
+            'exp' => now()->addDays(7)->timestamp,
+            'token_type' => 'refresh'
+        ])->fromUser($user);
+
+        Log::info('Login bem-sucedido', [
+            'user_id' => $user->id,
+            'ip' => $request->ip(),
+            'agent' => $request->userAgent()
+        ]);
+
+        // Obtenha o domínio da solicitação atual
+        $domain = $request->getHost();
+        // Se for localhost, use null (comportamento padrão)
+        $cookieDomain = str_contains($domain, 'localhost') ? null : '.'.$this->extractRootDomain($domain);
+
+        return response()->json([
+            'message' => 'Login realizado com sucesso',
+            'user' => $user->only(['id', 'name', 'email', 'role', 'perfil']),
+            'token_type' => 'bearer',
+            'expires_in' => config('jwt.ttl') * 60
+        ])
+        ->cookie('jwt_token', $accessToken, 90, '/', $cookieDomain, true, true, false, 'None')
+        ->cookie('jwt_refresh_token', $refreshToken, 10080, '/', $cookieDomain, true, true, false, 'None');
+
+    } catch (ValidationException $e) {
+        return response()->json(['message' => 'Erro de validação', 'errors' => $e->errors()], 422);
+    } catch (\Throwable $e) {
+        Log::error('Erro no login: ' . $e->getMessage());
+        return response()->json(['message' => 'Erro ao processar login'], 500);
+    }
+}
+
+/**
+ * Invalida os tokens JWT e remove cookies
+ */
+public function logout(Request $request): JsonResponse
+{
+    try {
+        $token = $request->cookie('jwt_token') ??
+                    $this->extractTokenFromHeader($request->header('Authorization'));
+
+        if ($token) {
+            JWTAuth::setToken($token)->invalidate();
+        }
+
+        Auth::guard('api')->logout();
+
+        return response()->json(['message' => 'Logout realizado com sucesso'])
+            ->withCookie(cookie()->forget('jwt_token'))
+            ->withCookie(cookie()->forget('jwt_refresh_token'));
+
+    } catch (JWTException $e) {
+        Log::warning('Erro ao invalidar token: ' . $e->getMessage());
+        return response()->json(['message' => 'Logout forçado, token inválido ou expirado'])
             ->withCookie(cookie()->forget('jwt_token'))
             ->withCookie(cookie()->forget('jwt_refresh_token'));
     } catch (\Throwable $e) {
-        \Log::error('Erro ao limpar cookies: ' . $e->getMessage());
-
+        Log::error('Erro no logout: ' . $e->getMessage());
         return response()->json(['message' => 'Erro ao processar logout'], 500);
     }
 }
 
 
+public function logoutNotTokenHeader(Request $request): JsonResponse
+{
+try {
+    return response()->json(['message' => 'Cookies limpos com sucesso'])
+        ->withCookie(cookie()->forget('jwt_token'))
+        ->withCookie(cookie()->forget('jwt_refresh_token'));
+} catch (\Throwable $e) {
+    \Log::error('Erro ao limpar cookies: ' . $e->getMessage());
+
+    return response()->json(['message' => 'Erro ao processar logout'], 500);
+}
+}
 
 
-    /**
-     * Gera novos tokens a partir do refresh token
-     */
-    public function refresh(Request $request): JsonResponse
-    {
-        $refreshToken = $request->cookie('jwt_refresh_token') ?? $request->input('refresh_token');
 
-        if (!$refreshToken) {
-            return response()->json(['message' => 'Token de atualização não fornecido'], 401);
-        }
 
-        try {
-            JWTAuth::setToken($refreshToken);
-            $payload = JWTAuth::getPayload();
+/**
+ * Gera novos tokens a partir do refresh token
+ */
+// public function refresh(Request $request): JsonResponse
+// {
+//     $refreshToken = $request->cookie('jwt_refresh_token') ?? $request->input('refresh_token');
 
-            $userId = $payload->get('sub');
-            $user = User::find($userId);
+//     if (!$refreshToken) {
+//         return response()->json(['message' => 'Token de atualização não fornecido'], 401);
+//     }
 
-            if (!$user) {
-                return response()->json(['message' => 'Usuário não encontrado'], 404);
-            }
+//     try {
+//         JWTAuth::setToken($refreshToken);
+//         $payload = JWTAuth::getPayload();
 
-            // Invalida o token usado
-            JWTAuth::invalidate();
+//         $userId = $payload->get('sub');
+//         $user = User::find($userId);
 
-            $newAccessToken = JWTAuth::fromUser($user);
-            $newRefreshToken = JWTAuth::customClaims([
-                'exp' => now()->addDays(7)->timestamp,
-                'token_type' => 'refresh'
-            ])->fromUser($user);
+//         if (!$user) {
+//             return response()->json(['message' => 'Usuário não encontrado'], 404);
+//         }
 
-            // Obtenha o domínio da solicitação atual
-            $domain = $request->getHost();
-            // Se for localhost, use null (comportamento padrão)
-            $cookieDomain = str_contains($domain, 'localhost') ? null : '.'.$this->extractRootDomain($domain);
+//         // Invalida o token usado
+//         JWTAuth::invalidate();
 
-            return response()->json([
-                'message' => 'Token renovado com sucesso',
-                'token_type' => 'bearer',
-                'expires_in' => config('jwt.ttl') * 60
-            ])
-            ->cookie('jwt_token', $newAccessToken, 15, '/', $cookieDomain, true, true, false, 'None')
-            ->cookie('jwt_refresh_token', $newRefreshToken, 10080, '/', $cookieDomain, true, true, false, 'None');
+//         $newAccessToken = JWTAuth::fromUser($user);
+//         $newRefreshToken = JWTAuth::customClaims([
+//             'exp' => now()->addDays(7)->timestamp,
+//             'token_type' => 'refresh'
+//         ])->fromUser($user);
 
-        } catch (JWTException $e) {
-            Log::error('Erro ao renovar token: ' . $e->getMessage());
-            return response()->json(['message' => 'Token inválido ou expirado'], 401);
-        } catch (\Throwable $e) {
-            Log::error('Erro ao atualizar token: ' . $e->getMessage());
-            return response()->json(['message' => 'Erro interno ao atualizar token'], 500);
-        }
+//         // Obtenha o domínio da solicitação atual
+//         $domain = $request->getHost();
+//         // Se for localhost, use null (comportamento padrão)
+//         $cookieDomain = str_contains($domain, 'localhost') ? null : '.'.$this->extractRootDomain($domain);
+
+//         return response()->json([
+//             'message' => 'Token renovado com sucesso',
+//             'token_type' => 'bearer',
+//             'expires_in' => config('jwt.ttl') * 60
+//         ])
+//         ->cookie('jwt_token', $newAccessToken, 15, '/', $cookieDomain, true, true, false, 'None')
+//         ->cookie('jwt_refresh_token', $newRefreshToken, 10080, '/', $cookieDomain, true, true, false, 'None');
+
+//     } catch (JWTException $e) {
+//         Log::error('Erro ao renovar token: ' . $e->getMessage());
+//         return response()->json(['message' => 'Token inválido ou expirado'], 401);
+//     } catch (\Throwable $e) {
+//         Log::error('Erro ao atualizar token: ' . $e->getMessage());
+//         return response()->json(['message' => 'Erro interno ao atualizar token'], 500);
+//     }
+// }
+
+public function refresh(Request $request): JsonResponse
+{
+$refreshToken = $request->cookie('jwt_refresh_token') ?? $request->input('refresh_token');
+
+if (!$refreshToken) {
+    return response()->json(['message' => 'Token de atualização não fornecido'], 401)
+            ->withCookie(cookie()->forget('jwt_token'))
+            ->withCookie(cookie()->forget('jwt_refresh_token'));
+}
+
+try {
+    JWTAuth::setToken($refreshToken);
+    $payload = JWTAuth::getPayload();
+
+    $userId = $payload->get('sub');
+    $user = User::find($userId);
+
+    if (!$user) {
+        return response()->json(['message' => 'Usuário não encontrado'], 404)
+            ->withCookie(cookie()->forget('jwt_token'))
+            ->withCookie(cookie()->forget('jwt_refresh_token'));
     }
 
-    /**
-     * Retorna o usuário autenticado
-     */
-    public function me(Request $request): JsonResponse
-    {
-        try {
-            $user = Auth::guard('api')->user();
+    JWTAuth::invalidate();
 
-            if (!$user) {
-                return response()->json(['message' => 'Usuário não autenticado'], 401);
-            }
+    $newAccessToken = JWTAuth::fromUser($user);
+    $newRefreshToken = JWTAuth::customClaims([
+        'exp' => now()->addDays(7)->timestamp,
+        'token_type' => 'refresh'
+    ])->fromUser($user);
 
-            return response()->json(['user' => $user->only(['id', 'name', 'email', 'role', 'perfil'])]);
+    $domain = $request->getHost();
+    $cookieDomain = str_contains($domain, 'localhost') ? null : '.' . $this->extractRootDomain($domain);
 
-        } catch (\Throwable $e) {
-            Log::error('Erro ao buscar usuário: ' . $e->getMessage());
-            return response()->json(['message' => 'Erro interno ao buscar usuário'], 500);
+    return response()->json([
+        'message' => 'Token renovado com sucesso',
+        'token_type' => 'bearer',
+        'expires_in' => config('jwt.ttl') * 60
+    ])
+    ->cookie('jwt_token', $newAccessToken, 15, '/', $cookieDomain, true, true, false, 'None')
+    ->cookie('jwt_refresh_token', $newRefreshToken, 10080, '/', $cookieDomain, true, true, false, 'None');
+
+} catch (JWTException $e) {
+    Log::error('Erro ao renovar token: ' . $e->getMessage());
+    Log::error('Limpando os Cookies: ' . $e->getMessage());
+    return response()->json(['message' => 'Token inválido ou expirado'], 401)
+    ->withCookie(cookie()->forget('jwt_token'))
+            ->withCookie(cookie()->forget('jwt_refresh_token'));
+
+} catch (\Throwable $e) {
+    Log::error('Erro ao atualizar token: ' . $e->getMessage());
+    Log::error('Limpando os Cookies: ' . $e->getMessage());
+    return response()->json(['message' => 'Erro interno ao atualizar token'], 500)
+        ->withCookie(cookie()->forget('jwt_token'))
+            ->withCookie(cookie()->forget('jwt_refresh_token'));
+}
+}
+
+
+/**
+ * Retorna o usuário autenticado
+ */
+public function me(Request $request): JsonResponse
+{
+    try {
+        $user = Auth::guard('api')->user();
+
+        if (!$user) {
+            return response()->json(['message' => 'Usuário não autenticado'], 401);
         }
-    }
 
-    /**
-     * Extrai o token do header Authorization
-     */
-    private function extractTokenFromHeader(?string $header): ?string
-    {
-        if (!$header || !str_starts_with($header, 'Bearer ')) return null;
-        return substr($header, 7);
-    }
+        return response()->json(['user' => $user->only(['id', 'name', 'email', 'role', 'perfil'])]);
 
-    /**
-     * Extrai o domínio raiz da URL
-     */
-    private function extractRootDomain(string $host): string
-    {
-        $hostParts = explode('.', $host);
-        $count = count($hostParts);
-        
-        // Para domínios simples como 'example.com'
-        if ($count <= 2) {
-            return $host;
-        }
-        
-        // Para subdomínios como 'tenant.alfa360.alfatecnologia.tech'
-        return implode('.', array_slice($hostParts, -2));
+    } catch (\Throwable $e) {
+        Log::error('Erro ao buscar usuário: ' . $e->getMessage());
+        return response()->json(['message' => 'Erro interno ao buscar usuário'], 500);
     }
+}
+
+/**
+ * Extrai o token do header Authorization
+ */
+private function extractTokenFromHeader(?string $header): ?string
+{
+    if (!$header || !str_starts_with($header, 'Bearer ')) return null;
+    return substr($header, 7);
+}
+
+/**
+ * Extrai o domínio raiz da URL
+ */
+private function extractRootDomain(string $host): string
+{
+    $hostParts = explode('.', $host);
+    $count = count($hostParts);
+    
+    // Para domínios simples como 'example.com'
+    if ($count <= 2) {
+        return $host;
+    }
+    
+    // Para subdomínios como 'tenant.alfa360.alfatecnologia.tech'
+    return implode('.', array_slice($hostParts, -2));
+}
 }

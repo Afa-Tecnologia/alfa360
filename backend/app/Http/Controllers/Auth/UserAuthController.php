@@ -83,11 +83,10 @@ public function signup(Request $request): JsonResponse
                 'agent' => $request->userAgent()
             ]);
 
-            // // Obtenha o domínio da solicitação atual
-            // $domain = $request->getHost();
-            // // Se for localhost, use null (comportamento padrão)
-            // $cookieDomain = str_contains($domain, 'localhost') ? null : '.'.$this->extractRootDomain($domain);
-            $cookieDomain = app()->environment('local') ? null : 'alfa360.alfatecnologia.tech';
+           // Obtenha o domínio da solicitação atual
+        $domain = $request->getHost();
+        // Se for localhost, use null (comportamento padrão)
+        $cookieDomain = str_contains($domain, 'localhost') ? null : '.'.$this->extractRootDomain($domain);
 
 
             return response()->json([

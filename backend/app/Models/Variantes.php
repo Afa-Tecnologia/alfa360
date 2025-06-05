@@ -8,7 +8,7 @@ class Variantes extends Model
 {
     
         protected $fillable = [
-            'produto_id', 'name', 'type', 'color', 'size', 'quantity', 'active', 'images'
+            'produto_id', 'name', 'type', 'color', 'size', 'quantity', 'active', 'images', 'code'
         ];
     
         protected $casts = [

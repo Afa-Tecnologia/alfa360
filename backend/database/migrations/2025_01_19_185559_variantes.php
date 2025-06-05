@@ -20,6 +20,7 @@ return new class extends Migration
             $table->string('size');
             $table->integer('quantity');
             $table->boolean('active');
+            $table->string('code')->nullable();
             $table->json('images')->nullable();
             $table->timestamps();
         });

@@ -103,9 +103,9 @@ export function SalesReceipt({ open, onOpenChange, sale }: SalesReceiptProps) {
           {/* Cabeçalho da loja */}
           <div className="text-center mb-4">
             <h2 className="text-xl font-bold">{STORE_NAME}</h2>
-            <p className="text-sm text-gray-500 dark:text-gray-300">CNPJ: {STORE_CNPJ}</p>
-            <p className="text-sm text-gray-500 dark:text-gray-300">{STORE_ADDRESS}</p>
-            <p className="text-sm text-gray-500 dark:text-gray-300">{STORE_PHONE}</p>
+            <p className="text-sm font-bold dark:text-gray-300">CNPJ: {STORE_CNPJ}</p>
+            <p className="text-sm font-bold dark:text-gray-300">{STORE_ADDRESS}</p>
+            <p className="text-sm font-bold dark:text-gray-300">{STORE_PHONE}</p>
           </div>
 
           <Separator className="my-4" />
@@ -137,7 +137,7 @@ export function SalesReceipt({ open, onOpenChange, sale }: SalesReceiptProps) {
             <div className="flex justify-between">
               <span className="text-sm font-medium">Status:</span>
               <span
-                className={`text-sm ${
+                className={`text-sm font-bold ${
                   sale.isPaid
                     ? 'text-green-600'
                     : sale.isPartial
@@ -187,7 +187,7 @@ export function SalesReceipt({ open, onOpenChange, sale }: SalesReceiptProps) {
                       <div>
                         <p>{item.productName}</p>
                         {item.vendedor && (
-                          <p className="text-xs text-gray-500 dark:text-gray-300">
+                          <p className="text-xs font-bold dark:text-gray-300">
                             Vendedor: {item.vendedor}
                           </p>
                         )}
@@ -264,7 +264,7 @@ export function SalesReceipt({ open, onOpenChange, sale }: SalesReceiptProps) {
           <Separator className="my-4" />
 
           {/* Rodapé */}
-          <div className="text-center text-xs text-gray-500 dark:text-gray-300">
+          <div className="text-center font-bold text-xs dark:text-gray-300">
             <p>Obrigado pela preferência!</p>
             <p>Este documento não possui valor fiscal</p>
           </div>

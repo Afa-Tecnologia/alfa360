@@ -8,22 +8,14 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { BarcodeLabel } from './BarcodeLabel';
+import { BarcodeLabel } from '@/components/estoquenovo/BarcodeLabel';
 import { CheckCircle } from 'lucide-react';
+import { Product } from '@/stores/productStore';
 
 interface SuccessProductDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  product: {
-    name: string;
-    code: string;
-    selling_price: number;
-    variants?: Array<{
-      id: number;
-      color: string;
-      size: string;
-    }>;
-  };
+  product: Product;
 }
 
 export function SuccessProductDialog({
@@ -52,13 +44,17 @@ export function SuccessProductDialog({
             etiqueta com o código de barras.
           </p>
 
-          <BarcodeLabel
-            productName={product.name}
-            productCode={product.code}
-            productPrice={Number(product.selling_price)}
-            productColor={firstVariant?.color}
-            productSize={firstVariant?.size}
-          />
+          {product?.variants?.map((variant, index) => (
+            <BarcodeLabel
+              key={index}
+              product={{
+                ...product,
+                name: variant.name,
+                code: `${product.code || product.id}`,
+                selling_price: variant.selling_price || product.selling_price,
+              }}
+            />
+          ))}
         </div>
 
         <DialogFooter className="sm:justify-center">

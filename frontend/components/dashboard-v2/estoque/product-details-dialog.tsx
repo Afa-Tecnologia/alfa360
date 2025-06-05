@@ -302,43 +302,30 @@ export function ProductDetailsDialog({
                 {/* Etiqueta para o produto principal */}
                 <div>
                   <h3 className="font-medium mb-2">Etiqueta do Produto</h3>
-                  <BarcodeLabel
-                    productName={product.name}
-                    productCode={product.code || ''}
-                    productPrice={
-                      typeof product.selling_price === 'string'
-                        ? parseFloat(product.selling_price)
-                        : product.selling_price
-                    }
-                  />
+
+                  <BarcodeLabel product={product} />
                 </div>
 
-                {/* Etiquetas para variantes, se existirem */}
-                {product.variants && product.variants.length > 0 && (
+                {/* Etiquetas para variantes, se existirem @TODO */}
+                {/* {product.variants && product.variants.length > 0 && (
                   <div>
                     <h3 className="font-medium mb-2">Etiquetas de Variantes</h3>
                     <div className="max-h-96 overflow-y-auto pr-2 space-y-4">
-                      {product.variants.map((variant) => (
+                      {product.variants.map((variant,index) => (
                         <BarcodeLabel
-                          key={variant.id}
-                          productName={variant.name || product.name}
-                          productCode={variant.code || product.code || ''}
-                          productPrice={
-                            variant.price
-                              ? typeof variant.price === 'string'
-                                ? parseFloat(variant.price)
-                                : variant.price
-                              : typeof product.selling_price === 'string'
-                                ? parseFloat(product.selling_price)
-                                : product.selling_price
-                          }
-                          productSize={variant.size}
-                          productColor={variant.color}
+                          key={index}
+                          product={{
+                            ...product,
+                            name: variant.name,
+                            code: `${product.code || product.id}`,
+                            selling_price:
+                              variant.selling_price || product.selling_price,
+                          }}
                         />
                       ))}
                     </div>
                   </div>
-                )}
+                )} */}
               </div>
             </div>
           </TabsContent>

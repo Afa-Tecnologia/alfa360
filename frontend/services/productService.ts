@@ -31,7 +31,7 @@ class ProductService {
    */
   async checkBarcodeExists(code: string): Promise<boolean> {
     try {
-      const response = await api.get(`/produtos/barcode-check/${code}`);
+      const response = await api.get(`/produtos/barcode/${code}`);
       return response.data.exists;
     } catch (error) {
       // Se o endpoint não existir, tentamos buscar o produto diretamente

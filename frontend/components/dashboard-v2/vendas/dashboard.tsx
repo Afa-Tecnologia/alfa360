@@ -426,14 +426,24 @@ export function VendasDashboard({
           </p>
         </div>
         <div className="flex gap-2">
-          <Button
+          {/* <Button
             variant="outline"
             size="sm"
             onClick={() => setIsScannerOpen(true)}
           >
             <Barcode className="h-4 w-4 mr-2" />
             Escanear
-          </Button>
+          </Button> */}
+
+          <EnhancedBarcodeScanner
+          onScan={handleEnhancedBarcodeScan}
+          buttonLabel="Escanear"
+          formatPrice={formatPrice}
+          onClose={() => setIsScannerOpen(false)}
+          sellers={sellers}
+          selectedSeller={selectedSeller}
+          onSellerChange={handleSellerChange}
+        />
           <Button
             variant="default"
             size="sm"
@@ -729,17 +739,9 @@ export function VendasDashboard({
       </Sheet>
 
       {/* Scanner de código de barras */}
-      {isScannerOpen && (
-        <EnhancedBarcodeScanner
-          onScan={handleEnhancedBarcodeScan}
-          buttonLabel="Escanear"
-          formatPrice={formatPrice}
-          onClose={() => setIsScannerOpen(false)}
-          sellers={sellers}
-          selectedSeller={selectedSeller}
-          onSellerChange={handleSellerChange}
-        />
-      )}
+      {/* {isScannerOpen && (
+        
+      )} */}
     </div>
   );
 }

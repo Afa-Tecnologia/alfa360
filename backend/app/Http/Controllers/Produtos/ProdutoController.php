@@ -140,7 +140,12 @@ class ProdutoController extends Controller
         $produto = $this->produtoService->findByBarcode($code);
         
         if (!$produto) {
-            return response()->json(['error' => 'Produto não encontrado com este código de barras'], Response::HTTP_NOT_FOUND);
+            // Se não encontrar o produto, tenta encontrar uma variante pelo código de barras
+            $variante = $this->produtoService->findVarianteByBarcode($code);
+            if ($variante) {
+                return ApiResponseService::json($variante, Response::HTTP_OK);
+            }
+            return response()->json(['error' => 'Produto não encontrado com este código de barras']);
         }
         
         return ApiResponseService::json($produto, Response::HTTP_OK);

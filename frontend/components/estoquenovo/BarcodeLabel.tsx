@@ -5,109 +5,148 @@ import JsBarcode from 'jsbarcode';
 import { Button } from '@/components/ui/button';
 import { Printer } from 'lucide-react';
 
-interface BarcodeLabelProps {
-  productName: string;
-  productCode: string;
-  productPrice: number;
-  productSize?: string;
-  productColor?: string;
+interface Variant {
+  id: number;
+  name: string;
+  color: string;
+  size: string;
+  stock: number;
+  quantity: number;
+  images: string[];
 }
 
-export function BarcodeLabel({
-  productName,
-  productCode,
-  productPrice,
-  productSize,
-  productColor,
-}: BarcodeLabelProps) {
-  const barcodeRef = useRef<SVGSVGElement>(null);
+interface Product {
+  id?: number | string;
+  name: string;
+  code?: string;
+  selling_price: number | string;
+  variants: Variant[];
+}
 
-  // Formata o preço para moeda brasileira
-  const formattedPrice = new Intl.NumberFormat('pt-BR', {
-    style: 'currency',
-    currency: 'BRL',
-  }).format(productPrice);
+interface BarcodeLabelProps {
+  product: Product;
+}
+
+export function BarcodeLabel({ product }: BarcodeLabelProps) {
+  const barcodeRefs = useRef<(SVGSVGElement | null)[]>([]);
 
   useEffect(() => {
-    if (barcodeRef.current && productCode) {
-      try {
-        JsBarcode(barcodeRef.current, productCode, {
+    product.variants.forEach((variant, index) => {
+      const svg = barcodeRefs.current[index];
+      if (svg) {
+        const code = `${product.code || product.id}`;
+        JsBarcode(svg, code, {
           format: 'CODE128',
-          width: 2,
-          height: 50,
+          width: 1.1,
+          height: 30,
           displayValue: true,
-          fontSize: 14,
-          margin: 10,
+          fontSize: 9,
+          margin: 0,
+          textMargin: 2,
+          fontOptions: 'bold',
         });
-      } catch (error) {
-        console.error('Erro ao gerar código de barras:', error);
       }
-    }
-  }, [productCode]);
+    });
+  }, [product]);
 
   const handlePrint = () => {
-    const printContent = document.getElementById('barcode-label');
-    if (!printContent) return;
-
     const printWindow = window.open('', '_blank');
     if (!printWindow) {
-      alert('Por favor, permita pop-ups para imprimir a etiqueta.');
+      alert('Permita pop-ups para imprimir.');
       return;
     }
+
+    const labelContent = product.variants ? 
+    product.variants.map((variant, index) => {
+        const code = `${product.code || product.id}-${variant.id}`;
+        const info = [variant.color, variant.size].filter(Boolean).join(' | ');
+
+        return `
+          <div class="label">
+            <div class="product-name">${truncate(product.name)}</div>
+            ${info ? `<div class="product-info">
+              ${truncate(product.name)} <br/>| ${info}</div>` : ''}
+            <div class="barcode">
+              ${barcodeRefs.current[index]?.outerHTML || ''}
+            </div>
+            <div class="product-price">${formatPrice(product.selling_price)}</div>
+          </div>
+        `;
+      })
+      .join('') : '';
 
     printWindow.document.write(`
       <html>
         <head>
-          <title>Etiqueta - ${productName}</title>
+          <title>Etiquetas</title>
           <style>
-            body {
-              font-family: Arial, sans-serif;
-              margin: 0;
-              padding: 0;
-            }
-            .label-container {
-              width: 300px;
-              border: 1px solid #ddd;
-              padding: 10px;
-              margin: 10px auto;
-              box-sizing: border-box;
-            }
-            .product-name {
-              font-size: 14px;
-              font-weight: bold;
-              margin-bottom: 5px;
-            }
-            .product-info {
-              font-size: 12px;
-              margin-bottom: 5px;
-            }
-            .product-price {
-              font-size: 16px;
-              font-weight: bold;
-              margin-top: 5px;
-            }
-            svg {
-              max-width: 100%;
-            }
-            @media print {
               body {
-                width: 100%;
                 margin: 0;
                 padding: 0;
+                font-family: Arial, sans-serif;
               }
-              .label-container {
-                page-break-inside: avoid;
-                border: none;
+              .page {
+                display: grid;
+                grid-template-columns: repeat(3, 32mm);
+                gap: 0;
               }
-              .print-button {
-                display: none;
+                
+              .label {
+                width: 32mm;
+                height: 25mm;
+                display: flex;
+                flex-direction: column;
+                justify-content: space-between;
+                align-items: center;
+                padding: 3mm;
+                box-sizing: border-box;
+                border: 1px solid #ccc;
               }
-            }
-          </style>
+              .product-name {
+                font-size: 8px;
+                font-weight: bold;
+                text-align: center;
+                line-height: 1;
+              }
+              .product-info {
+                font-size: 8px;
+                font-weight: bold;
+                text-align: center;
+                line-height: 1;
+              }
+              .barcode {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                width: 100%;
+                max-height: 12mm;
+              }
+              .barcode svg {
+                max-width: 100%;
+                height: auto;
+                max-height: 12mm;
+              }
+              .product-price {
+                font-size: 8px;
+                font-weight: bold;
+                text-align: center;
+                line-height: 1;
+              }
+              @media print {
+                @page {
+                size: 96mm 25mm;
+                margin: 0;
+              }
+                .label {
+                  page-break-inside: avoid;
+                  border: none;
+                }
+              }
+            </style>
         </head>
         <body>
-          <div class="label-container">
-            ${printContent.innerHTML}
+          <div class="page">
+            ${labelContent}
           </div>
           <script>
             window.onload = function() {
@@ -122,30 +161,67 @@ export function BarcodeLabel({
     printWindow.document.close();
   };
 
+  const formatPrice = (price: string | number) => {
+    const number = Number(price);
+    if (isNaN(number)) return 'R$ 0,00';
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL',
+    }).format(number);
+  };
+
+  const truncate = (name: string) =>
+    name.length > 14 ? name.substring(0, 15) + '...' : name;
+
   return (
-    <div className="max-w-xs border rounded-md p-4">
-      <div id="barcode-label">
-        <div className="text-center mb-1 font-bold text-sm">{productName}</div>
-        {(productSize || productColor) && (
-          <div className="text-center mb-2 text-xs text-gray-600">
-            {productColor && `Cor: ${productColor}`}
-            {productSize && productColor && ' | '}
-            {productSize && `Tam: ${productSize}`}
-          </div>
-        )}
-        <div className="flex justify-center">
-          <svg ref={barcodeRef}></svg>
-        </div>
-        <div className="text-center mt-2 font-bold">{formattedPrice}</div>
+    <div className="flex flex-col items-center space-y-4">
+      <div className="grid grid-cols-3 gap-4">
+        {product.variants.map((variant, index) => {
+          const code = `${product.code || product.id}`;
+          const info = [variant.color, variant.size]
+            .filter(Boolean)
+            .join(' | ');
+
+          return (
+            <div
+              key={code}
+              className="border border-gray-300 p-2 flex flex-col justify-between items-center"
+              style={{
+                width: '32mm',
+                height: '25mm',
+              }}
+            >
+              <div className="text-[7px] font-bold text-center">
+                {truncate(product.name)}
+              </div>
+              {info && (
+                <div className="text-[6px] text-gray-600 text-center">
+                  {info}
+                </div>
+              )}
+              <div className="flex-1 flex items-center justify-center w-full">
+                <svg
+                  ref={(el) => {
+                    barcodeRefs.current[index] = el;
+                  }}
+                />
+              </div>
+              <div className="text-[8px] font-bold">
+                {formatPrice(product.selling_price)}
+              </div>
+            </div>
+          );
+        })}
       </div>
-      <div className="flex justify-center mt-4">
+
+      <div className="flex mt-4">
         <Button
-          type="button"
           onClick={handlePrint}
+          size="sm"
           className="flex items-center gap-2"
         >
           <Printer size={16} />
-          Imprimir Etiqueta
+          Imprimir
         </Button>
       </div>
     </div>

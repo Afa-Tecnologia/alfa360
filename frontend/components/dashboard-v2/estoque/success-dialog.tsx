@@ -35,13 +35,7 @@ export function SuccessDialog({ open, onClose, product }: SuccessDialogProps) {
         <div className="py-6">
           <div className="flex flex-col items-center">
             <BarcodeLabel
-              productName={product.name}
-              productCode={product.code || ''}
-              productPrice={
-                typeof product.selling_price === 'string'
-                  ? parseFloat(product.selling_price)
-                  : product.selling_price
-              }
+              product={product}
             />
 
             <p className="text-sm text-muted-foreground mt-4 text-center">

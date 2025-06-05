@@ -2,6 +2,7 @@
 namespace App\Services\Produtos;
 
 use App\Models\Produto;
+use App\Models\Variantes;
 use App\Services\Variantes\VariantesService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -111,6 +112,13 @@ class ProdutoService
     public function findByBarcode($code)
     {
         return Produto::with('variants')
+            ->where('code', $code)
+            ->first();
+    }
+
+    public function findVarianteByBarcode($code)
+    {
+        return Variantes::with('produto')
             ->where('code', $code)
             ->first();
     }

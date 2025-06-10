@@ -145,12 +145,12 @@ export function ProductDetailsDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-[600px] max-h-[90vh] flex flex-col">
+      <DialogContent className="sm:max-w-[600px] max-h-[90vh] flex flex-col ">
         <DialogHeader>
           <DialogTitle className="text-xl">{product.name}</DialogTitle>
         </DialogHeader>
 
-        <ScrollArea className="pr-4 max-h-[calc(90vh-220px)]">
+        <ScrollArea className="pr-4 max-h-[calc(90vh-220px)] overflow-y-auto">
           <div className="space-y-6">
             <div className="grid md:grid-cols-2 gap-6">
               <div className="relative aspect-square bg-muted rounded-md overflow-hidden">

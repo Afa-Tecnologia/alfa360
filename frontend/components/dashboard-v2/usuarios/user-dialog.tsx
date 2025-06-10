@@ -223,7 +223,7 @@ export function UserDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[550px]">
+      <DialogContent className="sm:max-w-[550px] overflow-y-auto max-h-[90vh]">
         <DialogHeader>
           <DialogTitle>
             {isEditing ? 'Editar Usuário' : 'Novo Usuário'}
@@ -338,7 +338,7 @@ export function UserDialog({
             </div>
           </div>
 
-          <DialogFooter>
+          <DialogFooter className='flex gap-2'>
             <Button
               type="button"
               variant="outline"

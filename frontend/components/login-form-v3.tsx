@@ -82,7 +82,7 @@ export function LoginFormV3({
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className={cn('w-full max-w-md', className)}
+      className="w-full "
     >
       <div className="rounded-2xl border border-border/50 bg-card p-6 backdrop-blur shadow-xl">
         <form onSubmit={handleSubmit(onSubmit)}>
@@ -122,7 +122,7 @@ export function LoginFormV3({
                       type="email"
                       placeholder="seuemail@gmail.com"
                       className={cn(
-                        'pl-10 h-12 text-base bg-muted/50',
+                        'pl-10 h-12 text-base bg-muted/50 ',
                         errors.email &&
                           'border-red-500 focus-visible:ring-red-500'
                       )}
@@ -164,12 +164,15 @@ export function LoginFormV3({
                   transition={{ duration: 0.2 }}
                   className="space-y-6"
                 >
-                  <div className="flex items-center space-x-4 p-3 rounded-lg bg-muted/50">
-                    <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+                  <div className="flex  items-center p-3 gap-3 rounded-lg bg-muted/50">
+                    <div className="h-11 w-11 rounded-full  bg-primary/10 flex items-center justify-center text-primary">
                       {email.charAt(0).toUpperCase()}
                     </div>
                     <div>
-                      <div className="text-sm font-medium">{email}</div>
+                      <div
+                        className=" text-sm font-medium  max-w-[200px] truncate sm:max-w-none sm:truncate-0">
+                        {email}
+                      </div>
                     </div>
                   </div>
 
@@ -182,7 +185,7 @@ export function LoginFormV3({
                       type="password"
                       placeholder="Sua senha"
                       className={cn(
-                        'pl-10 h-12 text-base bg-muted/50',
+                        'pl-10 h-12 text-base bg-muted/50 ',
                         errors.password &&
                           'border-red-500 focus-visible:ring-red-500'
                       )}

@@ -2,10 +2,12 @@
 
 namespace App\Models;
 
+use App\Traits\TenantAware;
 use Illuminate\Database\Eloquent\Model;
 
 class TipoDeNegocios extends Model
 {
+    protected $table = 'tipos_de_negocios';
     protected $fillable = [
         'nome',
         'descricao',

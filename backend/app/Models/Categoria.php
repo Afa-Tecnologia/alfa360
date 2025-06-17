@@ -2,12 +2,13 @@
 
 namespace App\Models;
 
+use App\Traits\TenantAware;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Categoria extends Model
 {
-    use HasFactory;
+    use HasFactory, TenantAware;
 
     protected $fillable = [
         'name',

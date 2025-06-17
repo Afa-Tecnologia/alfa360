@@ -14,7 +14,7 @@ class ConfigDoNegocioService
      */
     public function getAll(): Collection
     {
-        return ConfigDoNegocio::with('tipoDeNegocio')->get();
+        return ConfigDoNegocio::with('tiposDeNegocios')->get();
     }
 
     /**
@@ -25,7 +25,7 @@ class ConfigDoNegocioService
      */
     public function getById(int $id): ?ConfigDoNegocio
     {
-        return ConfigDoNegocio::with('tipoDeNegocio')->find($id);
+        return ConfigDoNegocio::with('tiposDeNegocios')->find($id);
     }
 
     /**
@@ -55,7 +55,7 @@ class ConfigDoNegocioService
         }
 
         $configDoNegocio->update($data);
-        return $configDoNegocio->fresh('tipoDeNegocio');
+        return $configDoNegocio->fresh('tiposDeNegocios');
     }
 
     /**

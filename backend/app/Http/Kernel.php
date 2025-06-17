@@ -3,6 +3,7 @@
 namespace App\Http;
 
 use App\Http\Middleware\ComissionsMiddleware;
+use App\Models\Tenant;
 use Illuminate\Foundation\Http\Kernel as HttpKernel;
 use Illuminate\Http\Middleware\TrustProxies;
 
@@ -24,6 +25,7 @@ class Kernel extends HttpKernel
         \Illuminate\Session\Middleware\StartSession::class,
         \Illuminate\View\Middleware\ShareErrorsFromSession::class,
         \Illuminate\Routing\Middleware\SubstituteBindings::class,
+        \App\Http\Middleware\TenantResolver::class,
     ];
 
     /**
@@ -68,6 +70,7 @@ class Kernel extends HttpKernel
         'signed' => \Illuminate\Routing\Middleware\ValidateSignature::class,
         'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
         'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
+        'tenant' => \App\Http\Middleware\TenantResolver::class,
     ];
 
     /**
@@ -90,5 +93,6 @@ class Kernel extends HttpKernel
         'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
         'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
         'jwt.auth' => \App\Http\Middleware\JwtMiddleware::class,
+        'tenant' => \App\Http\Middleware\TenantResolver::class,
     ];
 }

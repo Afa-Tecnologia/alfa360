@@ -24,7 +24,7 @@ class StoreConfigDoNegocioRequest extends FormRequest
         return [
             'nome' => 'required|string|max:100',
             'logo_url' => 'nullable|string|max:255',
-            'tipo_de_negocio_id' => 'required|exists:tipo_de_negocio,id',
+            'tipos_de_negocios_id' => 'required|exists:tipos_de_negocios,id',
         ];
     }
 
@@ -41,8 +41,8 @@ class StoreConfigDoNegocioRequest extends FormRequest
             'nome.max' => 'O campo nome deve ter no máximo 100 caracteres.',
             'logo_url.string' => 'O campo logo_url deve ser uma string.',
             'logo_url.max' => 'O campo logo_url deve ter no máximo 255 caracteres.',
-            'tipo_de_negocio_id.required' => 'O campo tipo de negócio é obrigatório.',
-            'tipo_de_negocio_id.exists' => 'O tipo de negócio selecionado não existe.',
+            'tipos_de_negocios_id.required' => 'O campo tipo de negócio é obrigatório.',
+            'tipos_de_negocios_id.exists' => 'O tipo de negócio selecionado não existe.',
         ];
     }
 } 

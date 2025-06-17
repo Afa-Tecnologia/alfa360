@@ -30,7 +30,7 @@ class CategoriasController extends Controller
         try {
             $data = $request->validate(
                 [
-                    'name' => 'required|string|max:45|unique:categorias,name',
+                    'name' => 'required|string|max:45',
                     'description' => 'required|string',
                     'active' => 'required|boolean',
                 ],

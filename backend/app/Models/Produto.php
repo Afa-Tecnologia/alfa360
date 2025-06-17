@@ -2,10 +2,13 @@
 
 namespace App\Models;
 
+use App\Traits\TenantAware;
 use Illuminate\Database\Eloquent\Model;
 
 class Produto extends Model
 {
+    use TenantAware;
+    
     protected $fillable = [
         'name',
         'description',

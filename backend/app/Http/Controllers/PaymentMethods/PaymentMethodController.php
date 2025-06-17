@@ -24,13 +24,20 @@ class PaymentMethodController extends Controller
 
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'code' => 'required|string|max:255|unique:pagamento_metodos',
-        ]);
-
-        $paymentMethod = $this->paymentMethodService->create($validated);
-        return response()->json($paymentMethod, Response::HTTP_CREATED);
+        try {
+            $validated = $request->validate([
+                'name' => 'required|string|max:255',
+                'code' => 'required|string|max:255',
+            ]);
+    
+            $paymentMethod = $this->paymentMethodService->create($validated);
+            return response()->json($paymentMethod, Response::HTTP_CREATED);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Erro ao criar método de pagamento',
+                'message' => $e->getMessage(),
+            ]);
+        }
     }
 
     public function show($id)
@@ -43,7 +50,8 @@ class PaymentMethodController extends Controller
     {
         $validated = $request->validate([
             'name' => 'sometimes|required|string|max:255',
-            'code' => 'sometimes|required|string|max:255|unique:pagamento_metodos,code,' . $id,
+            'code' => 'sometimes|required|string|max:255',
+            
         ]);
 
         $paymentMethod = $this->paymentMethodService->update($id, $validated);

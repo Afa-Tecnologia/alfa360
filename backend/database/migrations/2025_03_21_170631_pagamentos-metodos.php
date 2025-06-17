@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('pagamento_metodos', function (Blueprint $table) {
             $table->id();
-            $table->string('code')->unique();       // ex: PIX, CREDIT_CARD
+            $table->string('code');       // ex: PIX, CREDIT_CARD
             $table->string('name');
             $table->json('config')->nullable();     // credenciais, URLs, fees...
             $table->timestamps();

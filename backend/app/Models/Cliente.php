@@ -2,13 +2,14 @@
 
 namespace App\Models;
 
+use App\Traits\TenantAware;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Cliente extends Model
 {
 
-    use HasFactory;
+    use HasFactory, TenantAware;
 
     protected $fillable = [
 

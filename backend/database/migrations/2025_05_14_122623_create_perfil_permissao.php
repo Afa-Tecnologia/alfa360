@@ -11,15 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('config_do_negocios', function (Blueprint $table) {
+        Schema::create('perfil_permissao', function (Blueprint $table) {
             $table->id();
-            $table->string('nome');
-            $table->string('logo_url')->nullable();
-            $table->string('cnpj')->nullable();
-            $table->foreignId('tipos_de_negocios_id')->constrained('tipos_de_negocios')->nullable();
+            $table->foreignUuid('perfil_id')->constrained('perfis')->onDelete('cascade');
+            $table->foreignUuid('permissao_id')->constrained('permissoes')->onDelete('cascade');
+            $table->index(['perfil_id', 'permissao_id']);
+            $table->primary(['perfil_id', 'permissao_id']);
             $table->timestamps();
             $table->softDeletes();
-
         });
     }
 
@@ -28,6 +27,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('config_do_negocios');
+        Schema::dropIfExists('perfil_permissao');
     }
-}; 
+};

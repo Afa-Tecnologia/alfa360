@@ -11,11 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('tipo_de_negocios', function (Blueprint $table) {
+        Schema::create('tipos_de_negocios', function (Blueprint $table) {
             $table->id();
-            $table->string('nome')->unique();
+            $table->string('nome');
             $table->text('descricao')->nullable();
             $table->boolean('ativo')->default(true);
+            $table->uuid('tenant_id')->index()->nullable(); // Adicionando tenant_id para multitenancy
             $table->timestamps();
         });
     }
@@ -25,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('tipo_de_negocios');
+        Schema::dropIfExists('tipos_de_negocios');
     }
 }; 

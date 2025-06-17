@@ -2,12 +2,14 @@
 
 namespace App\Models;
 
+use App\Traits\TenantAware;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 
 class PagamentoMetodo extends Model
 {
+    use TenantAware;
     protected $table = 'pagamento_metodos';
     protected $casts = ['config' => 'array'];
     protected $fillable = [

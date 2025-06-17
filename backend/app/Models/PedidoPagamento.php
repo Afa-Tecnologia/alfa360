@@ -1,10 +1,13 @@
 <?php
 namespace App\Models;
 
+use App\Traits\TenantAware;
 use Illuminate\Database\Eloquent\Model;
 
 class PedidoPagamento extends Model
 {
+    use TenantAware;
+    
     const STATUS_PENDING = 'PENDING';
     const STATUS_AUTHORIZED = 'AUTHORIZED';
     const STATUS_CAPTURED = 'CAPTURED';

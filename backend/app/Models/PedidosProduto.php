@@ -1,10 +1,12 @@
 <?php
 namespace App\Models;
 
+use App\Traits\TenantAware;
 use Illuminate\Database\Eloquent\Model;
 
 class PedidosProduto extends Model
 {
+    use TenantAware;
     // Especifique o nome da tabela, caso ela não siga a convenção do Laravel
     protected $table = 'pedidos_produtos';
 

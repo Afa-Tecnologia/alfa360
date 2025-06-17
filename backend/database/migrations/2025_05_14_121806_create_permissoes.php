@@ -11,12 +11,15 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('tipo_de_produto', function (Blueprint $table) {
+        Schema::create('permissoes', function (Blueprint $table) {
             $table->id();
+            $table->uuid('uuid')->index()->unique();
             $table->string('nome');
+            $table->string('slug')->unique();
             $table->text('descricao')->nullable();
             $table->boolean('ativo')->default(true);
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 
@@ -25,6 +28,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('tipo_de_produto');
+        Schema::dropIfExists('permissoes');
     }
 };

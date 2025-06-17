@@ -10,6 +10,7 @@ import {
   MoreVertical,
   AlertTriangle,
   CheckCircle,
+  Eye,
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -32,14 +33,14 @@ interface Product {
   // Adicione outros campos conforme necessário
 }
 interface ProductCardsProps {
-  products: Product[]
-  loading: boolean
-  onViewDetails: (product: Product) => void
-  onEditProduct: (product: Product) => void
-  onDeleteProduct: (productId: number) => void
-  onBulkDelete?: (productIds: (number | string)[]) => void
-  onBulkDeleteConfirm?: (productIds: (number | string)[]) => void
-  formatCurrency: (value: number) => string
+  products: Product[];
+  loading: boolean;
+  onViewDetails: (product: Product) => void;
+  onEditProduct: (product: Product) => void;
+  onDeleteProduct: (productId: number) => void;
+  onBulkDelete?: (productIds: (number | string)[]) => void;
+  onBulkDeleteConfirm?: (productIds: (number | string)[]) => void;
+  formatCurrency: (value: number) => string;
 }
 
 export function ProductCards({
@@ -74,16 +75,15 @@ export function ProductCards({
     if (selectedIds.length > 0) {
       // Se tem onBulkDeleteConfirm, usa o modal
       if (onBulkDeleteConfirm) {
-        onBulkDeleteConfirm(selectedIds)
+        onBulkDeleteConfirm(selectedIds);
       }
       // Senão usa o método direto (compatibilidade)
       else if (onBulkDelete) {
-        onBulkDelete(selectedIds)
-        setSelectedIds([])
+        onBulkDelete(selectedIds);
+        setSelectedIds([]);
       }
     }
-  }
-
+  };
 
   const getStockStatus = (quantity: number | string) => {
     const qty = Number(quantity);
@@ -156,7 +156,9 @@ export function ProductCards({
             <div className="flex items-center space-x-2">
               <Checkbox
                 id="select-all"
-                checked={selectedIds.length === products.length && products.length > 0}
+                checked={
+                  selectedIds.length === products.length && products.length > 0
+                }
                 onCheckedChange={handleSelectAll}
               />
               <label htmlFor="select-all" className="text-sm font-medium">
@@ -192,26 +194,30 @@ export function ProductCards({
             return (
               <Card
                 key={product.id}
-                className={`w-full transition-all duration-200 cursor-pointer ${
+                className={`w-full transition-all duration-200  ${
                   selectedIds.includes(product.id)
                     ? 'ring-2 ring-emerald-500 bg-emerald-50 dark:bg-emerald-950'
                     : 'hover:shadow-md'
                 }`}
-                onClick={() => onViewDetails(product)}
               >
                 <CardHeader className="pb-3">
                   <div className="flex items-start justify-between ">
                     <div className="flex items-center gap-3 flex-1">
                       <Checkbox
                         checked={selectedIds.includes(product.id)}
-                        onCheckedChange={(checked) => handleSelectItem(product.id, checked as boolean)}
+                        onCheckedChange={(checked) =>
+                          handleSelectItem(product.id, checked as boolean)
+                        }
                         onClick={(e) => e.stopPropagation()}
                       />
                       <div className="flex flex-col">
-                        <CardTitle className="pb-2 font-semibold flex items-center gap-2">
+                        <CardTitle className="pb-2 font-semibold flex items-center gap-2 overflow-hidden">
                           <Package className="h-4 w-4 text-emerald-600 flex-shrink-0" />
-                          <span className="text-medium truncate">{product.name}</span>
+                          <span className="truncate sm:max-w-[10rem] lg:max-w-none sm:block lg:whitespace-normal">
+                            {product.name}
+                          </span>
                         </CardTitle>
+
                         <div className="flex gap-3">
                           <p className="text-sm text-gray-500 truncate mt-1">
                             {product.brand}
@@ -261,51 +267,41 @@ export function ProductCards({
                     </div>
                   </div>
 
-                  <div className="flex gap-2 pt-2">
+                  <div className="flex justify-end gap-2  pt-2 border-t">
                     <Button
-                      size="sm"
                       variant="outline"
+                      size="sm"
+                      className="h-8"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onViewDetails(product);
+                      }}
+                    >
+                      <Eye className="h-4 w-4" />
+                      <span className="text-xs">Detalhes</span>
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-8 w-8 p-0"
                       onClick={(e) => {
                         e.stopPropagation();
                         onEditProduct(product);
                       }}
-                      className="flex-1"
                     >
-                      <Edit className="h-3 w-3 mr-1" />
-                      Editar
+                      <Edit className="h-3 w-3 " />
                     </Button>
-
-                    <DropdownMenu>
-                      <DropdownMenuTrigger
-                        asChild
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <Button size="sm" variant="outline" className="px-3">
-                          <MoreVertical className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onEditProduct(product);
-                          }}
-                        >
-                          <Edit className="mr-2 h-4 w-4" />
-                          Editar
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          className="text-red-600"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onDeleteProduct(product.id as number);
-                          }}
-                        >
-                          <Trash2 className="mr-2 h-4 w-4" />
-                          Excluir
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-8 w-8 p-0 text-red-600 hover:text-red-600 hover:bg-red-50"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onDeleteProduct(product.id as number);
+                      }}
+                    >
+                      <Trash2 className=" h-4 w-4" />
+                    </Button>
                   </div>
                 </CardContent>
               </Card>

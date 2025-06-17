@@ -4,6 +4,7 @@ import { ArrowDownUp, Edit, MoreVertical, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { ProductEstoque } from "@/types/product"
 
 interface Product {
   id: number | string
@@ -17,7 +18,7 @@ interface ProductTableProps {
   products: Product[]
   sortField: string
   sortOrder: "asc" | "desc"
-  onSort: (field: string) => void
+  onSort: (field: keyof ProductEstoque) => void
   onViewDetails: (product: Product) => void
   onEditProduct: (product: Product) => void
   onDeleteProduct: (productId: number) => void
@@ -67,6 +68,8 @@ export function ProductTable({
               <TableHead className="cursor-pointer min-w-[120px]" onClick={() => onSort("selling_price")}>
                 <div className="flex items-center">
                   Preço
+
+
                   {sortField === "selling_price" && (
                     <ArrowDownUp className={`ml-1 h-3 w-3 ${sortOrder === "desc" ? "rotate-180" : ""}`} />
                   )}

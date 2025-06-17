@@ -100,8 +100,7 @@ export function SidebarNavigation({
 }: SidebarNavigationProps) {
   const pathname = usePathname();
   const [user, setUser] = useState<UserType | null>(null);
-  const router = useRouter();
-  const deleteAuthStorage = useAuthStore((state) => state.deleteAuthStorage);
+
 
   // Buscar dados do usuário
   useEffect(() => {

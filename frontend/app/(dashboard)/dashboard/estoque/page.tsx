@@ -1,300 +1,145 @@
-"use client"
+'use client';
 
-import { useState, useEffect } from "react"
-import { Package, Search, Plus, FileDown, ListMinus, GalleryVerticalEnd, LayoutGrid } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { ProductStatsCard } from "@/components/dashboard-v2/estoque/product-stats-card"
-import { ProductFormDialog } from "@/components/dashboard-v2/estoque/product-form-dialog"
-import { ProductDetailsDialog } from "@/components/dashboard-v2/estoque/product-details-dialog"
-import type { Product } from "@/stores/productStore"
-import { useToast } from "@/components/ui/use-toast"
-import { api } from "@/app/api/api"
-import { BarcodeScanner } from "@/components/Reusable/BarcodeScanner"
-import { DeleteConfirmDialog } from "@/components/dashboard-v2/estoque/delete-confirm-dialog"
-import { ProductCards } from "@/components/dashboard-v2/estoque/ProductEstoqueCards"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { ProductTable } from "@/components/dashboard-v2/estoque/ProductEstoqueTable"
-import { ProductTableSkeleton } from "@/components/dashboard-v2/estoque/ProductTableSkeleton"
-import { BulkDeleteConfirmDialog } from "@/components/dashboard-v2/estoque/BulkDeleteConfirmDialog"
+import { Package, ListMinus, LayoutGrid } from 'lucide-react';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
-// Tipo local para garantir compatibilidade
-interface LocalProduct {
-  id: number | string
-  name: string
-  brand: string
-  quantity: number | string
-  selling_price: number
-  purchase_price?: number
-  categoria_id?: number
-  code?: string
-}
+// Services and utilities
+import { ProductCalculator, CurrencyFormatter } from '@/utils/productUtils';
+
+// Hooks
+import { useProducts } from '@/hooks/useProductsEstoque';
+import { useProductFilters } from '@/hooks/useProductFiltersEstoques';
+import { useProductModalsEstoque } from '@/hooks/useProductModalsEstoque';
+
+import { ProductStatsCard } from '@/components/dashboard-v2/estoque/product-stats-card';
+import { ProductCards } from '@/components/dashboard-v2/estoque/ProductEstoqueCards';
+import { ProductFormDialog } from '@/components/dashboard-v2/estoque/product-form-dialog';
+import { ProductDetailsDialog } from '@/components/dashboard-v2/estoque/product-details-dialog';
+import { DeleteConfirmDialog } from '@/components/dashboard-v2/estoque/delete-confirm-dialog';
+import { BulkDeleteConfirmDialog } from '@/components/dashboard-v2/estoque/BulkDeleteConfirmDialog';
+import { ProductTableSkeleton } from '@/components/dashboard-v2/estoque/ProductTableSkeleton';
+
+import { ProductServiceEstoque } from '@/services/products/productEstoqueService';
+import { ProductFilters } from '@/components/dashboard-v2/estoque/ProductFilters';
+import { ProductPageHeader } from '@/components/dashboard-v2/estoque/ProductPageHeader';
+import { ProductTable } from '@/components/dashboard-v2/estoque/ProductEstoqueTable';
+import { Product } from '@/types/product';
+
+// Dependency injection - seguindo DIP
+const productService = new ProductServiceEstoque();
 
 export default function EstoquePage() {
-  const [isLoading, setIsLoading] = useState(true)
-  const [products, setProducts] = useState<Product[]>([])
-  const [filteredProducts, setFilteredProducts] = useState<Product[]>([])
-  const [searchTerm, setSearchTerm] = useState("")
-  const [filterCategory, setFilterCategory] = useState("all")
-  const [categories, setCategories] = useState<{ id: number; name: string }[]>([])
-  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc")
-  const [sortField, setSortField] = useState<keyof Product>("name")
+  // Custom hooks para separar responsabilidades
+  const {
+    products,
+    categories,
+    isLoading,
+    deleteProduct,
+    deleteProducts,
+    refreshProducts,
+  } = useProducts(productService);
 
-  // Dialogs state
-  const [isFormOpen, setIsFormOpen] = useState(false)
-  const [isDetailsOpen, setIsDetailsOpen] = useState(false)
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
-  const [productToDelete, setProductToDelete] = useState<number | null>(null)
-  const [isDeleting, setIsDeleting] = useState(false)
- // Bulk delete state
-  const [isBulkDeleteDialogOpen, setIsBulkDeleteDialogOpen] = useState(false)
-  const [bulkDeleteIds, setBulkDeleteIds] = useState<(number | string)[]>([])
-  const [isBulkDeleting, setIsBulkDeleting] = useState(false)
+  const {
+    filters,
+    filteredProducts,
+    updateSearchTerm,
+    updateCategory,
+    updateSort,
+    clearFilters,
+  } = useProductFilters(products);
 
-  const { toast } = useToast()
+  const {
+    isFormOpen,
+    isDetailsOpen,
+    isDeleteDialogOpen,
+    isBulkDeleteDialogOpen,
+    selectedProduct,
+    productToDelete,
+    bulkDeleteIds,
+    isDeleting,
+    isBulkDeleting,
+    openForm,
+    closeForm,
+    openDetails,
+    closeDetails,
+    openDeleteDialog,
+    closeDeleteDialog,
+    openBulkDeleteDialog,
+    closeBulkDeleteDialog,
+    setIsDeleting,
+    setIsBulkDeleting,
+  } = useProductModalsEstoque();
 
-  // Função para converter Product para LocalProduct
-  const convertToLocalProduct = (product: Product): LocalProduct => ({
-    id: product.id || 0,
-    name: product.name || "",
-    brand: product.brand || "",
-    quantity: product.quantity || 0,
-    selling_price: Number(product.selling_price || 0),
-    purchase_price: Number(product.purchase_price || 0),
-    categoria_id: Number(product.categoria_id), 
-    code: product.code,
-  })
+  // Cálculos usando utility class
+  const stats = ProductCalculator.calculateStats(products);
+  const localProducts = filteredProducts.map(
+    ProductCalculator.convertToLocalProduct
+  );
 
-  // Fetch products data
-  useEffect(() => {
-    const fetchProducts = async () => {
-      setIsLoading(true)
-      try {
-        const response = await api.get("/produtos")
-        setProducts(response.data)
-        setFilteredProducts(response.data)
-      } catch (error) {
-        console.error("Error fetching products:", error)
-        toast({
-          title: "Erro",
-          description: "Não foi possível carregar os produtos",
-          variant: "destructive",
-        })
-      } finally {
-        setIsLoading(false)
-      }
-    }
-
-    const fetchCategories = async () => {
-      try {
-        const response = await api.get("/categorias")
-        setCategories(response.data)
-      } catch (error) {
-        console.error("Error fetching categories:", error)
-      }
-    }
-
-    fetchProducts()
-    fetchCategories()
-  }, [toast])
-
-  // Filter products based on search term and category
-  useEffect(() => {
-    let result = [...products]
-
-    if (searchTerm) {
-      result = result.filter(
-        (product) =>
-          product.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          product.brand?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          product.code?.toLowerCase().includes(searchTerm.toLowerCase()),
-      )
-    }
-
-    if (filterCategory && filterCategory !== "all") {
-      result = result.filter((product) => product.categoria_id?.toString() === filterCategory)
-    }
-
-    // Apply sorting
-    result = result.sort((a, b) => {
-      const fieldA = a[sortField]
-      const fieldB = b[sortField]
-
-      if (typeof fieldA === "string" && typeof fieldB === "string") {
-        return sortOrder === "asc" ? fieldA.localeCompare(fieldB) : fieldB.localeCompare(fieldA)
-      } else {
-        const numA = Number(fieldA) || 0
-        const numB = Number(fieldB) || 0
-        return sortOrder === "asc" ? numA - numB : numB - numA
-      }
-    })
-
-    setFilteredProducts(result)
-  }, [searchTerm, filterCategory, products, sortOrder, sortField])
-
-  // Calculate statistics
-  const getStats = () => {
-    const totalProducts = products.length
-    const totalValue = products.reduce(
-      (acc, product) => acc + (Number(product.purchase_price) || 0) * (Number(product.quantity) || 0),
-      0,
-    )
-    const lowStock = products.filter((product) => Number(product.quantity) < 5).length
-    const outOfStock = products.filter((product) => Number(product.quantity) === 0).length
-
-    return { totalProducts, totalValue, lowStock, outOfStock }
-  }
-
-  const stats = getStats()
-
-  // Handle product actions
-  const handleViewDetails = (product: LocalProduct) => {
-    // Encontrar o produto original para manter compatibilidade
-    const originalProduct = products.find((p) => p.id === product.id)
+  // Event handlers
+  const handleViewDetails = (product: any) => {
+    const originalProduct = products.find((p) => p.id === product.id);
     if (originalProduct) {
-      setSelectedProduct(originalProduct)
-      setIsDetailsOpen(true)
+      openDetails(originalProduct);
     }
-  }
+  };
 
-  const handleEditProduct = (product: LocalProduct) => {
-    const originalProduct = products.find((p) => p.id === product.id)
+  const handleEditProduct = (product: any) => {
+    const originalProduct = products.find((p) => p.id === product.id);
     if (originalProduct) {
-      setSelectedProduct(originalProduct)
-      setIsFormOpen(true)
+      openForm(originalProduct);
     }
-  }
+  };
 
-  const handleDeleteProduct = async (productId: number) => {
+  const handleDeleteProduct = async () => {
+    if (!productToDelete) return;
+
     try {
-      setIsDeleting(true)
-      await api.delete(`/produtos/${productId}`)
-      setProducts(products.filter((p) => p.id !== productId))
-      toast({
-        title: "Sucesso",
-        description: "Produto excluído com sucesso",
-      })
-      setIsDeleteDialogOpen(false)
+      setIsDeleting(true);
+      await deleteProduct(productToDelete);
+      closeDeleteDialog();
     } catch (error) {
-      console.error("Error deleting product:", error)
-      toast({
-        title: "Erro",
-        description: "Não foi possível excluir o produto",
-        variant: "destructive",
-      })
+      // Error já tratado no hook
     } finally {
-      setIsDeleting(false)
-      setProductToDelete(null)
+      setIsDeleting(false);
     }
-  }
-  const handleBulkDeleteConfirm = (productIds: (number | string)[]) => {
-    setBulkDeleteIds(productIds)
-    setIsBulkDeleteDialogOpen(true)
-  }
-const handleBulkDelete = async () => {
+  };
+
+  const handleBulkDelete = async () => {
     try {
-      setIsBulkDeleting(true)
-      await Promise.all(bulkDeleteIds.map((id) => api.delete(`/produtos/${id}`)))
-
-      setProducts(products.filter((p) => !bulkDeleteIds.includes(p.id || 0)))
-      toast({
-        title: "Sucesso",
-        description: `${bulkDeleteIds.length} produtos excluídos com sucesso`,
-      })
-      setIsBulkDeleteDialogOpen(false)
-      setBulkDeleteIds([])
+      setIsBulkDeleting(true);
+      await deleteProducts(bulkDeleteIds);
+      closeBulkDeleteDialog();
     } catch (error) {
-      console.error("Error bulk deleting products:", error)
-      toast({
-        title: "Erro",
-        description: "Não foi possível excluir os produtos selecionados",
-        variant: "destructive",
-      })
+      // Error já tratado no hook
     } finally {
-      setIsBulkDeleting(false)
+      setIsBulkDeleting(false);
     }
-  }
+  };
 
-  const handleCreateSuccess = () => {
-    api
-      .get("/produtos")
-      .then((response) => {
-        setProducts(response.data)
-      })
-      .catch((error) => {
-        console.error("Error refreshing products:", error)
-      })
-  }
-
-  // Handle sorting
-  const handleSort = (field: keyof Product) => {
-    if (sortField === field) {
-      setSortOrder(sortOrder === "asc" ? "desc" : "asc")
-    } else {
-      setSortField(field)
-      setSortOrder("asc")
-    }
-  }
-
-  // Format currency
-  const formatCurrency = (value: number | string) => {
-    const numericValue = typeof value === "string" ? Number.parseFloat(value) : value
-    return new Intl.NumberFormat("pt-BR", {
-      style: "currency",
-      currency: "BRL",
-    }).format(numericValue || 0)
-  }
-
-  const handleBarcodeSearchScan = (result: string) => {
+  const handleBarcodeSearch = (result: string) => {
     if (result) {
-      setSearchTerm(result)
+      updateSearchTerm(result);
     }
-  }
+  };
 
-  const handleFormOpenChange = (open: boolean) => {
-    if (!open) {
-      setTimeout(() => {
-        setSelectedProduct(null)
-      }, 300)
-    }
-    setIsFormOpen(open)
-  }
-
-  const handleDetailsOpenChange = (open: boolean) => {
-    if (!open) {
-      setTimeout(() => {
-        setSelectedProduct(null)
-      }, 300)
-    }
-    setIsDetailsOpen(open)
-  }
-
-  // Converter produtos para o formato esperado pelos componentes
-  const localProducts: LocalProduct[] = filteredProducts.map(convertToLocalProduct)
   if (isLoading) {
-    return <ProductTableSkeleton />
+    return <ProductTableSkeleton />;
   }
+
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h2 className="text-3xl font-bold tracking-tight">Estoque</h2>
-          <p className="text-muted-foreground">Gerencie seus produtos e controle seu estoque</p>
-        </div>
-        <Button
-          onClick={() => {
-            setSelectedProduct(null)
-            setIsFormOpen(true)
-          }}
-        >
-          <Plus className="mr-2 h-4 w-4" />
-          Adicionar Produto
-        </Button>
-      </div>
+      <ProductPageHeader onAddProduct={() => openForm()} />
 
+      {/* Stats Cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <ProductStatsCard
           title="Total de Produtos"
@@ -305,7 +150,7 @@ const handleBulkDelete = async () => {
         />
         <ProductStatsCard
           title="Valor em Estoque"
-          value={formatCurrency(stats.totalValue)}
+          value={CurrencyFormatter.format(stats.totalValue)}
           description="Investimento total"
           icon={<Package className="h-4 w-4" />}
           variant="blue"
@@ -329,79 +174,47 @@ const handleBulkDelete = async () => {
       <Card>
         <CardHeader className="pb-3">
           <CardTitle>Produtos em Estoque</CardTitle>
-          <CardDescription>Visualize e gerencie todos os produtos do seu inventário</CardDescription>
+          <CardDescription>
+            Visualize e gerencie todos os produtos do seu inventário
+          </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="flex flex-col sm:flex-row gap-4 mb-6">
-            <div className="relative flex-1">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                type="search"
-                placeholder="Buscar produtos..."
-                className="pl-8"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
-            <div className="w-full sm:w-[180px]">
-              <Select value={filterCategory} onValueChange={setFilterCategory}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Categoria" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todas categorias</SelectItem>
-                  {categories.map((category) => (
-                    <SelectItem key={category.id} value={category.id.toString()}>
-                      {category.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <BarcodeScanner onScan={handleBarcodeSearchScan} buttonSize="sm" buttonLabel="Escanear" />
-            <Button variant="outline" className="w-full sm:w-auto">
-              <FileDown className="mr-2 h-4 w-4" />
-              Exportar
-            </Button>
-          </div>
+          <ProductFilters
+            searchTerm={filters.searchTerm}
+            filterCategory={filters.filterCategory}
+            categories={categories}
+            onSearchChange={updateSearchTerm}
+            onCategoryChange={updateCategory}
+            onBarcodeSearch={handleBarcodeSearch}
+          />
 
-          { localProducts.length === 0 ? (
+          {localProducts.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16 text-center">
               <Package className="h-12 w-12 text-muted-foreground mb-4" />
               <h3 className="text-lg font-medium">Nenhum produto encontrado</h3>
               <p className="text-sm text-muted-foreground mb-4">
                 Não foi possível encontrar produtos com os filtros selecionados.
               </p>
-              <Button
-                variant="outline"
-                onClick={() => {
-                  setSearchTerm("")
-                  setFilterCategory("all")
-                }}
-              >
+              <Button variant="outline" onClick={clearFilters}>
                 Limpar filtros
               </Button>
             </div>
           ) : (
             <>
-              {/* Mobile View - Apenas Cards */}
+              {/* Mobile View */}
               <div className="block md:hidden">
-                 <ProductCards
+                <ProductCards
                   products={localProducts}
-                  loading={isLoading}
+                  loading={false}
                   onViewDetails={handleViewDetails}
                   onEditProduct={handleEditProduct}
-                  onDeleteProduct={(id) => {
-                    setProductToDelete(Number(id))
-                    setIsDeleteDialogOpen(true)
-                  }}
-                  onBulkDelete={handleBulkDelete} 
-                  onBulkDeleteConfirm={handleBulkDeleteConfirm} 
-                  formatCurrency={formatCurrency}
+                  onDeleteProduct={(id) => openDeleteDialog(Number(id))}
+                  onBulkDeleteConfirm={openBulkDeleteDialog}
+                  formatCurrency={CurrencyFormatter.format}
                 />
               </div>
 
-              {/* Desktop View - Tabs com Tabela e Cards */}
+              {/* Desktop View */}
               <div className="hidden md:block">
                 <Tabs defaultValue="table" className="w-full">
                   <TabsList className="h-auto rounded-none border-b bg-transparent p-0">
@@ -410,45 +223,39 @@ const handleBulkDelete = async () => {
                       className="data-[state=active]:after:bg-primary relative rounded-none py-2 px-4 after:absolute after:inset-x-0 after:bottom-0 after:h-0.5 data-[state=active]:bg-transparent data-[state=active]:shadow-none"
                     >
                       <ListMinus className="h-4 w-4 mr-2" />
-                      
+                     
                     </TabsTrigger>
                     <TabsTrigger
                       value="cards"
                       className="data-[state=active]:after:bg-primary relative rounded-none py-2 px-4 after:absolute after:inset-x-0 after:bottom-0 after:h-0.5 data-[state=active]:bg-transparent data-[state=active]:shadow-none"
                     >
-                      <LayoutGrid className="h-4 w-4" />
-                      
+                      <LayoutGrid className="h-4 w-4 mr-2" />
+                   
                     </TabsTrigger>
                   </TabsList>
 
                   <TabsContent value="table" className="mt-6">
-                      <ProductCards
-                  products={localProducts}
-                  loading={isLoading}
-                  onViewDetails={handleViewDetails}
-                  onEditProduct={handleEditProduct}
-                  onDeleteProduct={(id) => {
-                    setProductToDelete(Number(id))
-                    setIsDeleteDialogOpen(true)
-                  }}
-                  onBulkDelete={handleBulkDelete}
-                  onBulkDeleteConfirm={handleBulkDeleteConfirm}
-                  formatCurrency={formatCurrency}
-                />
+                    <ProductTable
+                      products={localProducts}
+                      sortField={filters.sortField as string}
+                      sortOrder={filters.sortOrder}
+                      onSort={updateSort}
+                      onViewDetails={handleViewDetails}
+                      onEditProduct={handleEditProduct}
+                      onDeleteProduct={(id) => openDeleteDialog(Number(id))}
+                      formatCurrency={CurrencyFormatter.format}
+                    />
                   </TabsContent>
 
                   <TabsContent value="cards" className="mt-6">
                     <ProductCards
                       products={localProducts}
-                      loading={isLoading}
+                      loading={false}
                       onViewDetails={handleViewDetails}
                       onEditProduct={handleEditProduct}
-                      onDeleteProduct={(id) => {
-                        setProductToDelete(Number(id))
-                        setIsDeleteDialogOpen(true)
-                      }}
-                      onBulkDelete={handleBulkDelete}
-                      formatCurrency={formatCurrency}
+                      onDeleteProduct={(id) => openDeleteDialog(Number(id))}
+                      onBulkDeleteConfirm={openBulkDeleteDialog}
+                      formatCurrency={CurrencyFormatter.format}
                     />
                   </TabsContent>
                 </Tabs>
@@ -458,54 +265,39 @@ const handleBulkDelete = async () => {
         </CardContent>
       </Card>
 
-      {/* Product Form Dialog */}
+      {/* Modals */}
       <ProductFormDialog
         open={isFormOpen}
-        onOpenChange={handleFormOpenChange}
+        onOpenChange={closeForm}
         product={selectedProduct || undefined}
-        onSuccess={handleCreateSuccess}
+        onSuccess={refreshProducts}
       />
 
-      {/* Product Details Dialog */}
-      <ProductDetailsDialog product={selectedProduct} isOpen={isDetailsOpen} onOpenChange={handleDetailsOpenChange} />
+      <ProductDetailsDialog
+        product={selectedProduct}
+        isOpen={isDetailsOpen}
+        onOpenChange={closeDetails}
+      />
 
-      {/* Delete Confirm Dialog */}
       <DeleteConfirmDialog
         open={isDeleteDialogOpen}
-        onOpenChange={(open) => {
-          setIsDeleteDialogOpen(open)
-          if (!open && !isDeleting) {
-            setProductToDelete(null)
-          }
-        }}
-        onConfirm={() => {
-          if (productToDelete) {
-            handleDeleteProduct(productToDelete)
-          }
-        }}
+        onOpenChange={closeDeleteDialog}
+        onConfirm={handleDeleteProduct}
         productName={products.find((p) => p.id === productToDelete)?.name}
         isDeleting={isDeleting}
       />
 
-
-
-       {/* Bulk Delete Confirm Dialog */}
       <BulkDeleteConfirmDialog
         open={isBulkDeleteDialogOpen}
-        onOpenChange={(open) => {
-          setIsBulkDeleteDialogOpen(open)
-          if (!open && !isBulkDeleting) {
-            setBulkDeleteIds([])
-          }
-        }}
+        onOpenChange={closeBulkDeleteDialog}
         onConfirm={handleBulkDelete}
         selectedCount={bulkDeleteIds.length}
         productNames={products
           .filter((p) => bulkDeleteIds.includes(p.id || 0))
-          .map((p) => p.name || "")
+          .map((p) => p.name || '')
           .filter(Boolean)}
         isDeleting={isBulkDeleting}
       />
     </div>
-  )
+  );
 }

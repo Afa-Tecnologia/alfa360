@@ -31,7 +31,7 @@ import { ProductServiceEstoque } from '@/services/products/productEstoqueService
 import { ProductFilters } from '@/components/dashboard-v2/estoque/ProductFilters';
 import { ProductPageHeader } from '@/components/dashboard-v2/estoque/ProductPageHeader';
 import { ProductTable } from '@/components/dashboard-v2/estoque/ProductEstoqueTable';
-import { Product } from '@/types/product';
+;
 
 // Dependency injection - seguindo DIP
 const productService = new ProductServiceEstoque();
@@ -223,14 +223,12 @@ export default function EstoquePage() {
                       className="data-[state=active]:after:bg-primary relative rounded-none py-2 px-4 after:absolute after:inset-x-0 after:bottom-0 after:h-0.5 data-[state=active]:bg-transparent data-[state=active]:shadow-none"
                     >
                       <ListMinus className="h-4 w-4 mr-2" />
-                     
                     </TabsTrigger>
                     <TabsTrigger
                       value="cards"
                       className="data-[state=active]:after:bg-primary relative rounded-none py-2 px-4 after:absolute after:inset-x-0 after:bottom-0 after:h-0.5 data-[state=active]:bg-transparent data-[state=active]:shadow-none"
                     >
                       <LayoutGrid className="h-4 w-4 mr-2" />
-                   
                     </TabsTrigger>
                   </TabsList>
 

@@ -167,7 +167,7 @@ export function ProductCards({
             </div>
           )}
 
-          {selectedIds.length > 0 && onBulkDelete && (
+          {selectedIds.length > 0  && (
             <Button variant="destructive" size="sm" onClick={handleBulkDelete}>
               <Trash2 className="h-4 w-4 mr-2" />
               Excluir ({selectedIds.length})

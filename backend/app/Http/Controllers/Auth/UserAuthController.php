@@ -91,7 +91,14 @@ class UserAuthController extends Controller
 
             return response()->json([
                 'message' => 'Login realizado com sucesso',
-                'user' => $user->only(['id', 'name', 'email', 'role', 'perfil']),
+                'user' => [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'role' => $user->role,
+                    'perfil' => $user->perfil,
+                    'tenant_id' => $user->tenant_id
+                ],
                 'token_type' => 'bearer',
                 'expires_in' => config('jwt.ttl') * 60
             ])
@@ -207,10 +214,7 @@ public function refresh(Request $request): JsonResponse
         ->cookie('jwt_refresh_token', $newRefreshToken, 10080, '/', $cookieDomain, true, true, false, 'None');
 
     } catch (JWTException $e) {
-        $this->limparCookies($request);
-        return response()->json([
-            'message' => 'Falha ao renovar Token: Token de atualização expirado ou inválido',
-            'error' => $e->getMessage()], 401);
+        return $this->limparCookies($request);
     } 
 }
 
@@ -278,7 +282,7 @@ private function isTokenStructurallyValid(string $token): bool
     {
         $cookieDomain = app()->environment('local') ? null : 'alfa360.alfatecnologia.tech';
 
-        return response()->json(['message' => 'Logout realizado com sucesso'])
+        return response()->json(['message' => 'Falha ao renovar Token: Token de atualização expirado ou inválido'])
             ->withCookie(cookie('jwt_token', null, -1, '/', $cookieDomain, true, true, false, 'None'))
             ->withCookie(cookie('jwt_refresh_token', null, -1, '/', $cookieDomain, true, true, false, 'None'));
     }

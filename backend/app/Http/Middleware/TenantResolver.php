@@ -14,7 +14,7 @@ class TenantResolver
 
         if (Auth::check()) {
             $tenantId = Auth::user()->tenant_id;
-            $tenant = Tenant::where('id', $tenantId)
+            $tenant = Tenant::where('tenant_id', $tenantId)
                             ->where('active', true)
                             ->first();
 

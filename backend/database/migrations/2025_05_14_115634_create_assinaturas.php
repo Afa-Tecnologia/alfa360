@@ -16,7 +16,7 @@ return new class extends Migration
             $table->uuid('uuid')->index()->unique();
             $table->foreignId('empresa_id')->constrained('empresas');
             $table->foreignId('plano_id')->constrained('planos');
-            $table->foreignId('criado_por')->nullable()->constrained('usuarios');
+            $table->foreignId('criado_por')->nullable()->constrained('users');
             
             // Status e datas
             $table->enum('status', [

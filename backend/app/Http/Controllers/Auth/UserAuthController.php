@@ -13,6 +13,7 @@ use Illuminate\Validation\ValidationException;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use Tymon\JWTAuth\Exceptions\JWTException;
 use Illuminate\Http\JsonResponse;
+use App\Http\Resources\UserResource;
 
 class UserAuthController extends Controller
 {
@@ -54,8 +55,8 @@ class UserAuthController extends Controller
     }
 
     /**
-     * Autentica o usuário e gera tokens JWT
-     */
+    * Autentica o usuário e gera tokens JWT
+    */
     public function login(Request $request): JsonResponse
     {
         try {
@@ -87,18 +88,9 @@ class UserAuthController extends Controller
             // // Se for localhost, use null (comportamento padrão)
             // $cookieDomain = str_contains($domain, 'localhost') ? null : '.'.$this->extractRootDomain($domain);
             $cookieDomain = app()->environment('local') ? null : 'alfa360.alfatecnologia.tech';
-
-
             return response()->json([
                 'message' => 'Login realizado com sucesso',
-                'user' => [
-                    'id' => $user->id,
-                    'name' => $user->name,
-                    'email' => $user->email,
-                    'role' => $user->role,
-                    'perfil' => $user->perfil,
-                    'tenant_id' => $user->tenant_id
-                ],
+                'user' => new UserResource($user),
                 'token_type' => 'bearer',
                 'expires_in' => config('jwt.ttl') * 60
             ])
@@ -214,7 +206,10 @@ public function refresh(Request $request): JsonResponse
         ->cookie('jwt_refresh_token', $newRefreshToken, 10080, '/', $cookieDomain, true, true, false, 'None');
 
     } catch (JWTException $e) {
-        return $this->limparCookies($request);
+        $this->limparCookies($request);
+        return response()->json([
+            'message' => 'Falha ao renovar Token: Token de atualização expirado ou inválido',
+            'error' => $e->getMessage()], 401);
     } 
 }
 
@@ -244,7 +239,7 @@ private function isTokenStructurallyValid(string $token): bool
                 return response()->json(['message' => 'Usuário não autenticado'], 401);
             }
 
-            return response()->json(['user' => $user->only(['id', 'name', 'email', 'role', 'perfil', 'tenant_id'])]);
+            return response()->json(['user' => new UserResource($user)], 200);
 
         } catch (\Throwable $e) {
             Log::error('Erro ao buscar usuário: ' . $e->getMessage());

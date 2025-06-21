@@ -22,7 +22,7 @@ class UpdateTipoDeNegociosRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'nome' => 'sometimes|required|string|max:100|unique:tipo_de_negocio,nome,' . $this->route('id'),
+            'nome' => 'sometimes|required|string|max:100',
         ];
     }
 

@@ -4,6 +4,8 @@ namespace Database\Seeders;
 
 use App\Models\TipoDeNegocios;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Str;
+use App\Helpers\TenantContext;
 
 class TipoDeNegociosSeeder extends Seeder
 {
@@ -12,71 +14,85 @@ class TipoDeNegociosSeeder extends Seeder
      */
     public function run(): void
     {
+        $tenantId = TenantContext::getTenantId();
         $tiposDeNegocios = [
             [
                 'nome' => 'Loja Virtual',
                 'descricao' => 'Loja virtual para venda de produtos online',
-                'ativo' => true
+                'ativo' => true,
+                 // Gerando UUID para tenant_id
             ],
             [
                 'nome' => 'Loja Física',
                 'descricao' => 'Estabelecimento comercial com presença física',
-                'ativo' => true
+                'ativo' => true,
+                 // Gerando UUID para tenant_id
             ],
             [
                 'nome' => 'Marketplace',
                 'descricao' => 'Plataforma que reúne diversos vendedores',
-                'ativo' => true
+                'ativo' => true,
+                
             ],
             [
                 'nome' => 'Atacado',
                 'descricao' => 'Venda em grandes quantidades para revendedores',
-                'ativo' => true
+                'ativo' => true,
+                
             ],
             [
                 'nome' => 'Dropshipping',
                 'descricao' => 'Modelo de varejo sem estoque próprio',
-                'ativo' => true
+                'ativo' => true,
+                
             ],
             [
                 'nome' => 'Loja de roupas',
                 'descricao' => 'Loja de roupas',
-                'ativo' => true
+                'ativo' => true,
+                
             ],
             [
                 'nome' => 'Loja de calçados',
                 'descricao' => 'Loja de calçados',
-                'ativo' => true
+                'ativo' => true,
+                
             ],
             [
                 'nome' => 'Loja de acessórios',
                 'descricao' => 'Loja de acessórios',
-                'ativo' => true
+                'ativo' => true,
+                
             ],
             [
                 'nome' => 'Loja de beleza',
                 'descricao' => 'Loja de beleza',
-                'ativo' => true
+                'ativo' => true,
+                
             ],
             [
                 'nome' => 'Loja de cosméticos',
                 'descricao' => 'Loja de cosméticos',
-                'ativo' => true
+                'ativo' => true,
+                
             ],
             [
                 'nome' => 'Loja de perfumes',
                 'descricao' => 'Loja de perfumes',
-                'ativo' => true
+                'ativo' => true,
+                
             ],
             [
                 'nome' => 'Assistência Técnica',
                 'descricao' => 'Assistência técnica para produtos eletrônicos',
-                'ativo' => true
+                'ativo' => true,
+                
             ],
             [
                 'nome' => 'Loja de eletrônicos',
                 'descricao' => 'Loja de eletrônicos',
-                'ativo' => true
+                'ativo' => true,
+                
             ],
             
             

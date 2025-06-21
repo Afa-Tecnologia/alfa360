@@ -7,10 +7,11 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use App\Traits\FormataDatas;
+use App\Traits\TenantAware;
 
 class Caixa extends Model
 {
-    use SoftDeletes, FormataDatas;
+    use SoftDeletes, FormataDatas, TenantAware;
 
     protected $fillable = [
         'user_id',

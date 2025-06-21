@@ -4,20 +4,24 @@ namespace Database\Seeders;
 
 use App\Models\ConfigDoNegocio;
 use Illuminate\Database\Seeder;
+use App\Helpers\TenantContext;
 
 class ConfigDoNegocioSeeder extends Seeder
 {
     /**
      * Run the database seeds.
      */
+   
     public function run(): void
     {
+        $tenantId = TenantContext::getTenantId();
         $configsDoNegocio = [
             [
                 'nome' => 'Lesamis',
                 'logo_url' => 'https://example.com/logo.png',
-                'tipo_de_negocio_id' => 6, // Loja de roupas
-                'cnpj' => '12.345.678/0001-99'
+                'tipos_de_negocios_id' => 6, // Loja de roupas
+                'cnpj' => '12.345.678/0001-99',
+                'tenant_id' => $tenantId // Definindo tenant_id para o ambiente de produção
             ]
         ];
 

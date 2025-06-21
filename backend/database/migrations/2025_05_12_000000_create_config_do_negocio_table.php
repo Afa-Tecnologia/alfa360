@@ -16,8 +16,10 @@ return new class extends Migration
             $table->string('nome');
             $table->string('logo_url')->nullable();
             $table->string('cnpj')->nullable();
-            $table->foreignId('tipo_de_negocio_id')->constrained('tipo_de_negocios');
+            $table->foreignId('tipos_de_negocios_id')->constrained('tipos_de_negocios')->nullable();
             $table->timestamps();
+            $table->softDeletes();
+
         });
     }
 

@@ -22,7 +22,7 @@ class StoreTiposDeProdutosRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'nome' => 'required|string|max:100|unique:tipo_de_produto,nome',
+            'nome' => 'required|string|max:100',
             'descricao' => 'required|string',
             'ativo' => 'required|boolean',
         ];

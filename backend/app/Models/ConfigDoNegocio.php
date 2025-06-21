@@ -2,22 +2,24 @@
 
 namespace App\Models;
 
+use App\Traits\TenantAware;
 use Illuminate\Database\Eloquent\Model;
 
 class ConfigDoNegocio extends Model
 {
+    use TenantAware;
     protected $table = 'config_do_negocios';
     
     protected $fillable = [
         'nome',
         'logo_url',
-        'tipo_de_negocio_id',
+        'tipos_de_negocios_id',
         'cnpj'
     ];
 
-    public function tipoDeNegocio()
+    public function tiposDeNegocios()
     {
-        return $this->belongsTo(TipoDeNegocios::class, 'tipo_de_negocio_id');
+        return $this->belongsTo(TipoDeNegocios::class, 'tipos_de_negocios_id');
     }
 
     public function produtos()

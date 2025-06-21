@@ -2,11 +2,13 @@
 
 namespace App\Models;
 
+use App\Traits\TenantAware;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
 
 class DevolucaoItem extends Model
 {
+    use TenantAware;
     protected $table = 'devolucao_itens';
     protected $fillable = [
         'uuid',

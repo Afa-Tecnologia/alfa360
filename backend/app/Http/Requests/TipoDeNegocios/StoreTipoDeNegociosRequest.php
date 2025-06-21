@@ -22,7 +22,7 @@ class StoreTipoDeNegociosRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'nome' => 'required|string|max:100|unique:tipo_de_negocio,nome',
+            'nome' => 'required|string|max:100',
         ];
     }
 

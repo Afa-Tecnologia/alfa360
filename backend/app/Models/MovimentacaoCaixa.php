@@ -6,10 +6,11 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use App\Traits\FormataDatas;
+use App\Traits\TenantAware;
 
 class MovimentacaoCaixa extends Model
 {
-    use SoftDeletes, FormataDatas;
+    use SoftDeletes, FormataDatas, TenantAware;
 
     protected $fillable = [
         'caixa_id',

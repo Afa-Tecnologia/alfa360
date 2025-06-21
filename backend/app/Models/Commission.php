@@ -2,10 +2,12 @@
 
 namespace App\Models;
 
+use App\Traits\TenantAware;
 use Illuminate\Database\Eloquent\Model;
 
 class Commission extends Model
 {
+    use TenantAware;
     protected $fillable = [
         'pedido_id',
         'vendedor_id',

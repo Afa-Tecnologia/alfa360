@@ -22,7 +22,7 @@ class UpdateTiposDeProdutosRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'nome' => 'sometimes|required|string|max:100|unique:tipo_de_produto,nome,' . $this->route('id'),
+            'nome' => 'sometimes|required|string|max:100',
             'descricao' => 'sometimes|required|string',
             'ativo' => 'sometimes|required|boolean',
         ];

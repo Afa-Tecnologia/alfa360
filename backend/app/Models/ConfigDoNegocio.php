@@ -17,6 +17,14 @@ class ConfigDoNegocio extends Model
         'cnpj'
     ];
 
+    protected static function boot()
+    {
+        parent::boot();
+        static::creating(function ($model) {
+            $model->uuid = (string) \Illuminate\Support\Str::uuid();
+        });
+    }
+    
     public function tiposDeNegocios()
     {
         return $this->belongsTo(TipoDeNegocios::class, 'tipos_de_negocios_id');

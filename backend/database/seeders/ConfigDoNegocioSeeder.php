@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Models\ConfigDoNegocio;
 use Illuminate\Database\Seeder;
 use App\Helpers\TenantContext;
+use Illuminate\Support\Str;
 
 class ConfigDoNegocioSeeder extends Seeder
 {
@@ -17,6 +18,7 @@ class ConfigDoNegocioSeeder extends Seeder
         $tenantId = TenantContext::getTenantId();
         $configsDoNegocio = [
             [
+                'uuid' => Str::uuid(), // UUID fixo para o ambiente de produção
                 'nome' => 'Lesamis',
                 'logo_url' => 'https://example.com/logo.png',
                 'tipos_de_negocios_id' => 6, // Loja de roupas

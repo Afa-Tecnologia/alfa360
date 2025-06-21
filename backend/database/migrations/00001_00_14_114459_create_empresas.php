@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('empresas', function (Blueprint $table) {
             $table->id();
-            $table->uuid()->index(); // UUID para identificação única
+            $table->uuid('uuid')->index(); // UUID para identificação única
             $table->string('nome');
             $table->string('cnpj')->unique();
             $table->string('razao_social')->unique();

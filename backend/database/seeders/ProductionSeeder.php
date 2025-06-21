@@ -14,6 +14,7 @@ use App\Helpers\TenantContext;
 use App\Models\Tenant;
 use App\Models\Plano;
 use App\Models\Empresa;
+use Spatie\Permission\Models\Role;
 
 class ProductionSeeder extends Seeder
 {
@@ -21,19 +22,26 @@ class ProductionSeeder extends Seeder
          * Run the database seeds específicos para ambiente de produção.
          * Este seeder NÃO usa Faker e contém apenas dados essenciais.
          */
+
+         
     
         public function run(): void
         {
+            $this->call([
+                RolesAndPermissionsSeeder::class,
+            ]);
+
             $owner = User::updateOrCreate(
             ['email' => 'admin3@alfatecnologiabrasil.com.br'],
             [
                 'name' => 'Owner Alfa',
                 'password' => Hash::make('Rp8Q0dJNLN3vjf8O2Mv'),
-                'perfil' => 'admin',
-                'role' => 'admin',
+                'uuid' => Str::uuid(), // Gerando UUID para o usuário
                 'tenant_id' => Str::uuid(), // Gerando UUID para tenant_id
             ]
         );
+
+            $owner->assignRole('super_admin'); // Atribuindo a role de owner
             
             $plano = Plano::updateOrCreate(
             ['slug' => Str::slug('Plano Básico')],
@@ -103,6 +111,7 @@ class ProductionSeeder extends Seeder
             TipoDeNegociosSeeder::class,
             TiposDeProdutosSeeder::class,
             ConfigDoNegocioSeeder::class,
+            RolesAndPermissionsSeeder::class,
         ]);
 
         // Criação de usuários essenciais para o sistema
@@ -111,25 +120,26 @@ class ProductionSeeder extends Seeder
                 'name' => 'Admin',
                 'email' => 'admin@alfatecnologiabrasil.com.br',
                 'password' => 'Rp8Q0dJNLN3vjf8O2Mv',
-                'perfil'=> 'admin',
-                'role' => 'admin',
+                'uuid' => Str::uuid(), // Gerando UUID para o usuário
                 'tenant_id' => $tenantUm, // Gerando UUID para tenant_id
             ],
             [
                 'name' => 'Admin2',
                 'email' => 'admin2@alfatecnologiabrasil.com.br',
                 'password' => 'Rp8Q0dJNLN3vjf8O2Mv',
-                'perfil'=> 'admin',
-                'role' => 'admin',
+                'uuid' => Str::uuid(), // Gerando UUID para o usuário
                 'tenant_id' => $tenantDois,
             ]
         ];
 
         foreach ($users as $userData) {
-            User::updateOrCreate(
+            $user = User::updateOrCreate(
                 ['email' => $userData['email']],
                 $userData
             );
+
+            // Atribuindo a role de admin para cada usuário criado
+            $user->assignRole('admin');
         }
 
         // Categoria básica

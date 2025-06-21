@@ -13,6 +13,7 @@
         "laravel/tinker": "^2.9",
         "league/commonmark": "^2.7",
         "ramsey/uuid": "^4.7",
+        "spatie/laravel-permission": "^6.20",
         "tymon/jwt-auth": "^2.2"
     },
     "require-dev": {

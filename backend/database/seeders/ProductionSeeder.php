@@ -27,6 +27,7 @@ class ProductionSeeder extends Seeder
     
         public function run(): void
         {
+            $tenantId = Str::uuid(); // Gerando UUID para o tenant_id
             $this->call([
                 RolesAndPermissionsSeeder::class,
             ]);
@@ -37,7 +38,7 @@ class ProductionSeeder extends Seeder
                 'name' => 'Owner Alfa',
                 'password' => Hash::make('Rp8Q0dJNLN3vjf8O2Mv'),
                 'uuid' => Str::uuid(), // Gerando UUID para o usuário
-                'tenant_id' => Str::uuid(), // Gerando UUID para tenant_id
+                'tenant_id' => $tenantId, // Gerando UUID para tenant_id
             ]
         );
 
@@ -48,7 +49,7 @@ class ProductionSeeder extends Seeder
             [
                 'nome' => 'Plano Básico',
                 'descricao' => 'Plano básico para pequenas empresas',
-                'preco' => 99.90,
+                'preco' => 179.99,
                 'frequencia' => 'mensal',
                 'ativo' => true,
             ]
@@ -63,15 +64,15 @@ class ProductionSeeder extends Seeder
                 'telefone' => '(11) 1234-5678',
                 'endereco' => 'Rua Exemplo, 123',
                 'razao_social' => 'Alfa Tecnologia Brasil LTDA',
-                'cidade' => 'São Paulo',
-                'estado' => 'SP',
-                'cep' => '01234-567',
+                'cidade' => 'Santa Quitéria',
+                'estado' => 'CE',
+                'cep' => '62280000',
                 'logo' => 'https://example.com/logo.png',
                 'dominio' => 'alfatecnologiabrasil.com.br',
                 'slug' => Str::slug('Alfa Tecnologia Brasil'),
                 'ativo' => true,
                 'trial_expira_em' => now()->addDays(30),
-                'assinatura_expira_em' => now()->addYear(),
+                'assinatura_expira_em' => now()->addYear(10),
                 'plano_id' => $plano->id,
                 'owner_id' => $owner->id, // Inicialmente sem owner_id
             ]
@@ -86,15 +87,15 @@ class ProductionSeeder extends Seeder
                 'empresa_id' => $empresa->id,
                 'active' => true,
                 'assinatura_expira_em' => now()->addYear(),
-                'tenant_id' => Str::uuid(),
+                'tenant_id' => $tenantId,
             ]
         );
 
-        $tenantDois = Tenant::updateOrCreate(
-            ['subdominio' => 'alfatecnologiabrasil2'],
+        $tenantDaEmpresaDois = Tenant::updateOrCreate(
+            ['subdominio' => 'lesamis'],
             [
-                'nome' => 'Alfa Tecnologia Brasil 2',
-                'subdominio' => 'alfatecnologiabrasil2',
+                'nome' => 'Lesamis',
+                'subdominio' => 'lesamis',
                 'empresa_id' => $empresa->id,
                 'active' => true,
                 'assinatura_expira_em' => now()->addYear(),
@@ -102,9 +103,24 @@ class ProductionSeeder extends Seeder
             ]
         );
 
-        $tenantUm = $tenant->id;
-        TenantContext::setTenantId($tenantUm);// Definindo o tenant_id para o ambiente de produção
-        $tenantDois = $tenantDois->id;
+        $tenantDaEmpresaTres = Tenant::updateOrCreate(
+            ['subdominio' => 'amcell'],
+            [
+                'nome' => 'Am CELL',
+                'subdominio' => 'amcell',
+                'empresa_id' => $empresa->id,
+                'active' => true,
+                'assinatura_expira_em' => now()->addYear(),
+                'tenant_id' => Str::uuid(),
+            ]
+        );
+
+        $tenantUmId = $tenant->tenant_id; // Obtendo o UUID do tenant criado
+        TenantContext::setTenantId($tenantUmId);// Definindo o tenant_id para o ambiente de produção
+
+        $tenantDoisId = $tenantDaEmpresaDois->tenant_id; // Obtendo o UUID do tenant criado
+        $tenantTresId = $tenantDaEmpresaTres->tenant_id; // Obtendo o UUID do tenant criado
+
 
         // Seeders básicos do sistema
         $this->call([
@@ -121,14 +137,14 @@ class ProductionSeeder extends Seeder
                 'email' => 'lesamis@alfatecnologiabrasil.com.br',
                 'password' => Hash::make('Rpc8Q0dJNae3LN3vj2fe8O2Mv'),
                 'uuid' => Str::uuid(), // Gerando UUID para o usuário
-                'tenant_id' => $tenantUm, // Gerando UUID para tenant_id
+                'tenant_id' => $tenantDoisId, // Gerando UUID para tenant_id
             ],
             [
                 'name' => 'Am CELL',
                 'email' => 'amcell@alfatecnologiabrasil.com.br',
                 'password' => Hash::make('Rp8Qdd0dJNaer4LN3vgfsjf8O2Mv'),
                 'uuid' => Str::uuid(), // Gerando UUID para o usuário
-                'tenant_id' => $tenantDois,
+                'tenant_id' => $tenantTresId,
             ]
         ];
 
@@ -149,7 +165,7 @@ class ProductionSeeder extends Seeder
                 'name' => 'Produtos Gerais',
                 'description' => 'Categoria padrão para todos os produtos',
                 'active' => true,
-                'tenant_id' => $tenantUm, // Definindo tenant_id para o ambiente de produção
+                'tenant_id' => $tenantDoisId, // Definindo tenant_id para o ambiente de produção
             ]
         );
 
@@ -166,7 +182,7 @@ class ProductionSeeder extends Seeder
                 "tipo_de_produto_id" => 1,
                 "brand" => "Marca Padrão",
                 "code" => 1001,
-                "tenant_id" => $tenantUm, // Definindo tenant_id para o ambiente de produção
+                "tenant_id" => $tenantDoisId, // Definindo tenant_id para o ambiente de produção
             ]
         );
 
@@ -181,7 +197,7 @@ class ProductionSeeder extends Seeder
                 "size" => "M",
                 "quantity" => 10,
                 "active" => true,
-                "tenant_id" => $tenantUm, // Definindo tenant_id para o ambiente de produção
+                "tenant_id" => $tenantDoisId, // Definindo tenant_id para o ambiente de produção
             ]
         );
 
@@ -199,7 +215,7 @@ class ProductionSeeder extends Seeder
                 "state" => "UF",
                 "cep" => "00000-000",
                 "date_of_birth" => "2000-01-01",
-                "tenant_id" => $tenantUm, // Definindo tenant_id para o ambiente de produção
+                "tenant_id" => $tenantDoisId, // Definindo tenant_id para o ambiente de produção
             ]
         );
     }

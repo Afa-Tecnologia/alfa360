@@ -44,12 +44,12 @@ class UserService
         return $user;
     }
 
-    // Método para obter todos os vendedores
+// Método para obter todos os vendedores
     public function getVendedores()
     {
-        $vendedores = User::where('perfil', 'vendedor')
-                ->orWhere('perfil', 'admin') // Administradores também podem ser vendedores
-                ->select('id', 'name', 'email', 'perfil')
+        $vendedores = User::where('role', 'vendedor')
+                ->orWhere('role', 'admin') // Administradores também podem ser vendedores
+                ->select('id', 'name', 'email', 'role')
                 ->get();
 
         return $vendedores;

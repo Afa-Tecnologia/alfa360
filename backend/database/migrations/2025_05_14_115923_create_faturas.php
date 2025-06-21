@@ -14,8 +14,8 @@ return new class extends Migration
         Schema::create('faturas', function (Blueprint $table) {
             $table->id();
             $table->uuid('uuid')->index()->unique();
-            $table->foreignUuid('assinatura_id')->constrained('assinaturas');
-            $table->foreignUuid('empresa_id')->constrained('empresas');
+            $table->foreignId('assinatura_id')->constrained('assinaturas');
+            $table->foreignId('empresa_id')->constrained('empresas');
             
             $table->string('numero')->unique();
             $table->enum('status', [

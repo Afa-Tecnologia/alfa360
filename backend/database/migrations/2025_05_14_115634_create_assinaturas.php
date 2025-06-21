@@ -14,8 +14,8 @@ return new class extends Migration
         Schema::create('assinaturas', function (Blueprint $table) {
             $table->id();
             $table->uuid('uuid')->index()->unique();
-            $table->foreignUuid('empresa_id')->constrained('empresas');
-            $table->foreignUuid('plano_id')->constrained('planos');
+            $table->foreignId('empresa_id')->constrained('empresas');
+            $table->foreignId('plano_id')->constrained('planos');
             $table->foreignId('criado_por')->nullable()->constrained('usuarios');
             
             // Status e datas

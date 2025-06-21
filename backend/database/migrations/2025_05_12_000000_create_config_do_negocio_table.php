@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::create('config_do_negocios', function (Blueprint $table) {
             $table->id();
+            $table->uuid('uuid')->index()->unique();
             $table->string('nome');
             $table->string('logo_url')->nullable();
             $table->string('cnpj')->nullable();

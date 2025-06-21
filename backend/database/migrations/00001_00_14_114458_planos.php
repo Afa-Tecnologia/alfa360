@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('planos', function (Blueprint $table) {
             $table->id();
-            $table->uuid()->index(); 
+            $table->uuid('uuid')->index(); 
             $table->string('nome');
             $table->string('slug')->unique();
             $table->text('descricao')->nullable();

@@ -78,7 +78,7 @@ export function ProductDetailsDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-3xl">
+      <DialogContent className="sm:max-w-3xl overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-xl">Detalhes do Produto</DialogTitle>
           <DialogDescription>

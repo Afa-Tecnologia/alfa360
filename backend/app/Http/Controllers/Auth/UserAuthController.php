@@ -277,7 +277,7 @@ private function isTokenStructurallyValid(string $token): bool
     {
         $cookieDomain = app()->environment('local') ? null : 'alfa360.alfatecnologia.tech';
 
-        return response()->json(['message' => 'Logout realizado com sucesso'])
+        return response()->json(['message' => 'Falha ao renovar Token: Token de atualização expirado ou inválido'])
             ->withCookie(cookie('jwt_token', null, -1, '/', $cookieDomain, true, true, false, 'None'))
             ->withCookie(cookie('jwt_refresh_token', null, -1, '/', $cookieDomain, true, true, false, 'None'));
     }

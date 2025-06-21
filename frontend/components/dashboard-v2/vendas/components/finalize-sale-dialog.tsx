@@ -440,12 +440,12 @@ export function FinalizeSaleDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-[600px] max-h-[90vh] flex flex-col">
+      <DialogContent className="sm:max-w-[600px] max-h-[90vh] flex flex-col overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-xl">Finalizar Venda</DialogTitle>
         </DialogHeader>
 
-        <ScrollArea className="h-[calc(90vh-220px)]">
+        <ScrollArea className="h-[calc(90vh-220px)] overflow-y-auto">
           <div className="space-y-6 pr-4">
             {/* Resumo da compra */}
             <Card>

@@ -41,7 +41,7 @@ class Tenant extends Model
         return $this->hasMany(Pedido::class);
     }
 
-    public function usuarios(): HasMany
+    public function users(): HasMany
     {
         return $this->hasMany(User::class);
     }

@@ -23,6 +23,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { gerarNotificacao } from '@/utils/toast';
 
 interface UserDialogProps {
   user?: User;
@@ -46,6 +47,7 @@ export function UserDialog({
     name: '',
     email: '',
     role: 'vendedor',
+    perfil: '',
     password: '',
     password_confirmation: '',
   });
@@ -54,6 +56,7 @@ export function UserDialog({
     name: '',
     email: '',
     password: '',
+    perfil: '',
     password_confirmation: '',
   });
 
@@ -65,6 +68,7 @@ export function UserDialog({
           name: user.name || '',
           email: user.email || '',
           role: user.perfil || 'vendedor',
+          perfil: user.perfil || '',
           password: '',
           password_confirmation: '',
         });
@@ -73,6 +77,7 @@ export function UserDialog({
           name: '',
           email: '',
           role: 'vendedor',
+          perfil: '',
           password: '',
           password_confirmation: '',
         });
@@ -81,6 +86,7 @@ export function UserDialog({
         name: '',
         email: '',
         password: '',
+        perfil: '',
         password_confirmation: '',
       });
     }
@@ -93,6 +99,7 @@ export function UserDialog({
       name: '',
       email: '',
       password: '',
+      perfil: '',
       password_confirmation: '',
     };
 
@@ -151,7 +158,7 @@ export function UserDialog({
   const handleRoleChange = (value: string) => {
     setFormState((prev) => ({
       ...prev,
-      role: value,
+      perfil: value,
     }));
   };
 
@@ -174,6 +181,7 @@ export function UserDialog({
         name: string;
         email: string;
         role: string;
+        perfil: string;
         password?: string;
       };
 
@@ -190,18 +198,12 @@ export function UserDialog({
         const updatedUser = await userService.update(user.id, dataToSubmit);
         updateUser(user.id, updatedUser);
 
-        toast({
-          title: 'Usuário atualizado',
-          description: 'O usuário foi atualizado com sucesso.',
-        });
+        gerarNotificacao('success', 'O usuário foi atualizado com sucesso.');
       } else {
         const newUser = await userService.create(dataToSubmit);
         addUser(newUser);
 
-        toast({
-          title: 'Usuário criado',
-          description: 'O usuário foi criado com sucesso.',
-        });
+        gerarNotificacao('success', 'O usuário foi criado com sucesso.');
       }
 
       if (onSuccess) {
@@ -211,11 +213,7 @@ export function UserDialog({
       onOpenChange(false);
     } catch (error: any) {
       console.error('Erro ao salvar usuário:', error);
-      toast({
-        title: 'Erro',
-        description: error.message || 'Ocorreu um erro ao salvar o usuário.',
-        variant: 'destructive',
-      });
+      gerarNotificacao('error', error.message || 'Erro ao salvar usuário');
     } finally {
       setIsSubmitting(false);
     }

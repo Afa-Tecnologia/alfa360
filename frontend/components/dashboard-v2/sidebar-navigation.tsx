@@ -21,6 +21,7 @@ import {
   CreditCard,
   Receipt,
   User,
+  Cable,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -31,6 +32,7 @@ import useAuthStore from '@/stores/authStore';
 import { removeAuthToken, removeRefreshToken } from '@/app/api/auth';
 import { logout } from '@/lib/auth/logout-server';
 import { toast } from 'react-toastify';
+import Image from 'next/image';
 
 const menuItems = [
   {
@@ -84,6 +86,13 @@ const menuItems = [
     name: 'Configurações',
     href: '/dashboard/configuracoes',
     icon: Settings,
+    adminOnly: true,
+  },
+  {
+    name: 'Integrações',
+    href: '/dashboard/integrações',
+    icon: Cable,
+    ecommerce: true,
   },
 ];
 
@@ -123,9 +132,9 @@ export function SidebarNavigation({
     fetchUserData();
   }, []);
 
-  const handleLogout = async() => {
-await logout()
-  redirect('/login');
+  const handleLogout = async () => {
+    await logout();
+    redirect('/login');
   };
 
   // Filtra os itens do menu com base no perfil do usuário
@@ -159,7 +168,11 @@ await logout()
               transition={{ delay: 0.2 }}
               className="flex items-center gap-2"
             >
+<<<<<<< Updated upstream
               <span className="text-xl font-bold">ALFA Manager</span>
+=======
+              <span className="text-xl font-bold">{process.env.NEXT_PUBLIC_APP_NAME}</span>
+>>>>>>> Stashed changes
             </motion.div>
           )}
           <Button
@@ -193,7 +206,7 @@ await logout()
           </nav>
         </div>
 
-{/* footer */}
+        {/* footer */}
         <div className="mt-auto  p-4">
           <div className="flex items-center gap-4">
             <Avatar>
@@ -239,7 +252,11 @@ await logout()
             transition={{ delay: 0.2 }}
             className="flex items-center gap-2"
           >
+<<<<<<< Updated upstream
             <span className="text-xl font-bold">ALFA Manager</span>
+=======
+            <span className="text-xl font-bold">{process.env.NEXT_PUBLIC_STORE_NAME}</span>
+>>>>>>> Stashed changes
           </motion.div>
         )}
         <Button

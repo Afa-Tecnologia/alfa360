@@ -54,7 +54,7 @@ export default function LoginPageV3() {
                     />
                   </svg>
                 </div>
-                <span className="text-xl font-bold">ALFA 360</span>
+                <span className="text-xl font-bold">{process.env.NEXT_PUBLIC_STORE_NAME}</span>
               </div>
 
               {/* Hero content */}

@@ -84,7 +84,10 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
+<<<<<<< Updated upstream
 // Interceptor de resposta para capturar erro 401 e tentar refresh token
+=======
+>>>>>>> Stashed changes
 api.interceptors.response.use(
  (response) => response,
   async (error: AxiosError) => {

@@ -57,7 +57,17 @@ import {
   PaymentMethod,
   usePaymentMethodStore,
 } from '@/stores/paymentMethodStore';
+<<<<<<< Updated upstream
 
+=======
+import { gerarNotificacao } from '@/utils/toast';
+
+type FormState = {
+  name: string;
+  code: string;
+  error?: string; // opcional, se preferir
+};
+>>>>>>> Stashed changes
 export function MetodosPagamentoTab() {
   const { toast } = useToast();
   const {
@@ -77,11 +87,18 @@ export function MetodosPagamentoTab() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Form state
+<<<<<<< Updated upstream
   const [formState, setFormState] = useState({
     name: '',
     code: '',
   });
 
+=======
+  const [formState, setFormState] = useState<FormState>({
+    name: '',
+    code: '',
+  });
+>>>>>>> Stashed changes
   // Buscar dados ao carregar o componente
   useEffect(() => {
     fetchPaymentMethods();
@@ -121,6 +138,7 @@ export function MetodosPagamentoTab() {
   };
 
   // Atualizar o form state
+<<<<<<< Updated upstream
   const handleFormChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormState((prev) => ({
@@ -128,24 +146,43 @@ export function MetodosPagamentoTab() {
       [name]: value,
     }));
   };
+=======
+  function handleFormChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const { name, value } = e.target;
+
+    let error = '';
+    let newValue = value;
+
+    // Se for o campo "code", aplicamos validação
+    if (name === 'code') {
+      const upperValue = value.toUpperCase();
+
+      if (upperValue && !/^[A-Z_]+$/.test(upperValue)) {
+        error = 'Use apenas letras maiúsculas e underscores (ex: MONEY, PIX)';
+        newValue = ''; // Limpa o input
+      } else {
+        newValue = upperValue; // Converte automaticamente para maiúsculas
+      }
+    }
+
+    setFormState((prev) => ({
+      ...prev,
+      [name]: newValue,
+      error,
+    }));
+  }
+>>>>>>> Stashed changes
 
   // Salvar método de pagamento (criar ou atualizar)
   const handleSavePaymentMethod = async () => {
     if (!formState.name.trim()) {
-      toast({
-        title: 'Campo obrigatório',
-        description: 'O nome do método de pagamento é obrigatório.',
-        variant: 'destructive',
-      });
+      gerarNotificacao('error', 'O nome do método de pagamento é obrigatório.');
+  
       return;
     }
 
     if (!formState.code.trim()) {
-      toast({
-        title: 'Campo obrigatório',
-        description: 'O código do método de pagamento é obrigatório.',
-        variant: 'destructive',
-      });
+      gerarNotificacao('error', 'O código do método de pagamento é obrigatório.');
       return;
     }
 
@@ -155,17 +192,11 @@ export function MetodosPagamentoTab() {
       if (currentPaymentMethod) {
         // Editar existente
         await updatePaymentMethod(currentPaymentMethod.id, formState);
-        toast({
-          title: 'Método de pagamento atualizado',
-          description: 'O método de pagamento foi atualizado com sucesso.',
-        });
+        gerarNotificacao('success', 'Método de pagamento atualizado com sucesso.')
       } else {
         // Criar novo
         await addPaymentMethod(formState);
-        toast({
-          title: 'Método de pagamento criado',
-          description: 'O método de pagamento foi criado com sucesso.',
-        });
+        gerarNotificacao('success', 'Método de pagamento criado com sucesso.');
       }
 
       setIsFormDialogOpen(false);
@@ -173,11 +204,10 @@ export function MetodosPagamentoTab() {
       fetchPaymentMethods();
     } catch (error) {
       console.error('Erro ao salvar método de pagamento:', error);
-      toast({
-        title: 'Erro',
-        description: 'Ocorreu um erro ao salvar o método de pagamento.',
-        variant: 'destructive',
-      });
+      gerarNotificacao(
+        'error',
+        'Ocorreu um erro ao salvar o método de pagamento.'
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -191,19 +221,15 @@ export function MetodosPagamentoTab() {
 
     try {
       await deletePaymentMethod(currentPaymentMethod.id);
-      toast({
-        title: 'Método de pagamento excluído',
-        description: 'O método de pagamento foi excluído com sucesso.',
-      });
+      gerarNotificacao('success', 'Método de pagamento excluído com sucesso.');
       setIsDeleteDialogOpen(false);
       setCurrentPaymentMethod(null);
     } catch (error) {
       console.error('Erro ao excluir método de pagamento:', error);
-      toast({
-        title: 'Erro',
-        description: 'Ocorreu um erro ao excluir o método de pagamento.',
-        variant: 'destructive',
-      });
+      gerarNotificacao(
+        'error',
+        'Ocorreu um erro ao excluir o método de pagamento.'
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -360,11 +386,21 @@ export function MetodosPagamentoTab() {
                 value={formState.code}
                 onChange={handleFormChange}
                 placeholder="Digite o código do método de pagamento"
+<<<<<<< Updated upstream
+=======
+                className={formState.error ? 'border-red-500' : ''}
+>>>>>>> Stashed changes
               />
               <p className="text-xs text-muted-foreground">
                 Um código único para identificar o método (ex: MONEY,
                 CREDIT_CARD, PIX)
               </p>
+<<<<<<< Updated upstream
+=======
+              {formState.error && (
+                <p className="text-xs text-red-500">{formState.error}</p>
+              )}
+>>>>>>> Stashed changes
             </div>
           </div>
           <DialogFooter>

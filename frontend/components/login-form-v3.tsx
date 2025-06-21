@@ -12,6 +12,7 @@ import { loginAction } from '@/app/api/actions';
 import { gerarNotificacao } from '@/utils/toast';
 import { redirect, useRouter } from 'next/navigation';
 import useAuthStore from '@/stores/authStore';
+import useSystemConfigStore from '@/stores/systemConfigStore';
 
 interface LoginFormData {
   email: string;
@@ -37,6 +38,9 @@ export function LoginFormV3({
 
   const setUser = useAuthStore((state) => state.setUser);
   const setToken = useAuthStore((state) => state.setToken);
+
+  const { setStoreName } = useSystemConfigStore();
+
   const router = useRouter();
 
   const handleEmailNext = async () => {
@@ -58,6 +62,8 @@ export function LoginFormV3({
       const { user, message } = response.data;
 
       setUser(user);
+
+
       gerarNotificacao('success', message);
       router.push('/dashboard');
     } catch (error: any) {

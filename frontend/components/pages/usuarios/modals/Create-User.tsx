@@ -31,6 +31,7 @@ export function CreateUser() {
     email: '',
     role: 'vendedor',
     password: '',
+    perfil:'',
     password_confirmation: '',
   });
 
@@ -38,6 +39,7 @@ export function CreateUser() {
     name: '',
     email: '',
     password: '',
+    perfil: '',
     password_confirmation: '',
   });
 
@@ -47,6 +49,7 @@ export function CreateUser() {
       name: '',
       email: '',
       password: '',
+      perfil: '',
       password_confirmation: '',
     };
 
@@ -99,6 +102,7 @@ export function CreateUser() {
         name: '',
         email: '',
         role: 'vendedor',
+        perfil: '', // Definindo perfil padrão
         password: '',
         password_confirmation: '',
       });
@@ -107,6 +111,7 @@ export function CreateUser() {
         name: '',
         email: '',
         password: '',
+        perfil: '',
         password_confirmation: '',
       });
 
@@ -161,8 +166,8 @@ export function CreateUser() {
           <div className="space-y-2">
             <Label htmlFor="role">Função</Label>
             <Select
-              value={newUser.role}
-              onValueChange={(value) => setNewUser({ ...newUser, role: value })}
+              value={newUser.perfil}
+              onValueChange={(value) => setNewUser({ ...newUser, perfil: value })}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Selecione a função" />

@@ -32,7 +32,7 @@ class ProductionSeeder extends Seeder
             ]);
 
             $owner = User::updateOrCreate(
-            ['email' => 'admin3@alfatecnologiabrasil.com.br'],
+            ['email' => 'admin@alfatecnologiabrasil.com.br'],
             [
                 'name' => 'Owner Alfa',
                 'password' => Hash::make('Rp8Q0dJNLN3vjf8O2Mv'),
@@ -117,16 +117,16 @@ class ProductionSeeder extends Seeder
         // Criação de usuários essenciais para o sistema
         $users = [
             [
-                'name' => 'Admin',
-                'email' => 'admin@alfatecnologiabrasil.com.br',
-                'password' => 'Rp8Q0dJNLN3vjf8O2Mv',
+                'name' => 'Lesamis',
+                'email' => 'lesamis@alfatecnologiabrasil.com.br',
+                'password' => Hash::make('Rpc8Q0dJNae3LN3vj2fe8O2Mv'),
                 'uuid' => Str::uuid(), // Gerando UUID para o usuário
                 'tenant_id' => $tenantUm, // Gerando UUID para tenant_id
             ],
             [
-                'name' => 'Admin2',
-                'email' => 'admin2@alfatecnologiabrasil.com.br',
-                'password' => 'Rp8Q0dJNLN3vjf8O2Mv',
+                'name' => 'Am CELL',
+                'email' => 'amcell@alfatecnologiabrasil.com.br',
+                'password' => Hash::make('Rp8Qdd0dJNaer4LN3vgfsjf8O2Mv'),
                 'uuid' => Str::uuid(), // Gerando UUID para o usuário
                 'tenant_id' => $tenantDois,
             ]

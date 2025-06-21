@@ -11,28 +11,28 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('usuarios', function (Blueprint $table) {
-            $table->id();
-            $table->uuid('uuid');
-            $table->uuid('empresa_id')->nullable();
-            $table->foreignUuid('perfil_id')->nullable()->constrained('perfis')->onDelete('set null');
-            $table->string('nome');
-            $table->string('sobrenome');
-            $table->string('cpf')->unique();
-            $table->string('telefone')->unique();
-            $table->string('endereco');
-            $table->string('cidade');
-            $table->string('estado');
-            $table->string('cep');
-            $table->string('email')->unique();
-            $table->string('senha');
-            $table->boolean('ativo')->default(true);
-            $table->timestamps();
-            $table->rememberToken();
-            $table->softDeletes();
+        Schema::dropIfExists('usuarios');
+        // Schema::create('usuarios', function (Blueprint $table) {
+        //     $table->id();
+        //     $table->uuid('uuid');
+        //     $table->uuid('empresa_id')->nullable();
+        //     $table->string('nome');
+        //     $table->string('sobrenome');
+        //     $table->string('cpf')->unique();
+        //     $table->string('telefone')->unique();
+        //     $table->string('endereco');
+        //     $table->string('cidade');
+        //     $table->string('estado');
+        //     $table->string('cep');
+        //     $table->string('email')->unique();
+        //     $table->string('senha');
+        //     $table->boolean('ativo')->default(true);
+        //     $table->timestamps();
+        //     $table->rememberToken();
+        //     $table->softDeletes();
         
-            $table->foreign('empresa_id')->references('id')->on('empresas')->onDelete('cascade');
-        });
+        //     $table->foreign('empresa_id')->references('id')->on('empresas')->onDelete('cascade');
+        // });
     }
 
     /**

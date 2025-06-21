@@ -32,6 +32,7 @@ class UserAuthController extends Controller
                 'name' => $data['name'],
                 'email' => $data['email'],
                 'password' => Hash::make($data['password']),
+                'perfil' => $data['perfil'] ?? 'vendedor', // Define perfil padrão se não fornecido
             ]);
 
             Log::info('Novo usuário registrado', ['id' => $user->id, 'ip' => $request->ip()]);
@@ -90,7 +91,14 @@ class UserAuthController extends Controller
 
             return response()->json([
                 'message' => 'Login realizado com sucesso',
-                'user' => $user->only(['id', 'name', 'email', 'role', 'perfil']),
+                'user' => [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'role' => $user->role,
+                    'perfil' => $user->perfil,
+                    'tenant_id' => $user->tenant_id
+                ],
                 'token_type' => 'bearer',
                 'expires_in' => config('jwt.ttl') * 60
             ])
@@ -137,68 +145,7 @@ class UserAuthController extends Controller
         }
     }
 
-    /**
-     * Gera novos tokens a partir do refresh token
-     */
-    // public function refresh(Request $request): JsonResponse
-    // {
-    //     $refreshToken = $request->cookie('jwt_refresh_token') ?? $request->input('refresh_token');
-
-    //     if (!$refreshToken) {
-    //         return response()->json(['message' => 'Token de atualização não fornecido'], 401);
-    //     }
-
-    //     // Verifica se o token de atualização é válido
-    //     if (!JWTAuth::setToken($refreshToken)->check()) {
-    //         $this->limparCookies($request);
-    //         Log::warning('Tentativa de renovação com token inválido ou expirado', ['token' => $refreshToken]);
-    //         return response()->json(['message' => 'Token de atualização inválido ou expirado'], 401);
-    //     }
-
-    //     try {
-    //         JWTAuth::setToken($refreshToken);
-    //         $payload = JWTAuth::getPayload();
-
-    //         $userId = $payload->get('sub');
-    //         $user = User::find($userId);
-
-    //         if (!$user) {
-    //             return response()->json(['message' => 'Usuário não encontrado'], 404);
-    //         }
-
-    //         // Invalida o token usado
-    //         JWTAuth::invalidate();
-
-    //         $newAccessToken = JWTAuth::fromUser($user);
-    //         $newRefreshToken = JWTAuth::customClaims([
-    //             'exp' => now()->addDays(7)->timestamp,
-    //             'token_type' => 'refresh'
-    //         ])->fromUser($user);
-
-    //         // // Obtenha o domínio da solicitação atual
-    //         // $domain = $request->getHost();
-    //         // // Se for localhost, use null (comportamento padrão)
-    //         // $cookieDomain = str_contains($domain, 'localhost') ? null : '.'.$this->extractRootDomain($domain);
-            
-    //         $cookieDomain = app()->environment('local') ? null : 'alfa360.alfatecnologia.tech';
-
-    //         return response()->json([
-    //             'message' => 'Token renovado com sucesso',
-    //             'token_type' => 'bearer',
-    //             'expires_in' => config('jwt.ttl') * 60
-    //         ])
-    //         ->cookie('jwt_token', $newAccessToken, 15, '/', $cookieDomain, true, true, false, 'None')
-    //         ->cookie('jwt_refresh_token', $newRefreshToken, 10080, '/', $cookieDomain, true, true, false, 'None');
-
-    //     } catch (JWTException $e) {
-    //         Log::error('Erro ao renovar token: ' . $e->getMessage());
-    //         return response()->json(['message' => 'Token inválido ou expirado'], 401);
-    //     } catch (\Throwable $e) {
-    //         Log::error('Erro ao atualizar token: ' . $e->getMessage());
-    //         return response()->json(['message' => 'Erro interno ao atualizar token'], 500);
-    //     }
-    // }
-    
+   
 /**
  * Gera novos tokens a partir do refresh token
  */
@@ -267,24 +214,8 @@ public function refresh(Request $request): JsonResponse
         ->cookie('jwt_refresh_token', $newRefreshToken, 10080, '/', $cookieDomain, true, true, false, 'None');
 
     } catch (JWTException $e) {
-        $this->limparCookies($request);
-        Log::warning('Refresh token expirado: ' . $e->getMessage());
-        return response()->json(['message' => 'Token de atualização expirado'], 401);
-        
-    } catch (JWTException $e) {
-        $this->limparCookies($request);
-        Log::warning('Refresh token inválido: ' . $e->getMessage());
-        return response()->json(['message' => 'Token de atualização inválido'], 401);
-        
-    } catch (JWTException $e) {
-        $this->limparCookies($request);
-        Log::error('Erro JWT ao renovar token: ' . $e->getMessage());
-        return response()->json(['message' => 'Erro ao processar token'], 401);
-        
-    } catch (\Throwable $e) {
-        Log::error('Erro inesperado ao atualizar token: ' . $e->getMessage());
-        return response()->json(['message' => 'Erro interno do servidor'], 500);
-    }
+        return $this->limparCookies($request);
+    } 
 }
 
 
@@ -313,7 +244,7 @@ private function isTokenStructurallyValid(string $token): bool
                 return response()->json(['message' => 'Usuário não autenticado'], 401);
             }
 
-            return response()->json(['user' => $user->only(['id', 'name', 'email', 'role', 'perfil'])]);
+            return response()->json(['user' => $user->only(['id', 'name', 'email', 'role', 'perfil', 'tenant_id'])]);
 
         } catch (\Throwable $e) {
             Log::error('Erro ao buscar usuário: ' . $e->getMessage());
@@ -351,7 +282,7 @@ private function isTokenStructurallyValid(string $token): bool
     {
         $cookieDomain = app()->environment('local') ? null : 'alfa360.alfatecnologia.tech';
 
-        return response()->json(['message' => 'Logout realizado com sucesso'])
+        return response()->json(['message' => 'Falha ao renovar Token: Token de atualização expirado ou inválido'])
             ->withCookie(cookie('jwt_token', null, -1, '/', $cookieDomain, true, true, false, 'None'))
             ->withCookie(cookie('jwt_refresh_token', null, -1, '/', $cookieDomain, true, true, false, 'None'));
     }

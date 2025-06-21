@@ -15,7 +15,6 @@ return new class extends Migration
             $table->id();
             $table->uuid('uuid');
             $table->uuid('empresa_id')->nullable();
-            $table->foreignUuid('perfil_id')->nullable()->constrained('perfis')->onDelete('set null');
             $table->string('nome');
             $table->string('sobrenome');
             $table->string('cpf')->unique();

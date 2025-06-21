@@ -27,7 +27,7 @@ export interface ConfigDoNegocio {
   id: number;
   nome: string;
   logo_url?: string;
-  tipo_de_negocio_id: number;
+  tipos_de_negocios_id: number;
   tipoDeNegocio?: TipoDeNegocio;
   created_at?: string;
   updated_at?: string;

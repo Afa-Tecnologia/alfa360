@@ -88,7 +88,7 @@ export function ConfigDoNegocioTab() {
   const [formState, setFormState] = useState({
     nome: '',
     logo_url: '',
-    tipo_de_negocio_id: '',
+    tipos_de_negocios_id: '',
   });
 
   // Buscar dados ao carregar o componente
@@ -108,7 +108,7 @@ export function ConfigDoNegocioTab() {
     setFormState({
       nome: '',
       logo_url: '',
-      tipo_de_negocio_id: '',
+      tipos_de_negocios_id: '',
     });
     setIsFormDialogOpen(true);
   };
@@ -119,7 +119,7 @@ export function ConfigDoNegocioTab() {
     setFormState({
       nome: config.nome,
       logo_url: config.logo_url || '',
-      tipo_de_negocio_id: config.tipo_de_negocio_id.toString(),
+      tipos_de_negocios_id: config.tipos_de_negocios_id.toString(),
     });
     setIsFormDialogOpen(true);
   };
@@ -143,7 +143,7 @@ export function ConfigDoNegocioTab() {
   const handleTipoNegocioChange = (value: string) => {
     setFormState((prev) => ({
       ...prev,
-      tipo_de_negocio_id: value,
+      tipos_de_negocios_id: value,
     }));
   };
 
@@ -158,7 +158,7 @@ export function ConfigDoNegocioTab() {
       return;
     }
 
-    if (!formState.tipo_de_negocio_id) {
+    if (!formState.tipos_de_negocios_id) {
       toast({
         title: 'Campo obrigatório',
         description: 'O tipo de negócio é obrigatório.',
@@ -171,7 +171,7 @@ export function ConfigDoNegocioTab() {
 
     const dataToSend = {
       ...formState,
-      tipo_de_negocio_id: parseInt(formState.tipo_de_negocio_id),
+      tipos_de_negocios_id: parseInt(formState.tipos_de_negocios_id),
     };
 
     try {
@@ -311,7 +311,7 @@ export function ConfigDoNegocioTab() {
                 <TableRow key={config.id}>
                   <TableCell className="font-medium">{config.nome}</TableCell>
                   <TableCell>
-                    {getTipoDeNegocioNome(config.tipo_de_negocio_id)}
+                    {getTipoDeNegocioNome(config.tipos_de_negocios_id)}
                   </TableCell>
                   <TableCell className="hidden md:table-cell">
                     {config.logo_url ? (
@@ -418,9 +418,9 @@ export function ConfigDoNegocioTab() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="tipo_de_negocio_id">Tipo de Negócio</Label>
+              <Label htmlFor="tipos_de_negocios_id">Tipo de Negócio</Label>
               <Select
-                value={formState.tipo_de_negocio_id}
+                value={formState.tipos_de_negocios_id}
                 onValueChange={handleTipoNegocioChange}
               >
                 <SelectTrigger>

@@ -3,10 +3,11 @@
 
 namespace App\Http\Controllers\Auth;
 
+use App\Actions\User\CreateUser;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\User\StoreUserRequest;
 use Illuminate\Http\Request;
 use App\Models\User;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
@@ -20,27 +21,16 @@ class UserAuthController extends Controller
     /**
      * Cadastra um novo usuário
      */
-    public function signup(Request $request): JsonResponse
+    public function signup(StoreUserRequest $request, CreateUser $createUser): JsonResponse
     {
         try {
-            $data = $request->validate([
-                'name' => 'required|string|max:255',
-                'email' => 'required|string|email|max:255|unique:users,email',
-                'password' => 'required|string|min:8|confirmed'
-            ]);
-
-            $user = User::create([
-                'name' => $data['name'],
-                'email' => $data['email'],
-                'password' => Hash::make($data['password']),
-                'perfil' => $data['perfil'] ?? 'vendedor', // Define perfil padrão se não fornecido
-            ]);
-
-            Log::info('Novo usuário registrado', ['id' => $user->id, 'ip' => $request->ip()]);
+            
+            $data = $request->validated();
+            $user = $createUser->execute($data);
 
             return response()->json([
                 'message' => 'Cadastro realizado com sucesso',
-                'user' => $user->only(['id', 'name', 'email'])
+                'user' => new UserResource($user),
             ], 201);
 
         } catch (ValidationException $e) {

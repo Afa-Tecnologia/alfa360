@@ -6,13 +6,9 @@ namespace App\Models;
 
 use App\Traits\TenantAware;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Illuminate\Support\Collection;
-use Spatie\Permission\Models\Permission;
-use Spatie\Permission\Models\Role;
 use Spatie\Permission\Traits\HasRoles;
 use Tymon\JWTAuth\Contracts\JWTSubject;
 
@@ -30,7 +26,7 @@ class User extends Authenticatable implements JWTSubject
         'name',
         'email',
         'password',
-        'role_id',
+        'role',
         'uuid',
         'tenant_id',
         'empresa_id',
@@ -45,17 +41,28 @@ class User extends Authenticatable implements JWTSubject
         'password',
         'remember_token',
     ];
+    
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($user) {
+            if (!$user->uuid) {
+                $user->uuid = (string) \Illuminate\Support\Str::uuid();
+            }
+        });
+    }
 
     public function caixas(): HasMany
     {
         return $this->hasMany(Caixa::class, 'user_id', 'id');
     }
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
+    public function empresa()
+    {
+        return $this->belongsTo(Empresa::class);
+    }
+
     protected function casts(): array
     {
         return [
@@ -68,12 +75,7 @@ class User extends Authenticatable implements JWTSubject
     {
         return $date->format('d-m-Y H:i:s');
     }
-    
-    /**
-     * Get the identifier that will be stored in the subject claim of the JWT.
-     *
-     * @return mixed
-     */
+
     public function getJWTIdentifier()
     {
         return $this->getKey();
@@ -86,11 +88,17 @@ class User extends Authenticatable implements JWTSubject
      */
     public function getJWTCustomClaims()
     {
-        return [];
+        return [
+            'tenant_id' => $this->tenant_id,
+            'tenant_name' => $this->tenant?->name
+        ];
     }
 
-    public function empresa()
+    /**
+     * Verifica se o usuário pode acessar o tenant especificado
+     */
+    public function canAccessTenant($tenantId): bool
     {
-        return $this->belongsTo(Empresa::class);
+        return $this->tenant_id == $tenantId;
     }
 }

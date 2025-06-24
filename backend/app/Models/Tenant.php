@@ -20,6 +20,16 @@ class Tenant extends Model
     // Singleton para tenant atual
     private static $current = null;
 
+    protected static function boot()
+    {
+        parent::boot();
+
+        // Garante que o tenant_id seja gerado automaticamente ao criar um novo modelo
+        static::creating(function ($model) {
+            $model->tenant_id = (string) \Illuminate\Support\Str::uuid(); 
+        });
+    }
+
     public static function current(): ?self
     {
         return self::$current;

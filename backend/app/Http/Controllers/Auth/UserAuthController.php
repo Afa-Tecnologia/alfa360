@@ -196,10 +196,10 @@ public function refresh(Request $request): JsonResponse
         ->cookie('jwt_refresh_token', $newRefreshToken, 10080, '/', $cookieDomain, true, true, false, 'None');
 
     } catch (JWTException $e) {
-        $this->limparCookies($request);
-        return response()->json([
-            'message' => 'Falha ao renovar Token: Token de atualização expirado ou inválido',
-            'error' => $e->getMessage()], 401);
+        return $this->limparCookies($request);
+        // return response()->json([
+        //     'message' => 'Falha ao renovar Token: Token de atualização expirado ou inválido',
+        //     'error' => $e->getMessage()], 401);
     } 
 }
 

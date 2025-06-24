@@ -5,7 +5,6 @@ use App\Http\Controllers\Auth\UserAuthController;
 use App\Http\Controllers\Caixa\CaixaController;
 use App\Http\Controllers\Categorias\CategoriasController;
 use App\Http\Controllers\Clientes\ClientesController;
-use App\Http\Controllers\Imagem\ImagemController;
 use App\Http\Controllers\Pedidos\PedidosController;
 use App\Http\Controllers\PedidoPagamento\PedidoPagamentoController;
 use App\Http\Controllers\User\UserController;
@@ -19,12 +18,12 @@ use App\Http\Controllers\PaymentMethods\PaymentMethodController;
 use App\Http\Controllers\TiposDeProdutos\TiposDeProdutosController;
 use App\Http\Controllers\TipoDeNegocios\TipoDeNegociosController;
 use App\Http\Controllers\ConfigDoNegocio\ConfigDoNegocioController;
-use App\Http\Controllers\Devolucao\DevolucaoController;
-use App\Http\Controllers\DevolucaoItem\DevolucaoItemController;
+use App\Http\Controllers\Devolucao\DevolucaoController; 
+use App\Http\Controllers\Empresa\EmpresaController;
+use App\Http\Controllers\Tenant\TenantController;
 use App\Models\Tenant;
 use Illuminate\Support\Facades\Auth;
 use LaravelJsonApi\Laravel\Facades\JsonApiRoute;
-use LaravelJsonApi\Laravel\Http\Controllers\JsonApiController;
 use App\Http\Middleware\TenantResolver;
 
 Route::get('/user', function (Request $request) {
@@ -50,6 +49,25 @@ Route::prefix('users')->middleware('auth:api', TenantResolver::class)->group(fun
     
 });
 
+// Rotas para tenants
+Route::prefix('tenants')->middleware(['auth:api', 'role:super_admin'])->group(function () {
+    Route::get('/', [TenantController::class, 'index']);
+    Route::post('/', [TenantController::class, 'store']);
+    Route::get('{id}', [TenantController::class, 'show']);
+    Route::put('{id}', [TenantController::class, 'update']);
+    Route::delete('{id}', [TenantController::class, 'delete']);
+});
+
+
+Route::prefix('empresas')->middleware(['auth:api', 'role:super_admin'])->group(function () {
+    Route::get('/', [EmpresaController::class, 'index']);
+    Route::post('/', [EmpresaController::class, 'store']);
+    Route::get('{id}', [EmpresaController::class, 'show']);
+    Route::put('{id}', [EmpresaController::class, 'update']);
+    Route::delete('{id}', [EmpresaController::class, 'delete']);
+});
+
+
 Route::prefix('produtos')->middleware('auth:api', TenantResolver::class, TenantResolver::class)->group(function () {
     Route::get('/', [ProdutoController::class, 'index']);
     Route::get('{id}', [ProdutoController::class, 'show']);
@@ -71,6 +89,7 @@ Route::get('/debug-tenant', function() {
         'produtos_sem_scope' => \App\Models\Produto::withoutGlobalScopes()->count(),
         'produtos_com_scope' => \App\Models\Produto::count(),
         'sql_query' => \App\Models\Produto::toSql(),
+        'roles' => Auth::check() ? Auth::user()->getRoleNames() : [],
     ];
 })->middleware('auth:api', TenantResolver::class, \App\Http\Middleware\TenantResolver::class);
 
@@ -96,8 +115,6 @@ JsonApiRoute::server('v1')
     ->resources(function ($server) {
         $server->resource('devolucoes', DevolucaoController::class);
     });
-
-
 
 Route::prefix('relatorios')->middleware('auth:api', TenantResolver::class)->group(function () {
     Route::get('/resumo', [RelatoriosController::class, 'getSalesSummary']);
@@ -147,7 +164,6 @@ Route::middleware('auth:api', TenantResolver::class)->group(function () {
     Route::get('/caixa/historico', [CaixaController::class, 'historico']);
     Route::get('/caixa/{caixa}/detalhes', [CaixaController::class, 'detalhes']);
     Route::get('/caixa/{caixa}/movimentacoes', [CaixaController::class, 'getMovimentacoesByCaixa']);
-    //Para gerar relatório pdf
     Route::get('/caixa/consolidado', [CaixaController::class, 'consolidado']);
     Route::get('/caixa/consolidado/pdf', [CaixaController::class, 'consolidadoPdf']);
 });
@@ -160,9 +176,6 @@ Route::middleware('auth:api', TenantResolver::class)->group(function () {
     Route::delete('payment-methods/{id}', [PaymentMethodController::class, 'destroy']); 
 }   
 );
-
-// Route::apiResource('payment-methods', PaymentMethodController::class)->middleware('auth:api', TenantResolver::class);
-
 // Rotas para Tipos de Produtos
 Route::prefix('tipos-produtos')->middleware('auth:api', TenantResolver::class)->group(function () {
     Route::get('/', [TiposDeProdutosController::class, 'index']);
@@ -189,14 +202,3 @@ Route::prefix('config-negocio')->middleware('auth:api', TenantResolver::class)->
     Route::put('{id}', [ConfigDoNegocioController::class, 'update']);
     Route::delete('{id}', [ConfigDoNegocioController::class, 'destroy']);
 });
-
-// Route::middleware(['auth:api', TenantResolver::class])->group(function () {
-//     Route::prefix('despesas')->group(function () {
-//         Route::get('/', [EmployeeExpenseController::class, 'index']);
-//         Route::get('/summary', [EmployeeExpenseController::class, 'summary']);
-//         Route::get('/funcionario/{id}', [EmployeeExpenseController::class, 'byEmployee']);
-//         Route::post('/', [EmployeeExpenseController::class, 'store']);
-//         Route::put('/{id}', [EmployeeExpenseController::class, 'update']);
-//         Route::delete('/{id}', [EmployeeExpenseController::class, 'destroy']);
-//     });
-// });

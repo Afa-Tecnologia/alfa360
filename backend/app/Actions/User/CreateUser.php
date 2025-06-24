@@ -14,6 +14,7 @@ class CreateUser
             'name' => $data['name'],
             'email' => $data['email'],
             'password' => Hash::make($data['password']),
+            'tenant_id' => $data['tenant_id'] ?? null,
         ]);
 
          $user->assignRole($data['role'] ?? 'vendedor');

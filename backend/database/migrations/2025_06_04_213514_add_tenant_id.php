@@ -13,7 +13,7 @@ return new class extends Migration
     {
         // Lista de todas suas tabelas existentes
         $tables = [
-            'users','produtos','variantes','pedidos_produtos','caixas','movimentacao_caixas', 
+            'produtos','variantes','pedidos_produtos','caixas','movimentacao_caixas', 
             'pedidos', 'clientes', 'categorias','tipo_de_produto', 
             'pagamento_metodos','pedido_pagamentos','commissions',
             'config_do_negocios','devolucoes','devolucao_itens',
@@ -32,7 +32,7 @@ return new class extends Migration
     public function down(): void
     {
         $tables = [
-            'users','produtos','variantes','pedidos_produtos','caixas','movimentacao_caixas', 
+            'produtos','variantes','pedidos_produtos','caixas','movimentacao_caixas', 
             'pedidos', 'clientes', 'categorias','tipo_de_produto', 
             'pagamento_metodos','pedido_pagamentos','commissions',
             'config_do_negocios','devolucoes','devolucao_itens',

@@ -44,15 +44,17 @@ class UserService
         return $user;
     }
 
-    // Método para obter todos os vendedores
+// Método para obter todos os vendedores
     public function getVendedores()
     {
+
         $usersWithRoles = User::with('roles')
             ->whereHas('roles', function ($query) {
                 $query->whereIn('name', ['vendedor', 'admin', 'gerente']); // Inclui administradores como vendedores
             })
             ->select('id','uuid', 'name', 'email', 'tenant_id' )
             ->get();
+
 
 
         return $usersWithRoles;

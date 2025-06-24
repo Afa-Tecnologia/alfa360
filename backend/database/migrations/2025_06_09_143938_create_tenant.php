@@ -15,12 +15,12 @@ return new class extends Migration
             $table->id('id'); 
             $table->string('nome');
             $table->string('subdominio')->unique();
-            $table->foreignId('empresa_id')->constrained('empresas')->nullable();// nome do empresa exclusivo para o tenant
+            $table->foreignId('empresa_id')->nullable()->constrained('empresas');// nome do empresa exclusivo para o tenant
             $table->boolean('active')->default(true);
             $table->unsignedBigInteger('plano_id')->nullable();
             $table->timestamp('assinatura_expira_em')->nullable();
             $table->timestamps();
-            $table->foreign('plano_id')->references('id')->on('planos')->onDelete('set null')->nullable();
+            $table->foreign('plano_id')->nullable()->references('id')->on('planos')->onDelete('set null');
             $table->uuid('tenant_id')->index(); // Adicionando tenant_id para multitenancy
             $table->softDeletes(); // Adicionando soft delete para o tenant
             $table->unique(['subdominio', 'tenant_id']); // Garantindo unicidade do subdomínio por tenant

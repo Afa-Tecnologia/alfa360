@@ -11,10 +11,14 @@ class TenantResolver
 {
     public function handle(Request $request, Closure $next)
     {
+        //Verificação de super admin
+        if (Auth::check() && Auth::user()->hasRole('super_admin')) {
+            return $next($request);
+        }
 
         if (Auth::check()) {
             $tenantId = Auth::user()->tenant_id;
-            $tenant = Tenant::where('tenant_id', $tenantId)
+            $tenant = Tenant::where('id', $tenantId)
                             ->where('active', true)
                             ->first();
 

@@ -31,6 +31,18 @@ class ProductionSeeder extends Seeder
             $this->call([
                 RolesAndPermissionsSeeder::class,
             ]);
+            
+            // Agora crie o tenant, com o ID da empresa já salvo
+            $tenant = Tenant::updateOrCreate(
+                ['subdominio' => 'alfatecnologiabrasil'],
+                [
+                    'nome' => 'Alfa Tecnologia Brasil',
+                    'subdominio' => 'alfatecnologiabrasil',
+                    'active' => true,
+                    'tenant_id' => $tenantId, // Gerando UUID para o tenant_id
+                    'assinatura_expira_em' => now()->addYear()
+                ]
+            );
 
             $owner = User::updateOrCreate(
             ['email' => 'admin@alfatecnologiabrasil.com.br'],
@@ -38,7 +50,7 @@ class ProductionSeeder extends Seeder
                 'name' => 'Owner Alfa',
                 'password' => Hash::make('Rp8Q0dJNLN3vjf8O2Mv'),
                 'uuid' => Str::uuid(), // Gerando UUID para o usuário
-                'tenant_id' => $tenantId, // Gerando UUID para tenant_id
+                'tenant_id' => $tenant->id, // Gerando UUID para tenant_id
             ]
         );
 
@@ -78,28 +90,15 @@ class ProductionSeeder extends Seeder
             ]
         );
 
-        // Agora crie o tenant, com o ID da empresa já salvo
-        $tenant = Tenant::updateOrCreate(
-            ['subdominio' => 'alfatecnologiabrasil'],
-            [
-                'nome' => 'Alfa Tecnologia Brasil',
-                'subdominio' => 'alfatecnologiabrasil',
-                'empresa_id' => $empresa->id,
-                'active' => true,
-                'assinatura_expira_em' => now()->addYear(),
-                'tenant_id' => $tenantId,
-            ]
-        );
 
         $tenantDaEmpresaDois = Tenant::updateOrCreate(
             ['subdominio' => 'lesamis'],
             [
                 'nome' => 'Lesamis',
                 'subdominio' => 'lesamis',
-                'empresa_id' => $empresa->id,
+                // 'empresa_id' => $empresa->id,
                 'active' => true,
                 'assinatura_expira_em' => now()->addYear(),
-                'tenant_id' => Str::uuid(),
             ]
         );
 
@@ -108,18 +107,17 @@ class ProductionSeeder extends Seeder
             [
                 'nome' => 'Am CELL',
                 'subdominio' => 'amcell',
-                'empresa_id' => $empresa->id,
+                // 'empresa_id' => $empresa->id,
                 'active' => true,
                 'assinatura_expira_em' => now()->addYear(),
-                'tenant_id' => Str::uuid(),
             ]
         );
 
         $tenantUmId = $tenant->tenant_id; // Obtendo o UUID do tenant criado
         TenantContext::setTenantId($tenantUmId);// Definindo o tenant_id para o ambiente de produção
 
-        $tenantDoisId = $tenantDaEmpresaDois->tenant_id; // Obtendo o UUID do tenant criado
-        $tenantTresId = $tenantDaEmpresaTres->tenant_id; // Obtendo o UUID do tenant criado
+        $tenantDoisId = $tenantDaEmpresaDois->id; // Obtendo o UUID do tenant criado
+        $tenantTresId = $tenantDaEmpresaTres->id; // Obtendo o UUID do tenant criado
 
 
         // Seeders básicos do sistema
@@ -136,14 +134,14 @@ class ProductionSeeder extends Seeder
                 'name' => 'Lesamis',
                 'email' => 'lesamis@alfatecnologiabrasil.com.br',
                 'password' => Hash::make('Rpc8Q0dJNae3LN3vj2fe8O2Mv'),
-                'uuid' => Str::uuid(), // Gerando UUID para o usuário
+                // 'uuid' => Str::uuid(),
                 'tenant_id' => $tenantDoisId, // Gerando UUID para tenant_id
             ],
             [
                 'name' => 'Am CELL',
                 'email' => 'amcell@alfatecnologiabrasil.com.br',
                 'password' => Hash::make('Rp8Qdd0dJNaer4LN3vgfsjf8O2Mv'),
-                'uuid' => Str::uuid(), // Gerando UUID para o usuário
+                // 'uuid' => Str::uuid(), // Gerando UUID para o usuário
                 'tenant_id' => $tenantTresId,
             ]
         ];

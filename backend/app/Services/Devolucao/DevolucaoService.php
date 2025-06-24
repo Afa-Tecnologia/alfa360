@@ -8,6 +8,7 @@ use App\Models\PedidosProduto;
 use App\Models\Pedido;
 use App\Services\EstoqueService;
 use App\Services\PedidoPagamento\PedidoPagamentoService;
+use App\Services\Pedidos\EstoqueHelper;
 use App\Services\Pedidos\PedidoService;
 use Illuminate\Support\Str;
 use Exception;
@@ -18,13 +19,16 @@ class DevolucaoService
     protected $estoqueService;
     protected $pagamentoService;
     protected $pedidoService;
+    protected $estoqueHelper;
 
     public function __construct(
         EstoqueService $estoqueService,
+        EstoqueHelper $estoqueHelper,
         PedidoPagamentoService $pagamentoService,
         PedidoService $pedidoService
     ) {
         $this->estoqueService = $estoqueService;
+        $this->estoqueHelper = $estoqueHelper;
         $this->pagamentoService = $pagamentoService;
         $this->pedidoService = $pedidoService;
     }
@@ -41,7 +45,7 @@ class DevolucaoService
                 'motivo' => $data['motivo'],
                 'tipo' => $data['tipo'],
                 'observacoes' => $data['observacoes'] ?? null,
-                'status' => 'pendente',
+                'estado' => 'pendente',
                 'valor_reembolso' => 0,
             ]);
 
@@ -119,7 +123,7 @@ class DevolucaoService
     public function aprovarDevolucao(Devolucao $devolucao): Devolucao
     {
         $devolucao->update([
-            'status' => 'aprovado',
+            'estado' => 'aprovado',
             'data_aprovacao' => now(),
         ]);
 
@@ -132,7 +136,7 @@ class DevolucaoService
     public function rejeitarDevolucao(Devolucao $devolucao): Devolucao
     {
         $devolucao->update([
-            'status' => 'reprovado',
+            'estado' => 'reprovado',
             'data_aprovacao' => now(),
         ]);
 
@@ -144,21 +148,18 @@ class DevolucaoService
      * - Estornar estoque
      * - Estornar pagamento
      */
-    public function processarDevolucao(Devolucao $devolucao): Devolucao
+    public function processarDevolucao(Devolucao $devolucao)
     {
         return DB::transaction(function () use ($devolucao) {
-            if ($devolucao->status !== 'aprovado') {
+            if ($devolucao->estado !== 'aprovado') {
                 throw new Exception('Devolução não aprovada.');
             }
-
-            foreach ($devolucao->itens as $item) {
-                $this->estoqueService->estornarEstoque($item->variante_id, $item->quantidade);
-            }
-
+            $itensDevolvidosTransformed = $this->estoqueHelper->prepararItensParaEstorno($devolucao->itens);
+            $this->estoqueService->estornarEstoque($itensDevolvidosTransformed);
             $this->pagamentoService->estornarPagamento($devolucao->pedido_id);
 
             $devolucao->update([
-                'status' => 'processado',
+                'estado' => 'processado',
                 'data_processamento' => now(),
             ]);
 

@@ -65,14 +65,15 @@ class EstoqueHelper
     {
         $itensEstornar = [];
         foreach ($produtos as $produtoAtual) {
-            $pivotData = $produtoAtual->pivot;
+            //Adaptado para dois momentos 
+            $pivotData = $produtoAtual->pivot ?? $produtoAtual;
             
             // Procurar variante associada ao produto
             $variante = Variantes::where('produto_id', $produtoAtual->id)->first();
             if ($variante) {
                 $itensEstornar[] = [
                     'variante_id' => $variante->id,
-                    'quantity' => $pivotData->quantity
+                    'quantity' => intval($pivotData->quantity ?? $pivotData->quantidade)
                 ];
             }
         }

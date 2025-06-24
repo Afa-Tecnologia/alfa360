@@ -2,8 +2,10 @@
 
 namespace App\Providers;
 
+use App\Models\Devolucao;
 use App\Models\Pedido;
 use App\Models\PedidoPagamento;
+use App\Observers\DevolucaoObserver;
 use App\Observers\PedidoObserver;
 use App\Observers\PedidoPagamentoObserver;
 use Illuminate\Support\ServiceProvider;
@@ -64,6 +66,7 @@ class AppServiceProvider extends ServiceProvider
         //Observador de pedido
         Pedido::observe(PedidoObserver::class);
         PedidoPagamento::observe(PedidoPagamentoObserver::class);
+        Devolucao::observe(DevolucaoObserver::class);
         Carbon::setLocale(config('app.locale')); // Define o locale
         setlocale(LC_TIME, 'pt_BR.UTF-8'); // Para funções nativas do PHP
     }

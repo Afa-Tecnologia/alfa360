@@ -97,7 +97,6 @@ class EstoqueService
     public function estornarEstoque(array $itensEstoque)
     {
         Log::info('Estornando estoque para: ', $itensEstoque);
-        
         $produtosAfetados = []; // Manter track dos produtos afetados
         
         foreach ($itensEstoque as $item) {
@@ -117,7 +116,6 @@ class EstoqueService
             if (!in_array($variante->produto_id, $produtosAfetados)) {
                 $produtosAfetados[] = $variante->produto_id;
             }
-            
             $variante->quantity += $item['quantity'];
             $variante->save();
             

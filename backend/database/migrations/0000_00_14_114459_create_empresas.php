@@ -30,7 +30,7 @@ return new class extends Migration
             $table->boolean('ativo')->default(true);
             $table->timestamp('trial_expira_em')->nullable();
             $table->timestamp('assinatura_expira_em')->nullable();
-            $table->foreignId('owner_id')->constrained('users')->nullable();
+            $table->foreignId('owner_id')->nullable()->constrained('users');
             $table->foreignId('plano_id')->constrained('planos');
             $table->timestamps();
             $table->softDeletes();

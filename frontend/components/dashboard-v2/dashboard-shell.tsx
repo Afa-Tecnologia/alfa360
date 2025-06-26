@@ -1,66 +1,78 @@
-'use client';
+// app/dashboard/layout.tsx (ou onde estiver seu layout)
+import { use } from 'react';
+import DashboardShellClient from './DashboardShellClient';
+import { useUser } from '@/hooks/use-user';
 
-import { useEffect, useState } from 'react';
-import { usePathname } from 'next/navigation';
-import { SidebarNavigation } from '@/components/dashboard-v2/sidebar-navigation';
-import { Header } from '@/components/dashboard-v2/header';
-import { pageTitles } from '@/components/dashboard-v2/page-titles';
+import {
+  Home,
+  ShoppingCart,
+  Package,
+  BarChart3,
+  Users,
+  Settings,
+} from 'lucide-react';
 
-export default function DashboardShell({ children }: { children: React.ReactNode }) {
-  const [isCollapsed, setIsCollapsed] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
-  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
-  const pathname = usePathname();
+interface DashboardShellProps {
+  children: React.ReactNode;
+}
 
-  useEffect(() => {
-    const checkMobile = () => {
-      const isSmall = window.innerWidth < 1024;
-      setIsMobile(isSmall);
-      if (isSmall) setIsCollapsed(true);
-    };
+export interface NavItem {
+  label: string;
+  href: string;
+  icon?: React.ComponentType<React.SVGProps<SVGSVGElement>>;
+  roles: string[];
+}
+const NAV_ITEMS = [
+  {
+    label: 'Dashboard',
+    href: '/dashboard',
+   
+    roles: ['admin', 'gerente', 'vendedor'],
+  },
+  {
+    label: 'Vendas',
+    href: '/dashboard/vendas',
+   
+    roles: ['admin', 'vendedor'],
+  },
+  {
+    label: 'Estoque',
+    href: '/dashboard/estoque',
 
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
+    roles: ['admin', 'vendedor'],
+  },
+  {
+    label: 'Pedidos',
+    href: '/dashboard/pedidos',
+  
+    roles: ['admin', 'vendedor'],
+  },
+  {
+    label: 'Relatórios',
+    href: '/dashboard/relatorios',
+    
+    roles: ['admin'],
+  },
+  { label: 'Usuários', href: '/usuarios', roles: ['admin'] },
+  {
+    label: 'Configurações',
+    href: '/dashboard/configuracoes',
+  
+    roles: ['admin'],
+  },
+];
 
-  const toggleSidebar = () => {
-    if (isMobile) {
-      setIsMobileSidebarOpen(!isMobileSidebarOpen);
-    } else {
-      setIsCollapsed(!isCollapsed);
-    }
-  };
+export default  function DashboardShell({ children }: DashboardShellProps) {
+  const userData = use(useUser()); // hook cacheado que retorna dados do usuário
 
-  const title = pageTitles[pathname] || 'Dashboard';
+  // Filtra os itens do menu conforme o papel do usuário
+  const filteredMenuItems: NavItem[] = NAV_ITEMS.filter((item) =>
+    userData?.user?.role && item.roles.includes(userData.user.role)
+  );
 
   return (
-    <>
-      {isMobile && isMobileSidebarOpen && (
-        <div
-          className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm"
-          onClick={toggleSidebar}
-          aria-hidden="true"
-        />
-      )}
-
-      <SidebarNavigation
-        isCollapsed={isMobile ? !isMobileSidebarOpen : isCollapsed}
-        toggleSidebar={toggleSidebar}
-        isMobile={isMobile}
-      />
-
-      <div className="flex flex-1 flex-col md:rounded-xl md:m-2 bg-background overflow-hidden">
-        <Header
-          toggleSidebar={toggleSidebar}
-          isMobile={isMobile}
-          title={title}
-        />
-
-        <main className="flex-1 p-4 md:p-6 overflow-y-auto">
-          {children}
-        </main>
-      </div>
-    </>
+    <DashboardShellClient items={filteredMenuItems} userData={userData}>
+      {children}
+    </DashboardShellClient>
   );
 }

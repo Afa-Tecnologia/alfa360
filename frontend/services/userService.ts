@@ -130,6 +130,17 @@ class UserService {
       return [];
     }
   }
+ async  getUser() {
+  try {
+    const response = await api.get('/me'); // ajuste a URL conforme necessário
+    if (!response || !response.data) {
+      throw new Error('Failed to fetch user');
+    }
+    return response.data;
+  } catch (error: any) {
+    return error.message;
+  }
+}
 
   /**
    * Atualiza a lista de usuários

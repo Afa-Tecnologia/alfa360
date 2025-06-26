@@ -1,12 +1,13 @@
 import * as React from 'react';
 
-const MOBILE_BREAKPOINT = 768;
+const MOBILE_BREAKPOINT = 1024;
 
 export function useIsMobile() {
   const [isMobile, setIsMobile] = React.useState<boolean | undefined>(
     undefined
   );
-
+//  const [isCollapsed, setIsCollapsed] = React.useState(false);
+//   const [isMobileSideBar, setIsMobileSideBar] = React.useState(false);
   React.useEffect(() => {
     const mql = window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT - 1}px)`);
     const onChange = () => {
@@ -19,3 +20,17 @@ export function useIsMobile() {
 
   return !!isMobile;
 }
+
+// export function useIsMobileSideBar() {
+//     React.useEffect(() => {
+//     const checkMobile = () => {
+//       const isSmall = window.innerWidth < 1024;
+//       setIsMobileSideBar(isSmall);
+//       if (isSmall) setIsCollapsed(true);
+//     };
+
+//     checkMobile();
+//     window.addEventListener('resize', checkMobile);
+//     return () => window.removeEventListener('resize', checkMobile);
+//   }, []);
+// }

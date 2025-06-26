@@ -76,13 +76,13 @@ export function UsuariosDashboard({
   const [roleFilter, setRoleFilter] = useState<string>('');
   const { toast } = useToast();
 
-  // Filtrar usuários com base na pesquisa e no filtro de perfil
+  // Filtrar usuários com base na pesquisa e no filtro de role
   const filteredUsers = users.filter((user) => {
     const searchMatch =
       user.name.toLowerCase().includes(search.toLowerCase()) ||
       user.email.toLowerCase().includes(search.toLowerCase());
 
-    const roleMatch = roleFilter ? user.perfil === roleFilter : true;
+    const roleMatch = roleFilter ? user.role === roleFilter : true;
 
     return searchMatch && roleMatch;
   });
@@ -100,16 +100,16 @@ export function UsuariosDashboard({
     } else {
       // role
       return sortOrder === 'asc'
-        ? a.perfil.localeCompare(b.perfil)
-        : b.perfil.localeCompare(a.perfil);
+        ? a.perfil.localeCompare(b.role)
+        : b.role.localeCompare(a.role);
     }
   });
 
   // Contadores para estatísticas
   const totalUsers = users.length;
-  const admins = users.filter((u) => u.perfil === 'admin').length;
-  const gerentes = users.filter((u) => u.perfil === 'gerente').length;
-  const vendedores = users.filter((u) => u.perfil === 'vendedor').length;
+  const admins = users.filter((u) => u.role === 'admin').length;
+  const gerentes = users.filter((u) => u.role === 'gerente').length;
+  const vendedores = users.filter((u) => u.role === 'vendedor').length;
 
   // Função para alternar a ordenação
   const toggleSort = (field: 'name' | 'role' | 'created_at') => {
@@ -155,12 +155,12 @@ export function UsuariosDashboard({
     setShowDetailsDialog(true);
   };
 
-  // Função para filtrar por perfil
+  // Função para filtrar por role
   const handleRoleFilter = (role: string) => {
     setRoleFilter(role === roleFilter ? '' : role);
   };
 
-  // Função para obter o badge de acordo com o perfil
+  // Função para obter o badge de acordo com o role
   const getRoleBadge = (role: string) => {
     switch (role) {
       case 'admin':
@@ -202,7 +202,7 @@ export function UsuariosDashboard({
           <CardHeader className="pb-2">
             <div className="flex justify-between items-start">
               <CardTitle className="text-lg">{user.name}</CardTitle>
-              {getRoleBadge(user.perfil)}
+              {getRoleBadge(user.role)}
             </div>
           </CardHeader>
           <CardContent className="pb-4">
@@ -229,7 +229,7 @@ export function UsuariosDashboard({
             >
               <Edit className="h-4 w-4" />
             </Button>
-            {user.perfil !== 'admin' && (
+            {user.role !== 'admin' && (
               <Button
                 variant="outline"
                 size="sm"
@@ -287,7 +287,7 @@ export function UsuariosDashboard({
                   <td className="hidden sm:table-cell max-w-[250px] truncate">
                     {user.email}
                   </td>
-                  <td>{getRoleBadge(user.perfil)}</td>
+                  <td>{getRoleBadge(user.role)}</td>
                   <td className="hidden sm:table-cell">
                     {new Date(user.created_at).toLocaleDateString('pt-BR')}
                   </td>
@@ -313,7 +313,7 @@ export function UsuariosDashboard({
                           <Edit className="mr-2 h-4 w-4" />
                           <span>Editar</span>
                         </DropdownMenuItem>
-                        {user.perfil !== 'admin' && (
+                        {user.role !== 'admin' && (
                           <DropdownMenuItem
                             className="text-red-600"
                             onClick={() => {
@@ -392,7 +392,7 @@ export function UsuariosDashboard({
                 />
               </div>
               <div className="flex gap-2">
-                {/* Filtros de perfil */}
+                {/* Filtros de role */}
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="outline" className="gap-2">
@@ -406,7 +406,7 @@ export function UsuariosDashboard({
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-56">
-                    <DropdownMenuLabel>Filtrar por perfil</DropdownMenuLabel>
+                    <DropdownMenuLabel>Filtrar por role</DropdownMenuLabel>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={() => handleRoleFilter('admin')}>
                       <ShieldCheck className="mr-2 h-4 w-4 text-purple-600" />

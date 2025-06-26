@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, JSX } from 'react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { redirect, usePathname } from 'next/navigation';
@@ -21,116 +21,68 @@ import {
   CreditCard,
   Receipt,
   User,
+  LucideProps,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { userService } from '@/services/userService';
-import { User as UserType } from '@/types/auth';
-import { useRouter } from 'next/navigation';
-import useAuthStore from '@/stores/authStore';
-import { removeAuthToken, removeRefreshToken } from '@/app/api/auth';
 import { logout } from '@/lib/auth/logout-server';
-import { toast } from 'react-toastify';
-
-const menuItems = [
-  {
-    name: 'Dashboard',
-    href: '/dashboard',
-    icon: Home,
-  },
-  {
-    name: 'Vendas',
-    href: '/dashboard/vendas',
-    icon: ShoppingCart,
-  },
-  {
-    name: 'Estoque',
-    href: '/dashboard/estoque',
-    icon: Package,
-  },
-  {
-    name: 'Categorias',
-    href: '/dashboard/categorias',
-    icon: Tag,
-  },
-  {
-    name: 'Caixa',
-    href: '/dashboard/caixa',
-    icon: CreditCard,
-  },
-  {
-    name: 'Relatórios',
-    href: '/dashboard/relatorios',
-    icon: BarChart3,
-    adminOnly: true,
-  },
-  {
-    name: 'Pedidos',
-    href: '/dashboard/pedidos',
-    icon: Receipt,
-  },
-  {
-    name: 'Clientes',
-    href: '/dashboard/clientes',
-    icon: Users,
-  },
-  {
-    name: 'Usuários',
-    href: '/dashboard/usuarios',
-    icon: User,
-    adminOnly: true,
-  },
-  {
-    name: 'Configurações',
-    href: '/dashboard/configuracoes',
-    icon: Settings,
-  },
-];
-
+import type { LucideIcon } from 'lucide-react';
 interface SidebarNavigationProps {
   isCollapsed: boolean;
   toggleSidebar: () => void;
   isMobile: boolean;
+  items: {
+    label: string;
+    href: string;
+    icon?: React.ComponentType<React.SVGProps<SVGSVGElement>>;
+    roles: string[];
+  }[];
+  userData: any;
 }
+export interface UserType {
+  id: number;
+  uuid: string;
+  name: string;
+  email: string;
+  tenant_id: number;
+  role: string;
+}
+export interface GetUserType {
+  user: UserType;
+}
+
+type NavHref =
+  | '/dashboard'
+  | '/dashboard/vendas'
+  | '/dashboard/estoque'
+  | '/dashboard/pedidos'
+  | '/dashboard/relatorios'
+  | '/dashboard/usuarios'
+  | '/dashboard/configuracoes';
+
+const ICONS_MAP: Record<NavHref, LucideIcon> = {
+  '/dashboard': Home,
+  '/dashboard/vendas': ShoppingCart,
+  '/dashboard/estoque': Package,
+  '/dashboard/pedidos': ShoppingCart,
+  '/dashboard/relatorios': BarChart3,
+  '/dashboard/usuarios': Users,
+  '/dashboard/configuracoes': Settings,
+};
 
 export function SidebarNavigation({
   isCollapsed,
   toggleSidebar,
   isMobile,
+  items,
+  userData,
 }: SidebarNavigationProps) {
   const pathname = usePathname();
-  const [user, setUser] = useState<UserType | null>(null);
 
-
-  // Buscar dados do usuário
-  useEffect(() => {
-    const fetchUserData = async () => {
-      try {
-        const storage = localStorage.getItem('auth-storage');
-        if (!storage) return;
-
-        const loggedUser = JSON.parse(storage).state?.user;
-        if (!loggedUser) return;
-
-        const userData = await userService.getById(loggedUser.id);
-        setUser(userData);
-      } catch (error) {
-        console.error('Erro ao buscar dados do usuário:', error);
-      }
-    };
-
-    fetchUserData();
-  }, []);
-
-  const handleLogout = async() => {
-await logout()
-  redirect('/login');
+  const handleLogout = async () => {
+    await logout();
+    redirect('/login');
   };
-
-  // Filtra os itens do menu com base no perfil do usuário
-  const filteredMenuItems = menuItems.filter(
-    (item) => !item.adminOnly || user?.perfil === 'admin'
-  );
 
   const sidebarVariants = {
     expanded: { width: 280 },
@@ -173,39 +125,46 @@ await logout()
 
         <div className="flex-1 overflow-auto py-4 px-4">
           <nav className="space-y-2">
-            {filteredMenuItems.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={cn(
-                  'flex items-center rounded-lg px-3 py-3 text-sm transition-colors',
-                  pathname === item.href
-                    ? 'bg-white/10 text-white'
-                    : 'text-white/70 hover:bg-white/10 hover:text-white'
-                )}
-                onClick={isMobile ? toggleSidebar : undefined}
-              >
-                <item.icon className="mr-3 h-5 w-5" />
-                <span>{item.name}</span>
-              </Link>
-            ))}
+            {items.map((item) => {
+            const Icon = ICONS_MAP[item.href as keyof typeof ICONS_MAP];
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={cn(
+                    'flex items-center rounded-lg px-3 py-3 text-sm transition-colors',
+                    pathname === item.href
+                      ? 'bg-white/10 text-white'
+                      : 'text-white/70 hover:bg-white/10 hover:text-white'
+                  )}
+                  onClick={isMobile ? toggleSidebar : undefined}
+                >
+                  {Icon && (
+                    <Icon
+                      className={cn('h-5 w-5', isCollapsed ? '' : 'mr-3')}
+                    />
+                  )}
+                  <span>{item.label}</span>
+                </Link>
+              );
+            })}
           </nav>
         </div>
 
-{/* footer */}
+        {/* footer */}
         <div className="mt-auto  p-4">
           <div className="flex items-center gap-4">
             <Avatar>
               <AvatarFallback className="bg-primary/10 text-primary">
-                {user?.name?.charAt(0) || 'U'}
+                {userData?.user?.name?.charAt(0) || 'U'}
               </AvatarFallback>
             </Avatar>
             <div className="flex-1 overflow-hidden">
               <p className="text-sm font-medium text-white truncate">
-                {user?.name || 'Usuário'}
+                {userData?.user?.name || 'Usuário'}
               </p>
               <p className="text-xs text-white/60 truncate">
-                {user?.email || ''}
+                {userData?.user?.email || ''}
               </p>
             </div>
             <Button
@@ -257,30 +216,35 @@ await logout()
 
       <div className="flex-1 overflow-auto py-4">
         <nav className="flex flex-col gap-2 px-2">
-          {filteredMenuItems.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={cn(
-                'flex items-center rounded-lg transition-colors',
-                isCollapsed ? 'justify-center p-3' : 'px-3 py-3',
-                pathname === item.href
-                  ? 'bg-white/10 text-white'
-                  : 'text-white/70 hover:bg-white/10 hover:text-white'
-              )}
-            >
-              <item.icon className={cn('h-5 w-5', isCollapsed ? '' : 'mr-3')} />
-              {!isCollapsed && (
-                <motion.span
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.1 }}
-                >
-                  {item.name}
-                </motion.span>
-              )}
-            </Link>
-          ))}
+          {items.map((item) => {
+            const Icon = ICONS_MAP[item.href as keyof typeof ICONS_MAP];
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={cn(
+                  'flex items-center rounded-lg transition-colors',
+                  isCollapsed ? 'justify-center p-3' : 'px-3 py-3',
+                  pathname === item.href
+                    ? 'bg-white/10 text-white'
+                    : 'text-white/70 hover:bg-white/10 hover:text-white'
+                )}
+              >
+                {Icon && (
+                  <Icon className={cn('h-5 w-5', isCollapsed ? '' : 'mr-3')} />
+                )}
+                {!isCollapsed && (
+                  <motion.span
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.1 }}
+                  >
+                    {item.label}
+                  </motion.span>
+                )}
+              </Link>
+            );
+          })}
         </nav>
       </div>
 
@@ -289,7 +253,7 @@ await logout()
           <div className="flex justify-center">
             <Avatar>
               <AvatarFallback className="bg-primary/10 text-primary">
-                {user?.name?.charAt(0) || 'U'}
+                {userData?.user?.name?.charAt(0) || 'U'}
               </AvatarFallback>
             </Avatar>
           </div>
@@ -297,15 +261,15 @@ await logout()
           <div className="flex items-center gap-4">
             <Avatar>
               <AvatarFallback className="bg-primary/10 text-primary">
-                {user?.name?.charAt(0) || 'U'}
+                {userData?.user?.name?.charAt(0) || 'U'}
               </AvatarFallback>
             </Avatar>
             <div className="flex-1 overflow-hidden">
               <p className="text-sm font-medium text-white truncate">
-                {user?.name || 'Usuário'}
+                {userData?.user?.name || 'Usuário'}
               </p>
               <p className="text-xs text-white/60 truncate">
-                {user?.email || ''}
+                {userData?.user?.email || ''}
               </p>
             </div>
             <Button

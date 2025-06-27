@@ -14,11 +14,19 @@ class Empresa extends Model
         'cnpj',
         'endereco',
         'cidade',
+        'razao_social',
+        'nome_fantasia',
         'estado',
         'cep',
         'telefone',
         'email',
         'status',
+        'plano_id',
+        'logo',
+        'dominio',
+        'trial_expira_em',
+        'assinatura_expira_em'
+
     ];
 
     protected static function boot()

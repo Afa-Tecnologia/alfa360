@@ -27,38 +27,38 @@ const NAV_ITEMS = [
     label: 'Dashboard',
     href: '/dashboard',
    
-    roles: ['admin', 'gerente', 'vendedor'],
+    roles: ['admin', 'gerente', 'vendedor', 'super_admin'],
   },
   {
     label: 'Vendas',
     href: '/dashboard/vendas',
    
-    roles: ['admin', 'vendedor'],
+    roles: ['admin', 'vendedor', 'super_admin'],
   },
   {
     label: 'Estoque',
     href: '/dashboard/estoque',
 
-    roles: ['admin', 'vendedor'],
+    roles: ['admin', 'vendedor', 'super_admin'],
   },
   {
     label: 'Pedidos',
     href: '/dashboard/pedidos',
   
-    roles: ['admin', 'vendedor'],
+    roles: ['admin', 'vendedor',  'super_admin'],
   },
   {
     label: 'Relatórios',
     href: '/dashboard/relatorios',
     
-    roles: ['admin'],
+    roles: ['admin', 'super_admin'],
   },
-  { label: 'Usuários', href: '/usuarios', roles: ['admin'] },
+  { label: 'Usuários', href: '/dashboard/usuarios', roles: ['admin', 'super_admin'] },
   {
     label: 'Configurações',
     href: '/dashboard/configuracoes',
   
-    roles: ['admin'],
+    roles: ['admin', 'super_admin'],
   },
 ];
 

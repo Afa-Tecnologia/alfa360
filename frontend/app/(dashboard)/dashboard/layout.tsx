@@ -15,6 +15,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
       'flex min-h-screen h-screen bg-[#2248a3] dark:bg-[#101010] overflow-hidden',
       inter.variable
     )}>
+      
       <DashboardShell>{children}</DashboardShell>
     </div>
   );

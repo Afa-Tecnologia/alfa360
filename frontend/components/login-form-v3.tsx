@@ -12,6 +12,8 @@ import { loginAction } from '@/app/api/actions';
 import { gerarNotificacao } from '@/utils/toast';
 import { redirect, useRouter } from 'next/navigation';
 import useAuthStore from '@/stores/authStore';
+import { useUserDataStore } from '@/stores/use-data-store';
+import { getFirstAccessiblePath } from '@/lib/auth/route-access';
 
 interface LoginFormData {
   email: string;
@@ -35,7 +37,8 @@ export function LoginFormV3({
     setValue,
   } = useForm<LoginFormData>();
 
-  const setUser = useAuthStore((state) => state.setUser);
+   const setUser = useUserDataStore((state) => state.setUser);
+
   const setToken = useAuthStore((state) => state.setToken);
   const router = useRouter();
 
@@ -59,7 +62,12 @@ export function LoginFormV3({
 
       setUser(user);
       gerarNotificacao('success', message);
-      router.push('/dashboard');
+       if (user?.role) {
+              const firstPath = getFirstAccessiblePath(user.role) || '/';
+              router.push(firstPath);
+            } else {
+              router.push('/dashboard');
+            }
     } catch (error: any) {
       const { response } = error;
       if (error.code === 'ERR_NETWORK') {

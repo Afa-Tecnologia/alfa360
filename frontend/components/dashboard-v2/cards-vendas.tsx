@@ -16,7 +16,7 @@ import { Skeleton } from '../ui/skeleton';
 export function CardsVendas() {
   const { orders, loading } = useOrdersManagement({
     initialFilters: {
-      limit: 10,
+      limit: 4,
       startDate: new Date(new Date().setDate(new Date().getDate() - 30))
         .toISOString()
         .split('T')[0],

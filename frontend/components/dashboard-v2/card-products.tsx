@@ -47,7 +47,7 @@ export default function CardProdutosPopulares() {
   const sortedProducts = products
     .filter((p) => p.quantity > 0)
     .sort((a, b) => b.quantity - a.quantity) // ordena por mais "vendidos"/estoque
-    .slice(0, 10); // top 10 produtos
+    .slice(0, 4); // top 4 produtos
   const MetricsLoading = () => (
     <Card>
       <CardHeader>

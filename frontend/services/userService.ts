@@ -1,3 +1,4 @@
+import { read } from 'fs';
 import { api } from '../app/api/api';
 import { gerarNotificacao } from '@/utils/toast';
 
@@ -133,12 +134,10 @@ class UserService {
  async  getUser() {
   try {
     const response = await api.get('/me'); // ajuste a URL conforme necessário
-    if (!response || !response.data) {
-      throw new Error('Failed to fetch user');
-    }
-    return response.data;
+   
+    return response.data.user;
   } catch (error: any) {
-    return error.message;
+  console.error( error.response?.data?.message || 'Erro ao buscar dados do usuario logado');
   }
 }
 

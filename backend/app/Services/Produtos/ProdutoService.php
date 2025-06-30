@@ -1,14 +1,20 @@
 <?php
 namespace App\Services\Produtos;
 
+use App\Actions\Atributo\AssignAtributoVariante;
 use App\Models\Produto;
 use App\Models\Variantes;
 use App\Services\Variantes\VariantesService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Services\EstoqueService;
+use App\Traits\ServiceCacheable;
+
 class ProdutoService
 {
+    use ServiceCacheable;
+    protected string $prefix = 'produto';
+    
     protected $varianteService;
     protected $estoqueService;
     public function __construct(VariantesService $varianteService, EstoqueService $estoqueService)
@@ -18,15 +24,15 @@ class ProdutoService
     }
     public function getAll()
     {
-        return Produto::with('variants')->get();
+        return Produto::with('variants.atributos')->get();
     }
 
     public function getById($id)
     {
-        return Produto::with('variants')->find($id);
+        return Produto::with('variants.atributos')->find($id);
     }
 
-    public function create(array $data)
+    public function create(array $data, )
     {
         return DB::transaction(function () use ($data) {
             // Log para debug
@@ -38,14 +44,20 @@ class ProdutoService
             if (!empty($data['variants']) && is_array($data['variants'])) {
                 foreach ($data['variants'] as $variantData) {
                     $variantData['produto_id'] = $produto->id;
-                    $this->varianteService->create($variantData);
+                    $createdVariant = $this->varianteService->create($variantData);
                     $stock += $variantData['quantity'];
+
+                    //Cria os atributos
+                    if(!empty($variantData['atributos'])){
+                        $attVariante = new AssignAtributoVariante;
+                        $attVariante->execute($variantData['atributos'], $createdVariant->id);
+                    }
                 }
             }
             $produto->quantity = $stock;
             $produto->save();
 
-            return $produto->load('variants');
+            return $produto->load('variants.atributos');
         });
 
         
@@ -72,7 +84,7 @@ class ProdutoService
             }
         }
         $this->estoqueService->atualizarEstoqueProduto($produto->id);
-        return $produto->load('variants');
+        return $produto->load('variants.atributos');
     }
     
 
@@ -111,7 +123,7 @@ class ProdutoService
     
     public function findByBarcode($code)
     {
-        return Produto::with('variants')
+        return Produto::with('variants.atributos')
             ->where('code', $code)
             ->first();
     }

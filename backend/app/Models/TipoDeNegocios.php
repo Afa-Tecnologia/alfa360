@@ -23,4 +23,10 @@ class TipoDeNegocios extends Model
     {
         return $this->hasMany(Produto::class);
     }
+
+    public function atributos()
+    {
+    return $this->belongsToMany(Atributo::class, 'atributo_tipos_de_negocios');
+    }
+
 }

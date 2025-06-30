@@ -68,8 +68,7 @@ class Pedido extends Model
 
     public function items()
     {
-        return $this->hasMany(PedidosProduto::class)
-        ->withPivot('quantidade', 'preco_unitario', 'vendedor_id');
+        return $this->hasMany(PedidosProduto::class);
     }
     
     public function pagamentos()
@@ -77,6 +76,12 @@ class Pedido extends Model
         return $this->hasMany(PedidoPagamento::class);
     }
 
+    //Metodo para trazer informações dos vendedores
+    public function getVendedoresIdsAttribute()
+    {
+        return $this->produtos->pluck('pivot.vendedor_id')->unique()->values();
+    }
+    
     public function vendedor()
     {
         return $this->belongsTo(User::class, 'vendedor_id');

@@ -91,7 +91,11 @@ class UserAuthController extends Controller
             return response()->json(['message' => 'Erro de validação', 'errors' => $e->errors()], 422);
         } catch (\Throwable $e) {
             Log::error('Erro no login: ' . $e->getMessage());
-            return response()->json(['message' => 'Erro ao processar login'], 500);
+            return response()->json([
+                'message' => 'Erro ao processar login',
+                'errors' => $e->getMessage()
+        
+            ], 500);
         }
     }
 

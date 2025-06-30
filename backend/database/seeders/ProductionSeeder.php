@@ -114,7 +114,7 @@ class ProductionSeeder extends Seeder
         );
 
         $tenantUmId = $tenant->tenant_id; // Obtendo o UUID do tenant criado
-        TenantContext::setTenantId($tenantUmId);// Definindo o tenant_id para o ambiente de produção
+        TenantContext::setTenantId($tenant->id);// Definindo o tenant_id para o ambiente de produção
 
         $tenantDoisId = $tenantDaEmpresaDois->id; // Obtendo o UUID do tenant criado
         $tenantTresId = $tenantDaEmpresaTres->id; // Obtendo o UUID do tenant criado
@@ -126,6 +126,7 @@ class ProductionSeeder extends Seeder
             TiposDeProdutosSeeder::class,
             ConfigDoNegocioSeeder::class,
             RolesAndPermissionsSeeder::class,
+            AtributosSeeder::class
         ]);
 
         // Criação de usuários essenciais para o sistema

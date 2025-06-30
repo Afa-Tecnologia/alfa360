@@ -20,17 +20,12 @@ class VariantesController extends Controller
     // Método para obter todos os variantes
     public function index()
     {
-        $variants = Variantes::all()->map(function ($variant) {
-            // $variant->images = json_decode($variant->images, true); // ✅ Transforma JSON de volta para array
-            return $variant;
-        });
-
-        return response()->json(["variante" => $variants]);
+        return Variantes::with('atributos')->get();
     }
 
     public function store(Request $request)
     {
-        $request->validate([
+        $data = $request->validate([
             'produto_id' => 'required|exists:produtos,id',
             'name' => 'required|string',
             'type' => 'required|string',
@@ -38,20 +33,14 @@ class VariantesController extends Controller
             'size' => 'required|string',
             'quantity' => 'required|integer',
             'active' => 'boolean',
+            'atributos' => 'array',
             'images' => 'array', 
             'images.*' => 'url'   
         ]);
 
-        $variant = Variantes::create([
-            'produto_id' => $request->produto_id,
-            'name' => $request->name,
-            'type' => $request->type,
-            'color' => $request->color,
-            'size' => $request->size,
-            'quantity' => $request->quantity,
-            'active' => $request->active ?? true,
-            'images' => json_encode($request->images)
-        ]);
+        // $variant = $this->varianteService->create($request->all());
+
+        $variant = Variantes::create($data);
 
         return response()->json($variant, 201);
     }

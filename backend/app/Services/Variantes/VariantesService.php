@@ -42,7 +42,7 @@ class VariantesService
 
     public function getById($id)
     {
-        return Variantes::with('imagens')->findOrFail($id);
+        return Variantes::with('atributos')->findOrFail($id);
     }
 
     public function getClientesPorCategoria($id)

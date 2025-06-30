@@ -49,8 +49,8 @@ class PedidoService
                 'status' => $data['status'] ?? 'PENDING',
             ]);
 
+            //Atualizar o total com desconto
             $total = $this->processarProdutosNoPedido($pedido, $data['produtos']);
-
             // Aplicar desconto se houver
             $total = $this->aplicarDesconto($total, $data['desconto'] ?? 0);
             $pedido->update(['total' => $total]);
@@ -235,7 +235,8 @@ class PedidoService
         ->with([
             'produtos.variants', // variantes dentro dos produtos
             'cliente',
-            'pagamentos'
+            'pagamentos',
+            'items.vendedor'
         ])
         ->first();
 

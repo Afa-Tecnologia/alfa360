@@ -107,15 +107,7 @@ services:
         limits:
           cpus: '1'
           memory: 1G
-          
-  #Redis 
-  services:
-  redis:
-    image: redis:alpine
-    container_name: redis_dev
-    ports:
-      - "6379:6379" # (opcionalmente exposto para fora da VPS, mas não é obrigatório)
-    restart: always
+
   # Banco de Dados MySQL
   mysql_dev:
     image: mysql_dev:8.0

@@ -33,9 +33,9 @@ Route::get('/user', function (Request $request) {
 Route::post('login', [UserAuthController::class, 'login']);
 Route::post('refresh', [UserAuthController::class, 'refresh']);
 Route::post('/logout-cookies', [UserAuthController::class, 'logoutNotTokenHeader']);
+Route::post('logout', [UserAuthController::class, 'logout']);
 Route::middleware('auth:api', TenantResolver::class)->group(function () {
     Route::post('signup', [UserAuthController::class, 'signup']);
-    Route::post('logout', [UserAuthController::class, 'logout']);
     Route::get('me', [UserAuthController::class, 'me']);
 });
 
@@ -43,9 +43,10 @@ Route::prefix('users')->middleware('auth:api', TenantResolver::class)->group(fun
     Route::get('/', [UserController::class, 'index']);
     Route::get('/vendedores', [UserController::class, 'getVendedores']);
     Route::get('{id}', [UserController::class, 'show']);
-    Route::post('/', [UserController::class, 'store']);
-    Route::put('{id}', [UserController::class, 'update']);
-    Route::delete('{id}', [UserController::class, 'delete']);
+
+    Route::post('/', [UserController::class, 'store'])->middleware('role:admin|super_admin|gerente');
+    Route::put('{id}', [UserController::class, 'update'])->middleware('role:admin|super_admin|gerente');
+    Route::delete('{id}', [UserController::class, 'delete'])->middleware('role:admin|super_admin|gerente');
     
 });
 
@@ -95,13 +96,13 @@ Route::get('/debug-tenant', function() {
 
 Route::prefix('pedidos')->middleware('auth:api', TenantResolver::class)->group(function () {
     Route::get('/', [PedidosController::class, 'index']);
- 
     Route::get('{id}', [PedidosController::class, 'show']);
     Route::get('/categoria/{id}', [PedidosController::class, 'findByCategory']);
     Route::get('/tipo/{tipo}', [PedidosController::class, 'findByType']);
     Route::post('/', [PedidosController::class, 'store'])->middleware(ComissionsMiddleware::class);
-    Route::put('/{id}', [PedidosController::class, 'update']);
-    Route::delete('{id}', [PedidosController::class, 'delete']);
+    //Admin e super admin
+    Route::put('/{id}', [PedidosController::class, 'update'])->middleware(['role:admin|super_admin']);
+    Route::delete('{id}', [PedidosController::class, 'delete'])->middleware(['role:admin|super_admin']);
 });
 
 Route::prefix('pagamentos')->middleware('auth:api', TenantResolver::class)->group(function () {
@@ -113,10 +114,15 @@ JsonApiRoute::server('v1')
     ->prefix('v1')
     ->middleware('auth:api', TenantResolver::class)
     ->resources(function ($server) {
-        $server->resource('devolucoes', DevolucaoController::class);
+        $server->resource('devolucoes', DevolucaoController::class)
+        ->middleware(["update"=>"role:super_admin|admin",
+                      "delete"=>"role:super_admin|admin",
+                      "edit"=>"role:super_admin|admin",
+                      "destroy"=>"role:super_admin|admin"
+                    ]);
     });
 
-Route::prefix('relatorios')->middleware('auth:api', TenantResolver::class)->group(function () {
+Route::prefix('relatorios')->middleware(['auth:api', 'role:admin|super_admin'], TenantResolver::class)->group(function () {
     Route::get('/resumo', [RelatoriosController::class, 'getSalesSummary']);
     Route::get('/por-categoria', [RelatoriosController::class, 'getSalesByCategory']);
     Route::get('/produtos-mais-vendidos', [RelatoriosController::class, 'getTopProducts']);

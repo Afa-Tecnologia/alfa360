@@ -10,7 +10,7 @@ class CreateUser
     public function execute(array $data): User
     {
 
-        $user = User::create([
+        $user = User::updateOrCreate([
             'name' => $data['name'],
             'email' => $data['email'],
             'password' => Hash::make($data['password']),

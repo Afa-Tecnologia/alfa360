@@ -123,14 +123,17 @@ class RolesAndPermissionsSeeder extends Seeder
 
         // Criação de permissões
         foreach ($permissions as $permission) {
-            Permission::firstOrCreate(['name' => $permission]);
+            Permission::firstOrCreate([
+            'name' => $permission, 
+            'guard_name' => 'api'
+        ]);
         }
 
         // Criação de perfis (roles)
-        $superAdmin = Role::firstOrCreate(['name' => 'super_admin']);
-        $admin      = Role::firstOrCreate(['name' => 'admin']);
-        $gerente    = Role::firstOrCreate(['name' => 'gerente']);
-        $vendedor   = Role::firstOrCreate(['name' => 'vendedor']);
+        $superAdmin = Role::firstOrCreate(['guard_name' => 'api','name' => 'super_admin']);
+        $admin      = Role::firstOrCreate(['guard_name' => 'api','name' => 'admin']);
+        $gerente    = Role::firstOrCreate(['guard_name' => 'api','name' => 'gerente']);
+        $vendedor   = Role::firstOrCreate(['guard_name' => 'api','name' => 'vendedor']);
 
         // SUPER ADMIN – tem todas as permissões
         $superAdmin->syncPermissions(Permission::all());

@@ -2,10 +2,14 @@
 
 namespace App\Http\Controllers\User;
 
+use App\Actions\User\CreateUser;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\User\StoreUserRequest;
+use App\Http\Resources\UserResource;
 use App\Services\User\UserService;
 use Illuminate\Http\Request;
-
+use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\ValidationException;
 
 class UserController extends Controller
 {
@@ -23,12 +27,29 @@ class UserController extends Controller
         return response()->json($users);
     }
 
-    // Método para criar usuário
-    public function store(Request $request)
+    // Método para criar usuário dentro da loja
+    public function store(StoreUserRequest $request, CreateUser $createUser)
     {
-        $data = $request->all();
-        $user = $this->userService->create($data);
-        return response()->json($user, 201);
+        echo 'aqui';
+        try {
+            
+            $data = $request->validated();
+            $user = $createUser->execute($data);
+
+            return response()->json([
+                'message' => 'Cadastro realizado com sucesso',
+                'user' => new UserResource($user),
+            ], 201);
+
+        } catch (ValidationException $e) {
+            return response()->json([
+                'message' => 'Erro de validação',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (\Throwable $e) {
+            Log::error('Erro no signup: ' . $e->getMessage());
+            return response()->json(['message' => $e->getMessage()], 500);
+        }
     }
 
     // Método para obter um usuário por ID

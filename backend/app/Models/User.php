@@ -2,8 +2,6 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
-
 use App\Traits\TenantAware;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -17,6 +15,8 @@ class User extends Authenticatable implements JWTSubject
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable, TenantAware, HasRoles;
 
+       protected string $guard_name = 'api';
+
     /**
      * The attributes that are mass assignable.
      *
@@ -27,6 +27,7 @@ class User extends Authenticatable implements JWTSubject
         'email',
         'password',
         'uuid',
+        'role',
         'tenant_id',
         'empresa_id',
     ];

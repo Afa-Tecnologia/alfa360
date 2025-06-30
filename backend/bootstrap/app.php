@@ -28,4 +28,10 @@ return Application::configure(basePath: dirname(__DIR__))
         $exceptions->render(
             \LaravelJsonApi\Exceptions\ExceptionParser::renderer(),
         );
+        $exceptions->render(function (\Spatie\Permission\Exceptions\UnauthorizedException $e, $request) {
+        return response()->json([
+            'responseMessage' => 'Você não tem permissão para realizar essa ação',
+            'responseStatus'  => 403,
+        ], 403);
+    });
     })->create();

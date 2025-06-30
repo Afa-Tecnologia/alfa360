@@ -40,7 +40,7 @@ class UserAuthController extends Controller
             ], 422);
         } catch (\Throwable $e) {
             Log::error('Erro no signup: ' . $e->getMessage());
-            return response()->json(['message' => 'Erro ao processar solicitação'], 500);
+            return response()->json(['message' => $e->getMessage()], 500);
         }
     }
 

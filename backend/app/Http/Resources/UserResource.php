@@ -19,7 +19,7 @@ class UserResource extends JsonResource
             'created_at' => $this->created_at->format('d-m-Y H:i:s'),
             'updated_at' => $this->updated_at->format('d-m-Y H:i:s'),
             'deleted_at' => $this->deleted_at,
-            'tenant_id' => Auth::user()->tenant_id,
+            'tenant_id' => $this->tenant_id,
             'role' => $this->getRoleNames()->first(),
         ];
 

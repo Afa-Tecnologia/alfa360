@@ -27,6 +27,13 @@ class Variantes extends Model
         return $this->hasMany(Imagens::class, 'variante_id');
     }
 
+    public function atributos()
+    {
+    return $this->belongsToMany(Atributo::class, 'variantes_atributos', 'variante_id')
+                ->withPivot('valor')
+                ->withTimestamps();
+    }
+
 
     protected function serializeDate(\DateTimeInterface $date)
     {

@@ -109,7 +109,7 @@ const router = useRouter();
         console.error('Erro ao tentar setar usuário ', error);
       }
     };
-
+console.log(user);
     safeSetUser();
   }, [user, dataUser, setUser]);
 

@@ -1,18 +1,7 @@
 'use server';
-import { api } from './api';
-import { jwtDecode } from 'jwt-decode';
-import { LoginResponse, DecodedToken, User } from '../../types/auth';
-import useAuthStore from '@/stores/authStore';
+
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
-import { loginData } from '../../types/auth';
-
-export const login = async (loginData: LoginResponse): Promise<void> => {
-  const data = await loginData;
-  // setAuthToken(data.access_token, 'access_token');
-  // setAuthToken(data.refresh_token, 'refresh_token');
-  redirect('/dashboard-v2');
-};
 
 export const deleteServerCookie = async () => {
   const cookieStore = await cookies();
@@ -30,23 +19,17 @@ export async function getServerCookie() {
 }
 
 export async function getAuthToken() {
-  try {
+
     const cookieStore = await cookies();
     return cookieStore.get('jwt_token')?.value || null;
-  } catch (error) {
-    console.error('Erro ao acessar cookies:', error);
-    return null;
-  }
+ 
 }
 
 export async function getRefreshToken() {
-  try {
+ 
     const cookieStore = await cookies();
     return cookieStore.get('jwt_refresh_token')?.value || null;
-  } catch (error) {
-    console.error('Erro ao acessar cookies:', error);
-    return null;
-  }
+ 
 }
 
 export async function setAuthToken(token: string, name: string) {

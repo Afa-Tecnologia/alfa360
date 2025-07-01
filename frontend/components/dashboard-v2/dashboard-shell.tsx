@@ -17,10 +17,8 @@ export interface NavItem {
 }
 
 export default async function DashboardShell({ children }: DashboardShellProps) {
-  let user = null;
 
- 
-    user = await userService.getUser();
+   const user = await userService.getUser();
   
  
   return (

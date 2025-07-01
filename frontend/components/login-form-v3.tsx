@@ -8,7 +8,6 @@ import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { api } from '@/app/api/api';
-import { loginAction } from '@/app/api/actions';
 import { gerarNotificacao } from '@/utils/toast';
 import { redirect, useRouter } from 'next/navigation';
 import useAuthStore from '@/stores/authStore';

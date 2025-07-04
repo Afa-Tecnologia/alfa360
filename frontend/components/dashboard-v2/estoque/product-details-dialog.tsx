@@ -189,18 +189,21 @@ export function ProductDetailsDialog({
                         <TableCell className="font-medium">
                           {variant.name}
                         </TableCell>
+                        {variant.atributos.map((item) =>(
                         <TableCell>
                           <div className="flex items-center gap-2">
                             <div
                               className="w-4 h-4 rounded-full border"
-                              style={{
-                                backgroundColor: variant.color.toLowerCase(),
-                              }}
+                              // style={{
+                              //   backgroundColor: variant.color.toLowerCase(),
+                              // }}
                             />
-                            {variant.color}
+                            {item.name}
                           </div>
                         </TableCell>
-                        <TableCell>{variant.size}</TableCell>
+                          
+                        ))}
+                        {/* <TableCell>{variant.size}</TableCell> */}
                         <TableCell className="text-right">
                           {variant.stock || variant.quantity || 0}
                         </TableCell>

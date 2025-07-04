@@ -35,7 +35,7 @@ export function PaymentStatusSummary({
               <div>
                 <p className="text-sm text-muted-foreground">Valor Total</p>
                 <p className="font-medium">
-                  {formatCurrency(paymentStatus.total)}
+                  {formatCurrency(order.produtos.reduce((sum, produto) => sum + (+produto.selling_price * produto.pivot.quantidade), 0))}
                 </p>
               </div>
             </div>

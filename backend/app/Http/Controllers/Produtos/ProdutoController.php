@@ -57,7 +57,7 @@ class ProdutoController extends Controller
             ]);
             $produto = $this->produtoService->create($productValidated);
 
-            return ApiResponseService::json(['message' => 'Produto CRIADO com sucesso', 'produto'=> $produto], Response::HTTP_CREATED);
+            return response()->json(['message' => 'Produto CRIADO com sucesso', 'produto'=> $produto], Response::HTTP_CREATED);
         } catch (\Exception $e) {
             return response()->json(['error' => 'Erro ao criar produto', 'message' => $e->getMessage()], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
@@ -134,7 +134,10 @@ class ProdutoController extends Controller
     public function findByBarcode($code)
     {
         if (!$code) {
-            return response()->json(['error' => 'Código de barras não informado'], Response::HTTP_BAD_REQUEST);
+            return response()->json(
+                ['error' => 'Código de barras não informado',
+                
+        ], Response::HTTP_BAD_REQUEST);
         }
 
         $produto = $this->produtoService->findByBarcode($code);
@@ -145,7 +148,11 @@ class ProdutoController extends Controller
             if ($variante) {
                 return ApiResponseService::json($variante, Response::HTTP_OK);
             }
-            return response()->json(['error' => 'Produto não encontrado com este código de barras']);
+            return response()->json(
+                [
+                    'error' => 'Produto não encontrado com este código de barras',
+                    'exists' => false
+                ], Response::HTTP_NOT_FOUND);
         }
         
         return ApiResponseService::json($produto, Response::HTTP_OK);

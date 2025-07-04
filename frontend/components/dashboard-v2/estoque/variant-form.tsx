@@ -1,18 +1,39 @@
+// variant-form.tsx corrigido para criacao e edicao de atributos funcionar corretamente
+
 'use client';
 
+import { useEffect, useRef, useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { X } from 'lucide-react';
+import { Plus, Trash2, X } from 'lucide-react';
 import { VariantImageUploader } from './variant-image-uploader';
-import { useEffect, useRef } from 'react';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import productService from '@/services/productService';
+import { Atributos } from '@/types/estoque';
 
-// Definição do tipo de variante
 export interface VariantFormValues {
   id?: number | string;
   name: string;
-  color: string;
-  size: string;
-  stock: string | number;
+  atributos: {
+    atributo_id: string | number;
+    valor: string;
+
+    //Edição
+    name?: string;
+    pivot?:{
+      valor:string
+      atributo_id:string
+      variante_id:string
+    }
+    
+  }[];
+  quantity: string | number;
   images: string[];
   type?: string;
 }
@@ -20,14 +41,10 @@ export interface VariantFormValues {
 interface VariantFormProps {
   variant: VariantFormValues;
   index: number;
-  onUpdate: (
-    index: number,
-    field: keyof VariantFormValues,
-    value: string
-  ) => void;
+  onUpdate: (index: number, field: keyof VariantFormValues, value: any) => void;
   onRemove: (index: number) => void;
   onUpdateImages: (index: number, images: string[]) => void;
-  productName: string; // Add product name prop
+  productName: string;
 }
 
 export function VariantForm({
@@ -38,35 +55,69 @@ export function VariantForm({
   onUpdateImages,
   productName,
 }: VariantFormProps) {
-  // Use ref to track previous values and prevent unnecessary updates
-  const prevColorRef = useRef(variant.color);
-  const prevSizeRef = useRef(variant.size);
-  const prevProductNameRef = useRef(productName);
+  const [atributosDisponiveis, setAtributosDisponiveis] = useState<any[]>([]);
+  const [attrDiv, setattrDiv] = useState<VariantFormValues[]>([]);
 
-  // Auto-generate variant name when color or size changes
+  const prevNomeRef = useRef('');
+
   useEffect(() => {
-    // Only update if color, size, or productName has actually changed
-    if (
-      variant.color &&
-      variant.size &&
-      (variant.color !== prevColorRef.current ||
-        variant.size !== prevSizeRef.current ||
-        productName !== prevProductNameRef.current)
-    ) {
-      const generatedName =
-        `${productName} ${variant.color.toUpperCase()} ${variant.size.toUpperCase()}`.trim();
-
-      // Only update if the generated name is different from current name
-      if (generatedName !== variant.name) {
-        onUpdate(index, 'name', generatedName);
-      }
-
-      // Update refs
-      prevColorRef.current = variant.color;
-      prevSizeRef.current = variant.size;
-      prevProductNameRef.current = productName;
+    //Na hora de editar
+    if(variant.atributos.length > 0){
+      
+      setattrDiv(variant.atributos);
     }
-  }, [variant.color, variant.size, productName, index, onUpdate, variant.name]);
+    const fetchAtributos = async () => {
+      const res = await productService.getAtributosVarianteByBusiness() as any
+      setAtributosDisponiveis(res.atributos || []);
+    };
+    fetchAtributos();
+  }, []);
+
+  // Atualiza nome automaticamente com base nos atributos
+  useEffect(() => {
+    const nomeGerado = `${productName} ${attrDiv.map((a) => a.valor).join(' ')}`.trim();
+    if (nomeGerado !== prevNomeRef.current) {
+      prevNomeRef.current = nomeGerado;
+      onUpdate(index, 'name', nomeGerado);
+    }
+  }, [attrDiv, productName]);
+
+  const handleUpdateAtributo = (
+    attrIndex: number,
+    field: 'atributo_id' | 'valor',
+    value: string
+  ) => {
+    const atualizados = [...attrDiv];
+    if (!atualizados[attrIndex]) return;
+
+    atualizados[attrIndex] = {
+      ...atualizados[attrIndex],
+      [field]: value,
+    };
+
+    setattrDiv(atualizados);
+
+    const atributosFormatados = atualizados
+      .filter((a) => a.atributo_id && a.valor)
+      .map((a) => ({ atributo_id: a.atributo_id, valor: a.valor }));
+
+    onUpdate(index, 'atributos', atributosFormatados);
+  };
+
+  const handleAddAtributo = () => {
+    setattrDiv([...attrDiv, { atributo_id: '', valor: '' }]);
+  };
+
+  const handleRemoveAtributo = (attrIndex: number) => {
+    const novos = [...attrDiv];
+    novos.splice(attrIndex, 1);
+    setattrDiv(novos);
+
+    const atributosFormatados = novos
+      .filter((a) => a.atributo_id && a.valor)
+      .map((a) => ({ atributo_id: a.atributo_id, valor: a.valor }));
+    onUpdate(index, 'atributos', atributosFormatados);
+  };
 
   return (
     <div className="border rounded-md p-4 relative">
@@ -94,47 +145,81 @@ export function VariantForm({
               placeholder="Nome gerado automaticamente"
             />
             <p className="text-xs text-muted-foreground mt-1">
-              Gerado automaticamente a partir do nome do produto, cor e tamanho
+              Gerado automaticamente a partir dos atributos e nome do produto
             </p>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-          <div>
-            <label className="text-sm font-medium">Cor</label>
-            <Input
-              value={variant.color}
-              onChange={(e) =>
-                onUpdate(index, 'color', e.target.value.toUpperCase())
-              }
-              placeholder="Cor"
-              className="uppercase"
-            />
-          </div>
-          <div>
-            <label className="text-sm font-medium">Tamanho</label>
-            <Input
-              value={variant.size}
-              onChange={(e) =>
-                onUpdate(index, 'size', e.target.value.toUpperCase())
-              }
-              placeholder="Tamanho"
-              className="uppercase"
-            />
-          </div>
-          <div>
-            <label className="text-sm font-medium">Estoque</label>
-            <Input
-              type="number"
-              value={variant.stock}
-              onChange={(e) => onUpdate(index, 'stock', e.target.value)}
-              placeholder="Quantidade"
-              min="0"
-            />
-          </div>
+        <div className="space-y-2">
+          {attrDiv.map((item, attrIndex) => (
+            <div key={attrIndex} className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <div>
+                <label className="text-sm font-medium">Atributo</label>
+                <Select
+                  value={item.atributo_id?.toString() || ''}
+                  onValueChange={(value) =>
+                    handleUpdateAtributo(attrIndex, 'atributo_id', value)
+                  }
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Escolha o atributo" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {atributosDisponiveis.map((attr) => (
+                      <SelectItem key={attr.id} value={attr.id.toString()}>
+                        {attr.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <label className="text-sm font-medium">Valor</label>
+                <Input
+                  value={item.valor || ''}
+                  onChange={(e) =>
+                    handleUpdateAtributo(attrIndex, 'valor', e.target.value.toUpperCase())
+                  }
+                  placeholder="Valor"
+                  className="uppercase"
+                />
+              </div>
+
+              <div className="flex items-end">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => handleRemoveAtributo(attrIndex)}
+                >
+                  <Trash2 className="h-4 w-4 text-red-500" />
+                </Button>
+              </div>
+            </div>
+          ))}
+
+          <Button
+            type="button"
+            variant="link"
+            onClick={handleAddAtributo}
+            className="mt-2"
+          >
+            <Plus className="h-4 w-4 mr-1" />
+            Adicionar Atributo
+          </Button>
         </div>
 
-        {/* Componente de upload de imagens */}
+        <div>
+          <label className="text-sm font-medium">Estoque</label>
+          <Input
+            type="number"
+            value={variant.quantity}
+            onChange={(e) => onUpdate(index, 'quantity', e.target.value)}
+            placeholder="Quantidade"
+            min="0"
+          />
+        </div>
+
         <div>
           <label className="text-sm font-medium">Imagens</label>
           <VariantImageUploader

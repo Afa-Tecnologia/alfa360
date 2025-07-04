@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Product } from '@/stores/productStore';
+import { Product, Variant } from '@/stores/productStore';
 import {
   Dialog,
   DialogContent,
@@ -29,6 +29,8 @@ import {
 } from './product-form-schemas';
 import { tiposDeProdutosService } from '@/services/TiposDeProdutosService';
 import { TipoDeProduto } from '@/types/configuracoes';
+import { gerarNotificacao } from '@/utils/toast';
+import { AtributoRequest } from '@/types/estoque';
 
 interface ProductFormDialogProps {
   open: boolean;
@@ -129,11 +131,12 @@ export function ProductFormDialog({
           const formattedVariants = product.variants.map((variant) => ({
             id: variant.id,
             name: variant.name || '',
-            color: variant.color || '',
-            size: variant.size || '',
-            stock:
-              variant.stock?.toString() || variant.quantity?.toString() || '0',
+            quantity:
+              variant.quantity?.toString() ||
+              variant.quantity?.toString() ||
+              '0',
             images: Array.isArray(variant.images) ? variant.images : [],
+            atributos: variant.atributos,
             type: variant.type || '',
           }));
 
@@ -174,10 +177,9 @@ export function ProductFormDialog({
       ...variants,
       {
         name: productName,
-        color: '',
-        size: '',
-        stock: '0',
+        quantity: '0',
         images: [],
+        atributos: [],
       },
     ]);
   };
@@ -208,18 +210,16 @@ export function ProductFormDialog({
   };
 
   // Função para gerar código de barras único
+  // Função para gerar código de barras único e criar o produto automaticamente se possível
   const generateUniqueBarcode = async () => {
     try {
       const categoriaId = form.getValues('categoria_id');
 
-      // Se não tiver categoria selecionada, mostrar alerta
       if (!categoriaId) {
-        toast({
-          title: 'Categoria necessária',
-          description:
-            'Selecione uma categoria antes de gerar o código de barras',
-          variant: 'destructive',
-        });
+        gerarNotificacao(
+          'error',
+          'Selecione uma categoria antes de gerar o código de barras'
+        );
         return;
       }
 
@@ -229,20 +229,30 @@ export function ProductFormDialog({
 
       if (barcodeValue) {
         form.setValue('code', barcodeValue);
-        toast({
-          title: 'Código gerado',
-          description: 'Código de barras gerado com sucesso!',
-        });
+
+        gerarNotificacao('success', 'Código de barras gerado com sucesso!');
+
+        // Validar o formulário antes de submeter automaticamente
+        const isValid = await form.trigger();
+
+        if (isValid) {
+          const data = form.getValues();
+          await onSubmit(data); // Submete o formulário com os dados atuais
+        } else {
+          gerarNotificacao(
+            'error',
+            'Preencha todos os campos obrigatórios antes de criar o produto.'
+          );
+        }
       } else {
         throw new Error('Falha ao gerar código de barras');
       }
     } catch (error) {
       console.error('Erro ao gerar código de barras:', error);
-      toast({
-        title: 'Erro',
-        description: 'Falha ao gerar código de barras. Tente novamente.',
-        variant: 'destructive',
-      });
+      gerarNotificacao(
+        'error',
+        'Falha ao gerar código de barras. Tente novamente.'
+      );
     }
   };
 
@@ -251,7 +261,7 @@ export function ProductFormDialog({
     try {
       setIsSubmitting(true);
 
-      // Gerar código de barras automaticamente se não estiver preenchido
+      // Sempre gerar código de barras se estiver vazio
       if (!data.code) {
         try {
           const generatedBarcode =
@@ -259,27 +269,32 @@ export function ProductFormDialog({
               Number(data.categoria_id)
             );
           data.code = generatedBarcode;
-          form.setValue('code', generatedBarcode);
+          form.setValue('code', generatedBarcode); // Atualiza o campo no form também
         } catch (error) {
           console.error('Erro ao gerar código de barras automático:', error);
+          gerarNotificacao(
+            'error',
+            'Erro ao gerar código de barras automático.'
+          );
+          return; // não continua sem código
         }
       }
 
-      // Validar as variantes
+      // Validar variantes
       const validatedVariants: VariantFormValues[] = [];
       let hasVariantError = false;
 
       for (const variant of variants) {
         try {
+          console.log(variant);
           const validated = variantSchema.parse(variant);
           validatedVariants.push(validated);
         } catch (error) {
           hasVariantError = true;
-          toast({
-            title: 'Erro de validação',
-            description: 'Uma ou mais variantes contém dados inválidos',
-            variant: 'destructive',
-          });
+          gerarNotificacao(
+            'error',
+            'Uma ou mais variantes contém dados inválidos'
+          );
           break;
         }
       }
@@ -289,36 +304,28 @@ export function ProductFormDialog({
         return;
       }
 
-      // Gerar nomes para as variantes automaticamente se estiverem vazios
+      // Processar variantes
       const processedVariants = validatedVariants.map((variant) => {
-        // Construir o nome da variante com base no produto principal
-        const autoName = `${data.name} ${variant.color} ${variant.size}`.trim();
-
-        // Preserva o ID original durante a edição
-        const variantId =
-          variant.id || Date.now() + Math.floor(Math.random() * 1000);
-
-        // Obter o tipo de produto selecionado para referência
+        const autoName =
+          `${data.name} ${variant.atributos?.map((atributo) => atributo.valor).join(' ')}`.trim();
         const tipoProduto = tiposDeProdutos.find(
           (tipo) => tipo.id.toString() === data.tipo_de_produto_id.toString()
         );
 
         return {
           ...variant,
-          id: variantId,
-          name: variant.name || autoName, // Usa o nome inserido ou gera automaticamente
-          stock: Number(variant.stock),
-          quantity: Number(variant.stock),
+          id: variant.id || Date.now() + Math.floor(Math.random() * 1000),
+          name: variant.name || autoName,
+          quantity: Number(variant.quantity),
           type:
             variant.type ||
             (tipoProduto ? tipoProduto.nome.toLowerCase() : 'outro'),
           active: true,
-          // Garante que images seja um array
           images: Array.isArray(variant.images) ? variant.images : [],
+          atributos: variant.atributos,
         };
       });
 
-      // Preparar o payload
       const payload = {
         ...data,
         purchase_price: Number(data.purchase_price),
@@ -332,24 +339,16 @@ export function ProductFormDialog({
       let savedProduct: Product;
 
       if (isEditing && product) {
-        // Atualizar produto existente
         const response = await api.put(`/produtos/${product.id}`, payload);
         savedProduct = response.data.produto || { ...product, ...payload };
-        toast({
-          title: 'Produto atualizado',
-          description: 'O produto foi atualizado com sucesso',
-        });
+        gerarNotificacao('success', 'Produto atualizado com sucesso!');
       } else {
-        // Criar novo produto
         const response = await api.post('/produtos', payload);
         savedProduct = response.data.produto || { ...payload, id: Date.now() };
-
-        // Definir o produto criado e abrir o diálogo de sucesso
         setCreatedProduct(savedProduct);
         setIsSuccessDialogOpen(true);
       }
 
-      // Se for edição, feche o diálogo de edição
       if (isEditing) {
         onOpenChange(false);
         if (onSuccess) {
@@ -358,13 +357,10 @@ export function ProductFormDialog({
       }
     } catch (error: any) {
       console.error('Erro ao salvar produto:', error);
-      toast({
-        title: 'Erro',
-        description:
-          error.response?.data?.message ||
-          'Ocorreu um erro ao salvar o produto',
-        variant: 'destructive',
-      });
+      gerarNotificacao(
+        'error',
+        error.response?.data?.message || 'Erro ao salvar o produto.'
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -427,7 +423,17 @@ export function ProductFormDialog({
           </div>
 
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                form.trigger().then((valid) => {
+                  console.log('É válido?', valid);
+                  console.log('Erros:', form.formState.errors);
+                  if (valid) form.handleSubmit(onSubmit)(e);
+                });
+              }}
+              className="space-y-6"
+            >
               {currentTab === 'basic' && (
                 <BasicProductForm
                   form={form}

@@ -16,8 +16,8 @@ return new class extends Migration
             $table->foreignId('produto_id')->constrained('produtos');
             $table->string('name');
             $table->string('type');
-            $table->string('color');
-            $table->string('size');
+            // $table->string('color');
+            // $table->string('size');
             $table->integer('quantity');
             $table->boolean('active');
             $table->string('code')->nullable();

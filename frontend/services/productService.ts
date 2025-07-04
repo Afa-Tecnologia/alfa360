@@ -32,15 +32,37 @@ class ProductService {
   async checkBarcodeExists(code: string): Promise<boolean> {
     try {
       const response = await api.get(`/produtos/barcode/${code}`);
-      return response.data.exists;
-    } catch (error) {
-      // Se o endpoint não existir, tentamos buscar o produto diretamente
-      try {
-        const product = await this.getProductByBarcode(code);
-        return !!product; // Retorna true se o produto existir
-      } catch (e) {
-        return false; // Se não encontrar o produto, assume que não existe
+      // Se a resposta tem exists, use isso
+      if (typeof response.data.exists !== 'undefined') {
+        return response.data.exists;
       }
+      // Se a resposta tem error dizendo que não encontrou, retorne false
+      if (
+        response.data.error &&
+        response.data.error.includes('não encontrado')
+      ) {
+        return false;
+      }
+      // Se retornou algum produto, existe
+      if (
+        response.data &&
+        typeof response.data === 'object' &&
+        Object.keys(response.data).length > 0
+      ) {
+        return true;
+      }
+      return false;
+    } catch (error: any) {
+      // Se a API retorna 404 ou erro, verifica se tem exists: false
+      if (
+        error.response &&
+        error.response.data &&
+        typeof error.response.data.exists !== 'undefined'
+      ) {
+        return error.response.data.exists;
+      }
+      // Se a API retorna 404 ou erro, assume que não existe
+      return false;
     }
   }
 
@@ -53,6 +75,19 @@ class ProductService {
       return response.data;
     } catch (error) {
       console.error('Erro ao buscar produtos:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Busca os atributos por tipo de negocio
+   */
+  async getAtributosVarianteByBusiness(): Promise<any[]> {
+    try {
+      const response = await api.get('/atributos/por-tipo-de-negocio');
+      return response.data;
+    } catch (error) {
+      console.error('Erro ao buscar atributos de variantes:', error);
       return [];
     }
   }

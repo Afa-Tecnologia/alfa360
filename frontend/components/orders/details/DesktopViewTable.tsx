@@ -127,7 +127,7 @@ export function DesktopViewTable({ order }: OrderItemsProps) {
                   Desconto
                 </TableCell>
                 <TableCell className="text-right font-medium text-red-600">
-                  -{formatCurrency(desconto)}
+                  -{formatCurrency(desconto/100 * subtotal)}
                 </TableCell>
                 <TableCell />
               </TableRow>

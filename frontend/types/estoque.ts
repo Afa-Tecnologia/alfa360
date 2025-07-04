@@ -17,6 +17,21 @@ export type Product = {
   variants?: Variant[];
 };
 
+export interface Atributos {
+  name: string;
+  pivot: {
+    atributo_id: string | number;
+    valor: string;
+    variante_id?: string | number;
+  };
+}
+
+export interface AtributosForm {
+  atributo_id: string | number;
+  valor: string;
+}
+
+
 export type Variant = {
   id?: number;
   produto_id?: number;
@@ -26,5 +41,12 @@ export type Variant = {
   size?: string | string[];
   quantity?: number;
   active?: boolean;
+  atributos?: Atributos[];
   images: string[]
+};
+
+// Tipo utilitário para atributos de formulário de variante (compatível com o zod)
+export type AtributoRequest = {
+  atributo_id: string | number;
+  valor: string;
 };

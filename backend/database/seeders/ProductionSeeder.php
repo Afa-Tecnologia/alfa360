@@ -22,9 +22,6 @@ class ProductionSeeder extends Seeder
          * Run the database seeds específicos para ambiente de produção.
          * Este seeder NÃO usa Faker e contém apenas dados essenciais.
          */
-
-         
-    
         public function run(): void
         {
             $tenantId = Str::uuid(); // Gerando UUID para o tenant_id
@@ -191,9 +188,7 @@ class ProductionSeeder extends Seeder
             [
                 "produto_id" => $produto->id,
                 "name" => "PRODUTO PADRÃO M",
-                "color" => "PRETO",
                 "type" => "default",
-                "size" => "M",
                 "quantity" => 10,
                 "active" => true,
                 "tenant_id" => $tenantDoisId, // Definindo tenant_id para o ambiente de produção

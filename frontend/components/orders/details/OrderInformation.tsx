@@ -36,7 +36,7 @@ export function OrderInformation({ order }: OrderInformationProps) {
           <h3 className="text-sm font-medium text-muted-foreground">
             Data do Pedido
           </h3>
-          <p className="font-medium">{formatDateSafely(order.created_at)}</p>
+          <p className="font-medium">{order.created_at}</p>
         </div>
       </div>
 
@@ -44,7 +44,7 @@ export function OrderInformation({ order }: OrderInformationProps) {
         <User className="h-4 w-4 mt-0.5 text-muted-foreground flex-shrink-0" />
         <div>
           <h3 className="text-sm font-medium text-muted-foreground">Cliente</h3>
-          <p className="font-medium">Cliente #{order.cliente_id}</p>
+          <p className="font-medium">{order.cliente.name} {order.cliente.last_name}</p>
         </div>
       </div>
 
@@ -55,7 +55,7 @@ export function OrderInformation({ order }: OrderInformationProps) {
             Vendedor
           </h3>
           <p className="font-medium">
-            {order.vendedor?.name || 'Não especificado'}
+            {order.items[0]?.vendedor?.name || 'Não especificado'}
           </p>
         </div>
       </div>

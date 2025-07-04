@@ -1,3 +1,4 @@
+import { Atributos } from '@/types/estoque';
 import { create } from 'zustand';
 
 export type Variant = {
@@ -8,6 +9,7 @@ export type Variant = {
   stock: number;
   quantity: number;
   images: string[];
+  atributos: Atributos[];
   [key: string]: any;
 };
 
@@ -22,6 +24,7 @@ export type Product = {
   selling_price: number | string;
   quantity: number | string;
   brand: string;
+  atributos?: Atributos[];
   variants: Variant[];
   [key: string]: any;
 };

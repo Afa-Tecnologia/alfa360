@@ -10,7 +10,7 @@ class Variantes extends Model
     use TenantAware;
     
         protected $fillable = [
-            'produto_id', 'name', 'type', 'color', 'size', 'quantity', 'active', 'images', 'code'
+            'produto_id', 'name', 'type', 'quantity', 'active', 'images', 'code'
         ];
     
         protected $casts = [

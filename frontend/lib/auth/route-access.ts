@@ -9,9 +9,9 @@ interface NavItem {
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { label: 'Dashboard', href: '/dashboard', roles: [ 'gerente', 'super_admin'] },
-  { label: 'Vendas', href: '/dashboard/vendas', roles: [ 'vendedor', 'super_admin', 'gerente'] },
-  { label: 'Caixa', href: '/dashboard/caixa', roles: [ 'vendedor', 'super_admin', 'gerente'] },
+  { label: 'Dashboard', href: '/dashboard', roles: [ 'gerente', 'super_admin', 'admin'] },
+  { label: 'Vendas', href: '/dashboard/vendas', roles: [ 'vendedor', 'super_admin', 'gerente',  'admin'] },
+  { label: 'Caixa', href: '/dashboard/caixa', roles: [ 'vendedor', 'super_admin', 'gerente', 'admin'] },
   { label: 'Estoque', href: '/dashboard/estoque', roles: ['admin', 'vendedor', 'super_admin', 'gerente'] },
   { label: 'Categorias', href: '/dashboard/categorias', roles: ['admin', 'gerente', 'super_admin'] },
   { label: 'Pedidos', href: '/dashboard/pedidos', roles: ['admin', 'vendedor', 'super_admin', 'gerente'] },

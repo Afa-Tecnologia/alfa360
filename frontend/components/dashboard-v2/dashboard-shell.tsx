@@ -1,8 +1,6 @@
 import { userService } from '@/services/userService';
 import DashboardShellClient from './DashboardShellClient';
-import { useUserLoader } from '@/hooks/use-user';
-import { getFirstAccessiblePath, hasAccess } from '@/lib/auth/route-access';
-import { redirect } from 'next/navigation';
+
 
 
 interface DashboardShellProps {

@@ -67,16 +67,16 @@ export class BarcodeService {
         attempts++;
         continue;
       }
-      try {
-        exists = await ProductService.checkBarcodeExists(barcode);
-        if (!exists) {
-          return barcode;
-        }
-      } catch (error) {
-        // Em caso de erro, retorna o código gerado
-        return barcode;
-      }
-      attempts++;
+      // try {
+      //   exists = await ProductService.checkBarcodeExists(barcode);
+      //   if (!exists) {
+      //     return barcode;
+      //   }
+      // } catch (error) {
+      //   // Em caso de erro, retorna o código gerado
+      //   return barcode;
+      // }
+      // attempts++;
     }
     // Se todas as tentativas falharem, retorna o último código gerado
     return barcode;

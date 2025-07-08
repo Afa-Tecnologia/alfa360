@@ -177,7 +177,6 @@ class ProductionSeeder extends Seeder
                 "categoria_id" => $categoria->id,
                 "tipo_de_produto_id" => 1,
                 "brand" => "Marca Padrão",
-                "code" => 1001,
                 "tenant_id" => $tenantDoisId, // Definindo tenant_id para o ambiente de produção
             ]
         );

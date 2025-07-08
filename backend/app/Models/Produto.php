@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\Barcode\BarCodeService;
 use App\Traits\TenantAware;
 use Illuminate\Database\Eloquent\Model;
 
@@ -18,7 +19,6 @@ class Produto extends Model
         'categoria_id',
         'tipo_de_produto_id',
         'brand', 
-        'code'
     ];
 
 
@@ -30,6 +30,17 @@ class Produto extends Model
         return $this->belongsToMany(Pedido::class, 'pedidos_produtos')
             ->withPivot('quantity', 'selling_price')
             ->withTimestamps();
+    }
+
+    protected static function boot()
+    {
+        parent::boot();
+        // Gera o código de barras EAN-13 ao criar um novo produto
+        // O código é gerado com base na categoria do produto para garantir unicidade
+        // e evitar duplicações.
+        static::creating(function ($product) {
+            $product->code = BarcodeService::generateVerifiedEAN13($product->categoria_id);
+        });
     }
 
     /**

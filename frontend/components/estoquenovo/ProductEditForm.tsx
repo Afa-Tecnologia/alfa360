@@ -69,6 +69,7 @@ export default function EditProductForm() {
         stock: 0,
         images: [],
         quantity: 0,
+         atributos: [],
       },
     ]);
   };

@@ -31,11 +31,16 @@ import { tiposDeProdutosService } from '@/services/TiposDeProdutosService';
 import { TipoDeProduto } from '@/types/configuracoes';
 import { gerarNotificacao } from '@/utils/toast';
 import { AtributoRequest } from '@/types/estoque';
+import { ProductEstoque } from '@/types/product';
+interface VariantAtributo {
+  atributo_id: string | number;
+  valor: string;
+}
 
 interface ProductFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  product?: Product;
+  product?: ProductEstoque;
   onSuccess?: () => void;
 }
 
@@ -53,12 +58,15 @@ export function ProductFormDialog({
   );
   const [tiposDeProdutos, setTiposDeProdutos] = useState<TipoDeProduto[]>([]);
   const [isSuccessDialogOpen, setIsSuccessDialogOpen] = useState(false);
-  const [createdProduct, setCreatedProduct] = useState<Product | null>(null);
+  const [createdProduct, setCreatedProduct] = useState<ProductEstoque | null>(
+    null
+  );
   const { toast } = useToast();
   const isEditing = !!product;
 
   // Buscar categorias e tipos de produtos
   useEffect(() => {
+    console.log('product: ', product);
     const fetchData = async () => {
       try {
         // Buscar categorias
@@ -112,64 +120,57 @@ export function ProductFormDialog({
 
   // Atualizar valores do formulário quando receber um produto para edição
   useEffect(() => {
-    if (product && open) {
-      form.reset({
-        name: product.name,
-        description: product.description,
-        purchase_price: product.purchase_price.toString(),
-        selling_price: product.selling_price.toString(),
-        quantity: product.quantity.toString(),
-        brand: product.brand,
-        tipo_de_produto_id: product.tipo_de_produto_id,
-        code: product.code || '',
-        categoria_id: product.categoria_id,
-      });
+    if (open) {
+      if (product) {
+        form.reset({
+          name: product.name,
+          description: product.description,
+          purchase_price: product.purchase_price.toString(),
+          selling_price: product.selling_price.toString(),
+          quantity: product.quantity.toString(),
+          brand: product.brand,
+          tipo_de_produto_id: product.tipo_de_produto_id,
+          code: product.code || '',
+          categoria_id: product.categoria_id,
+        });
 
-      // Configure as variantes se existirem
-      if (product.variants && product.variants.length > 0) {
-        try {
-          const formattedVariants = product.variants.map((variant) => ({
-            id: variant.id,
-            name: variant.name || '',
-            quantity:
-              variant.quantity?.toString() ||
-              variant.quantity?.toString() ||
-              '0',
-            images: Array.isArray(variant.images) ? variant.images : [],
-            atributos: variant.atributos,
-            type: variant.type || '',
-          }));
-
-          console.log('Variantes carregadas:', formattedVariants);
+        if (product.variants && product.variants.length > 0) {
+          console.log('product.variants:', product.variants);
+          const formattedVariants: VariantFormValues[] = product.variants.map(
+            (variant) => ({
+              id: variant.id,
+              name: variant.name || '',
+              quantity: variant.quantity?.toString() || '0',
+              images: Array.isArray(variant.images) ? variant.images : [],
+              atributos: (variant.atributos || []).map((attr: any) => ({
+                atributo_id: attr.id,
+                valor: attr.pivot?.valor || '', 
+              })),
+              type: variant.type || '',
+            })
+          );
+          console.log('formattedVariants:', formattedVariants);
           setVariants(formattedVariants);
-        } catch (error) {
-          console.error('Erro ao formatar variantes:', error, product.variants);
-          toast({
-            title: 'Erro com variantes',
-            description: 'Ocorreu um erro ao carregar as variantes do produto',
-            variant: 'destructive',
-          });
+        } else {
           setVariants([]);
         }
       } else {
+        form.reset({
+          name: '',
+          description: '',
+          purchase_price: '',
+          selling_price: '',
+          quantity: '',
+          brand: '',
+          tipo_de_produto_id: '',
+          code: '',
+          categoria_id: '',
+        });
         setVariants([]);
       }
-    } else if (!product && open) {
-      form.reset({
-        name: '',
-        description: '',
-        purchase_price: '',
-        selling_price: '',
-        quantity: '',
-        brand: '',
-        tipo_de_produto_id: '',
-        code: '',
-        categoria_id: '',
-      });
-      setVariants([]);
     }
-  }, [product, open, form]);
-
+    // Dependências melhor definidas para evitar re-renders
+  }, [product, open]);
   // Manipulador de adição de variante
   const handleAddVariant = () => {
     const productName = form.getValues('name') || '';
@@ -195,11 +196,16 @@ export function ProductFormDialog({
   const handleUpdateVariant = (
     index: number,
     field: keyof VariantFormValues,
-    value: string
+    value: any // ❗ use any aqui, pois pode ser string, array, etc.
   ) => {
-    const newVariants = [...variants];
-    newVariants[index] = { ...newVariants[index], [field]: value };
-    setVariants(newVariants);
+    setVariants((prev) => {
+      const updated = [...prev];
+      updated[index] = {
+        ...prev[index],
+        [field]: value,
+      };
+      return updated;
+    });
   };
 
   // Adicionar função específica para atualizar imagens de variantes
@@ -262,34 +268,54 @@ export function ProductFormDialog({
       setIsSubmitting(true);
 
       // Sempre gerar código de barras se estiver vazio
-      if (!data.code) {
-        try {
-          const generatedBarcode =
-            await BarcodeService.generateVerifiedUniqueBarcode(
-              Number(data.categoria_id)
-            );
-          data.code = generatedBarcode;
-          form.setValue('code', generatedBarcode); // Atualiza o campo no form também
-        } catch (error) {
-          console.error('Erro ao gerar código de barras automático:', error);
-          gerarNotificacao(
-            'error',
-            'Erro ao gerar código de barras automático.'
-          );
-          return; // não continua sem código
-        }
-      }
+      // if (!data.code) {
+      //   try {
+      //     const generatedBarcode =
+      //       await BarcodeService.generateVerifiedUniqueBarcode(
+      //         Number(data.categoria_id)
+      //       );
+      //     data.code = generatedBarcode;
+      //     form.setValue('code', generatedBarcode); // Atualiza o campo no form também
+      //   } catch (error) {
+      //     console.error('Erro ao gerar código de barras automático:', error);
+      //     gerarNotificacao(
+      //       'error',
+      //       'Erro ao gerar código de barras automático.'
+      //     );
+      //     return; // não continua sem código
+      //   }
+      // }
 
+      // Validar variantes
       // Validar variantes
       const validatedVariants: VariantFormValues[] = [];
       let hasVariantError = false;
 
       for (const variant of variants) {
         try {
-          console.log(variant);
-          const validated = variantSchema.parse(variant);
+          const hasAtributosPreenchidos =
+            Array.isArray(variant.atributos) &&
+            variant.atributos.filter((a) => a.atributo_id && a.valor).length >
+              0;
+
+          // Se estiver editando e os atributos estiverem vazios, pular validação
+          if (isEditing && !hasAtributosPreenchidos) {
+            validatedVariants.push(variant);
+            continue;
+          }
+
+          // Remove atributos incompletos antes de validar
+          const cleanedVariant = {
+            ...variant,
+            atributos: (variant.atributos || []).filter(
+              (a) => a.atributo_id && a.valor
+            ),
+          };
+
+          const validated = variantSchema.parse(cleanedVariant);
           validatedVariants.push(validated);
         } catch (error) {
+          console.error('Erro na validação:', error);
           hasVariantError = true;
           gerarNotificacao(
             'error',
@@ -299,6 +325,11 @@ export function ProductFormDialog({
         }
       }
 
+      if (!isEditing && validatedVariants.length === 0) {
+        gerarNotificacao('error', 'Preencha pelo menos uma variante');
+        setIsSubmitting(false);
+        return;
+      }
       if (hasVariantError) {
         setIsSubmitting(false);
         return;
@@ -423,17 +454,7 @@ export function ProductFormDialog({
           </div>
 
           <Form {...form}>
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                form.trigger().then((valid) => {
-                  console.log('É válido?', valid);
-                  console.log('Erros:', form.formState.errors);
-                  if (valid) form.handleSubmit(onSubmit)(e);
-                });
-              }}
-              className="space-y-6"
-            >
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
               {currentTab === 'basic' && (
                 <BasicProductForm
                   form={form}

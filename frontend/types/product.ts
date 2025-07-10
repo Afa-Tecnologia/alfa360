@@ -1,3 +1,5 @@
+import { Atributos } from "./estoque";
+
 export type Product = {
     id: number;
     name: string;
@@ -27,6 +29,7 @@ export interface ProductEstoque {
   selling_price: number | string;
   quantity: number | string;
   brand: string;
+  atributos?: Atributos[];
   variants: Variant[];
   [key: string]: any;
 }
@@ -39,8 +42,29 @@ export type Variant = {
   stock: number;
   quantity: number;
   images: string[];
+  atributos: Atributos[];
   [key: string]: any;
 };
+
+export interface AtributoPivot {
+  tipo_de_negocios_id: number;
+  atributo_id: number;
+}
+
+export interface AtributoTipoDeNegocio {
+  id: number;
+  name: string;
+  pivot: AtributoPivot;
+}
+
+export interface ResponseAtributos  {
+  id: number;
+  nome: string;
+  descricao: string;
+  ativo: number;
+  tenant_id: number | null;
+  atributos: AtributoTipoDeNegocio[];
+}
 
 
 

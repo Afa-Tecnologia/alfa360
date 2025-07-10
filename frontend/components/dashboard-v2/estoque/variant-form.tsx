@@ -1,5 +1,3 @@
-// variant-form.tsx corrigido para criacao e edicao de atributos funcionar corretamente
-
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
@@ -15,7 +13,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import productService from '@/services/productService';
-import { Atributos } from '@/types/estoque';
+import { AtributoTipoDeNegocio, ResponseAtributos } from '@/types/product';
 
 export interface VariantFormValues {
   id?: number | string;
@@ -23,15 +21,12 @@ export interface VariantFormValues {
   atributos: {
     atributo_id: string | number;
     valor: string;
-
-    //Edição
     name?: string;
-    pivot?:{
-      valor:string
-      atributo_id:string
-      variante_id:string
-    }
-    
+    pivot?: {
+      valor: string;
+      atributo_id: string;
+      variante_id: string;
+    };
   }[];
   quantity: string | number;
   images: string[];
@@ -56,24 +51,67 @@ export function VariantForm({
   productName,
 }: VariantFormProps) {
   const [atributosDisponiveis, setAtributosDisponiveis] = useState<any[]>([]);
-  const [attrDiv, setattrDiv] = useState<VariantFormValues[]>([]);
-
+  const [attrDiv, setattrDiv] = useState<
+    { atributo_id: string | number; valor: string }[]
+  >([]);
   const prevNomeRef = useRef('');
 
-  useEffect(() => {
-    //Na hora de editar
-    if(variant.atributos.length > 0){
-      
-      setattrDiv(variant.atributos);
+  // Função para comparar arrays de atributos (para evitar resets desnecessários)
+  function isEqual(a1: any[], a2: any[]) {
+    if (a1.length !== a2.length) return false;
+    for (let i = 0; i < a1.length; i++) {
+      if (a1[i].atributo_id !== a2[i].atributo_id || a1[i].valor !== a2[i].valor) {
+        return false;
+      }
     }
-    const fetchAtributos = async () => {
-      const res = await productService.getAtributosVarianteByBusiness() as any
-      setAtributosDisponiveis(res.atributos || []);
-    };
-    fetchAtributos();
-  }, []);
+    return true;
+  }
 
-  // Atualiza nome automaticamente com base nos atributos
+  // Carrega atributos e estrutura inicial do variant.atributos
+  useEffect(() => {
+    const parsed = Array.isArray(variant.atributos)
+      ? variant.atributos.map((attr) => ({
+          atributo_id: attr.atributo_id || attr.pivot?.atributo_id || '',
+          valor: attr.valor || attr.pivot?.valor || '',
+        }))
+      : [];
+
+    if (!isEqual(attrDiv, parsed)) {
+      setattrDiv(parsed);
+    }
+
+    const fetchAtributos = async () => {
+       const responseAtributos = (await productService.getAtributosVarianteByBusiness()) as unknown as {
+    atributos: AtributoTipoDeNegocio[];
+  };
+      console.log('responseAtributos:', responseAtributos);
+
+  const allAtributos = responseAtributos.atributos || [];
+  setAtributosDisponiveis(allAtributos);
+
+
+    };
+
+    fetchAtributos();
+  }, [variant.atributos]);
+
+  // Preenche automaticamente um atributo vazio ao iniciar, caso não exista nenhum
+  useEffect(() => {
+    if (
+      variant.atributos.length === 0 &&
+      attrDiv.length === 0 &&
+      atributosDisponiveis.length > 0
+    ) {
+      const atributoInicial = {
+        atributo_id: atributosDisponiveis[0].id.toString(),
+        valor: '',
+      };
+      setattrDiv([atributoInicial]);
+      onUpdate(index, 'atributos', [atributoInicial]);
+    }
+  }, [atributosDisponiveis]);
+
+  // Atualiza o nome automaticamente com base nos atributos
   useEffect(() => {
     const nomeGerado = `${productName} ${attrDiv.map((a) => a.valor).join(' ')}`.trim();
     if (nomeGerado !== prevNomeRef.current) {
@@ -82,6 +120,7 @@ export function VariantForm({
     }
   }, [attrDiv, productName]);
 
+  // Atualiza um atributo no array local e avisa o pai SEM FILTRAR
   const handleUpdateAtributo = (
     attrIndex: number,
     field: 'atributo_id' | 'valor',
@@ -97,26 +136,24 @@ export function VariantForm({
 
     setattrDiv(atualizados);
 
-    const atributosFormatados = atualizados
-      .filter((a) => a.atributo_id && a.valor)
-      .map((a) => ({ atributo_id: a.atributo_id, valor: a.valor }));
-
-    onUpdate(index, 'atributos', atributosFormatados);
+    // Envia todos, inclusive incompletos, para o pai manter estado consistente
+    onUpdate(index, 'atributos', atualizados);
   };
 
+  // Adiciona um novo atributo padrão e atualiza o pai
   const handleAddAtributo = () => {
-    setattrDiv([...attrDiv, { atributo_id: '', valor: '' }]);
+    const primeiroAtributoId = atributosDisponiveis[0]?.id?.toString() || '';
+    const novos = [...attrDiv, { atributo_id: primeiroAtributoId, valor: '' }];
+    setattrDiv(novos);
+    onUpdate(index, 'atributos', novos);
   };
 
+  // Remove atributo e atualiza o pai
   const handleRemoveAtributo = (attrIndex: number) => {
     const novos = [...attrDiv];
     novos.splice(attrIndex, 1);
     setattrDiv(novos);
-
-    const atributosFormatados = novos
-      .filter((a) => a.atributo_id && a.valor)
-      .map((a) => ({ atributo_id: a.atributo_id, valor: a.valor }));
-    onUpdate(index, 'atributos', atributosFormatados);
+    onUpdate(index, 'atributos', novos);
   };
 
   return (
@@ -152,7 +189,10 @@ export function VariantForm({
 
         <div className="space-y-2">
           {attrDiv.map((item, attrIndex) => (
-            <div key={attrIndex} className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div
+              key={attrIndex}
+              className="grid grid-cols-1 md:grid-cols-3 gap-3"
+            >
               <div>
                 <label className="text-sm font-medium">Atributo</label>
                 <Select
@@ -182,7 +222,7 @@ export function VariantForm({
                     handleUpdateAtributo(attrIndex, 'valor', e.target.value.toUpperCase())
                   }
                   placeholder="Valor"
-                  className="uppercase"
+                  className="uppercase h-9"
                 />
               </div>
 

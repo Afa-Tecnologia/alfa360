@@ -29,9 +29,11 @@ import {
 } from 'lucide-react';
 import { BarcodeLabel } from '@/components/estoquenovo/BarcodeLabel';
 import Image from 'next/image';
+import { ProductEstoque } from '@/types/product';
+import { Atributos } from '@/types/estoque';
 
 interface ProductDetailsDialogProps {
-  product: Product | null;
+  product: ProductEstoque | null;
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
 }

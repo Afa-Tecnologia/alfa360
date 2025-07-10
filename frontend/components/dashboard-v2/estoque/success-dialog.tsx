@@ -11,11 +11,12 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { BarcodeLabel } from '@/components/estoquenovo/BarcodeLabel';
+import { ProductEstoque } from '@/types/product';
 
 interface SuccessDialogProps {
   open: boolean;
   onClose: () => void;
-  product: Product | null;
+  product: ProductEstoque | null;
 }
 
 export function SuccessDialog({ open, onClose, product }: SuccessDialogProps) {

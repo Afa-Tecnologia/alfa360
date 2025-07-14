@@ -57,7 +57,7 @@ class UserService {
       const response = await api.post('/users', user);
 
       // Garantindo que a senha não está sendo retornada na resposta
-      const { password, ...safeUserData } = response.data;
+      const { password, ...safeUserData } = response.data.user;
 
       gerarNotificacao('success', 'Usuário criado com sucesso!');
       return safeUserData;

@@ -1,13 +1,14 @@
+import { Role } from '@/types/roles';
 import { create } from 'zustand';
 
 export type User = {
   id: number;
   name: string;
   email: string;
-  role: string;
+  roles: Role[];
   perfil: string;
-  created_at: Date;
-  updated_at: Date;
+  created_at: Date | string;
+  updated_at: Date | string;
 };
 
 type UserStore = {

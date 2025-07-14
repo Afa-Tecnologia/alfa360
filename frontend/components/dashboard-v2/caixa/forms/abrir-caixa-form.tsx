@@ -19,7 +19,9 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/components/ui/use-toast';
 import useAuthStore from '@/stores/authStore';
+import { useUserDataStore } from '@/stores/use-data-store';
 import { Loader2 } from 'lucide-react';
+import { gerarNotificacao } from '@/utils/toast';
 
 const formSchema = z.object({
   saldoInicial: z.string().min(1, {
@@ -34,7 +36,7 @@ interface AbrirCaixaFormProps {
 
 export function AbrirCaixaForm({ onSuccess }: AbrirCaixaFormProps) {
   const { toast } = useToast();
-  const { user } = useAuthStore();
+  const { user } = useUserDataStore();
   const { openCaixa, isLoading } = useCaixaStore();
   const [submitting, setSubmitting] = useState(false);
 
@@ -47,12 +49,8 @@ export function AbrirCaixaForm({ onSuccess }: AbrirCaixaFormProps) {
   });
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    if (!user?.id) {
-      toast({
-        title: 'Erro',
-        description: 'Usuário não identificado. Faça login novamente.',
-        variant: 'destructive',
-      });
+    if (!user) {
+      gerarNotificacao('error', 'Usuário não autenticado.');
       return;
     }
     

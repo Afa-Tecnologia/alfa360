@@ -79,10 +79,10 @@ export function UsuariosDashboard({
   // Filtrar usuários com base na pesquisa e no filtro de role
   const filteredUsers = users.filter((user) => {
     const searchMatch =
-      user.name.toLowerCase().includes(search.toLowerCase()) ||
-      user.email.toLowerCase().includes(search.toLowerCase());
+      user.name.toLowerCase().includes(search ? search.toLowerCase() : '') ||
+      user.email.toLowerCase().includes(search ? search.toLowerCase() : '');
 
-    const roleMatch = roleFilter ? user.role === roleFilter : true;
+    const roleMatch = roleFilter ? user.roles[0].name === roleFilter : true;
 
     return searchMatch && roleMatch;
   });
@@ -100,16 +100,16 @@ export function UsuariosDashboard({
     } else {
       // role
       return sortOrder === 'asc'
-        ? a.perfil.localeCompare(b.role)
-        : b.role.localeCompare(a.role);
+        ? a.perfil.localeCompare(b.roles[0].name)
+        : b.roles[0].name.localeCompare(a.roles[0].name);
     }
   });
 
   // Contadores para estatísticas
   const totalUsers = users.length;
-  const admins = users.filter((u) => u.role === 'admin').length;
-  const gerentes = users.filter((u) => u.role === 'gerente').length;
-  const vendedores = users.filter((u) => u.role === 'vendedor').length;
+  const admins = users.filter((u) => u.roles[0].name === 'admin').length;
+  const gerentes = users.filter((u) => u.roles[0].name === 'gerente').length;
+  const vendedores = users.filter((u) => u.roles[0].name === 'vendedor').length;
 
   // Função para alternar a ordenação
   const toggleSort = (field: 'name' | 'role' | 'created_at') => {
@@ -202,7 +202,7 @@ export function UsuariosDashboard({
           <CardHeader className="pb-2">
             <div className="flex justify-between items-start">
               <CardTitle className="text-lg">{user.name}</CardTitle>
-              {getRoleBadge(user.role)}
+              {getRoleBadge(user.roles[0].name)}
             </div>
           </CardHeader>
           <CardContent className="pb-4">
@@ -229,7 +229,7 @@ export function UsuariosDashboard({
             >
               <Edit className="h-4 w-4" />
             </Button>
-            {user.role !== 'admin' && (
+            {user.roles[0].name !== 'admin' && (
               <Button
                 variant="outline"
                 size="sm"
@@ -287,9 +287,11 @@ export function UsuariosDashboard({
                   <td className="hidden sm:table-cell max-w-[250px] truncate">
                     {user.email}
                   </td>
-                  <td>{getRoleBadge(user.role)}</td>
+                  <td>{getRoleBadge(user.roles[0].name)}</td>
                   <td className="hidden sm:table-cell">
-                    {new Date(user.created_at).toLocaleDateString('pt-BR')}
+                    {user.created_at instanceof Date
+                      ? user.created_at.toLocaleDateString('pt-BR')
+                      : user.created_at}
                   </td>
                   <td className="text-right">
                     <DropdownMenu>
@@ -313,7 +315,7 @@ export function UsuariosDashboard({
                           <Edit className="mr-2 h-4 w-4" />
                           <span>Editar</span>
                         </DropdownMenuItem>
-                        {user.role !== 'admin' && (
+                        {user.roles[0].name !== 'admin' && (
                           <DropdownMenuItem
                             className="text-red-600"
                             onClick={() => {

@@ -34,6 +34,9 @@ export function UserDetailsDialog({
 }: UserDetailsDialogProps) {
   // Formatador de data
   const formatDate = (date: Date) => {
+    if (!(date instanceof Date)) {
+      return date; // Retorna a data original se não for uma instância de Date
+    }
     return new Date(date).toLocaleDateString('pt-BR', {
       day: '2-digit',
       month: '2-digit',
@@ -117,7 +120,9 @@ export function UserDetailsDialog({
                   Data de Criação:
                 </span>
                 <span className="text-sm font-medium">
-                  {formatDate(user.created_at)}
+                  {user.created_at instanceof Date
+                    ? formatDate(user.created_at)
+                    : user.created_at}
                 </span>
               </div>
 
@@ -127,7 +132,9 @@ export function UserDetailsDialog({
                   Última Atualização:
                 </span>
                 <span className="text-sm font-medium">
-                  {formatDate(user.updated_at)}
+                  {user.updated_at instanceof Date
+                    ? formatDate(user.updated_at)
+                    : user.updated_at}
                 </span>
               </div>
             </div>

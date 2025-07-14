@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use App\Services\Barcode\BarCodeService;
+use App\Services\Barcode\BarcodeService;
 use App\Traits\TenantAware;
 use Illuminate\Database\Eloquent\Model;
 

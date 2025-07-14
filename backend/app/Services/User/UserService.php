@@ -15,7 +15,9 @@ class UserService
     // Método para obter todos os usuários
     public function getAll()
     {
-        return User::all();
+        return User::with('roles')
+            ->select('id', 'uuid', 'name', 'email', 'tenant_id', 'created_at', 'updated_at')
+            ->get();
     }
 
     // Método para obter um usuário por ID

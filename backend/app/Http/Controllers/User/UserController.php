@@ -30,7 +30,6 @@ class UserController extends Controller
     // Método para criar usuário dentro da loja
     public function store(StoreUserRequest $request, CreateUser $createUser)
     {
-        echo 'aqui';
         try {
             
             $data = $request->validated();
@@ -38,7 +37,7 @@ class UserController extends Controller
 
             return response()->json([
                 'message' => 'Cadastro realizado com sucesso',
-                'user' => new UserResource($user),
+                'user' => $user,
             ], 201);
 
         } catch (ValidationException $e) {

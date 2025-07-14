@@ -82,10 +82,10 @@ Route::prefix('produtos')->middleware('auth:api', TenantResolver::class)->group(
 });
 
 Route::prefix('atributos')->middleware(['auth:api'])->group(function () {
-    Route::get('/', [AtributosController::class, 'index']);
-    Route::get('/por-tipo-de-negocio', [AtributosController::class, 'indexByTipoDeNegocio']);
+    Route::get('/', [AtributosController::class, 'index'])->middleware('role:admin|super_admin|gerente|vendedor');
+    Route::get('/por-tipo-de-negocio', [AtributosController::class, 'indexByTipoDeNegocio'])->middleware('role:admin|super_admin|gerente|vendedor');
     Route::post('/', [AtributosController::class, 'store'])->middleware('role:admin|super_admin|gerente');
-    Route::get('{id}', [AtributosController::class, 'show'])->middleware('role:admin|super_admin|gerente');
+    Route::get('{id}', [AtributosController::class, 'show'])->middleware('role:admin|super_admin|gerente|vendedor');
     Route::put('{id}', [AtributosController::class, 'update'])->middleware('role:admin|super_admin|gerente');
     Route::delete('{id}', [AtributosController::class, 'delete'])->middleware('role:admin|super_admin|gerente');
 });

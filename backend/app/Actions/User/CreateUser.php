@@ -19,6 +19,8 @@ class CreateUser
 
          $user->assignRole($data['role'] ?? 'vendedor');
 
-        return $user;
+        return $user->with('roles')
+            ->select('id', 'uuid', 'name', 'email', 'tenant_id', 'created_at', 'updated_at')
+            ->find($user->id);
     }
 }

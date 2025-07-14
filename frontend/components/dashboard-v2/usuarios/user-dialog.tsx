@@ -15,7 +15,7 @@ import { Label } from '@/components/ui/label';
 import { User, useUserStore } from '@/stores/user-store';
 import { userService } from '@/services/userService';
 import { useToast } from '@/components/ui/use-toast';
-import { Loader2 } from 'lucide-react';
+import { EyeIcon, EyeOffIcon, Loader2 } from 'lucide-react';
 import {
   Select,
   SelectContent,
@@ -23,6 +23,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { gerarNotificacao } from '@/utils/toast';
+import { set } from 'date-fns';
 
 interface UserDialogProps {
   user?: User;
@@ -41,6 +43,7 @@ export function UserDialog({
   const { toast } = useToast();
   const { addUser, updateUser } = useUserStore();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const [formState, setFormState] = useState({
     name: '',
@@ -167,7 +170,7 @@ export function UserDialog({
 
     try {
       // Remover confirmação de senha e tratar dados para envio
-      const { password_confirmation, ...dataToSubmitBase } = formState;
+      // const { password_confirmation, ...dataToSubmitBase } = formState;
 
       // Define type for data with optional password
       type UserSubmitData = {
@@ -175,10 +178,11 @@ export function UserDialog({
         email: string;
         role: string;
         password?: string;
+        password_confirmation?: string;
       };
 
       // Criar uma versão modificável dos dados
-      let dataToSubmit: UserSubmitData = { ...dataToSubmitBase };
+      let dataToSubmit: UserSubmitData = formState;
 
       // Remover senha se estiver em branco e estiver editando
       if (isEditing && !dataToSubmit.password) {
@@ -190,18 +194,13 @@ export function UserDialog({
         const updatedUser = await userService.update(user.id, dataToSubmit);
         updateUser(user.id, updatedUser);
 
-        toast({
-          title: 'Usuário atualizado',
-          description: 'O usuário foi atualizado com sucesso.',
-        });
+        gerarNotificacao('success', 'O usuário foi atualizado com sucesso.');
       } else {
         const newUser = await userService.create(dataToSubmit);
         addUser(newUser);
+        console.log('[DEBUG]', newUser)
 
-        toast({
-          title: 'Usuário criado',
-          description: 'O usuário foi criado com sucesso.',
-        });
+        gerarNotificacao('success', 'O usuário foi criado com sucesso.');
       }
 
       if (onSuccess) {
@@ -211,11 +210,10 @@ export function UserDialog({
       onOpenChange(false);
     } catch (error: any) {
       console.error('Erro ao salvar usuário:', error);
-      toast({
-        title: 'Erro',
-        description: error.message || 'Ocorreu um erro ao salvar o usuário.',
-        variant: 'destructive',
-      });
+      gerarNotificacao(
+        'error',
+        error.message || 'Ocorreu um erro ao salvar o usuário.'
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -290,24 +288,39 @@ export function UserDialog({
               </p>
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-2 flex flex-col">
               <Label htmlFor="password">
                 {isEditing ? 'Nova Senha (opcional)' : 'Senha'}
               </Label>
-              <Input
-                id="password"
-                name="password"
-                type="password"
-                value={formState.password}
-                onChange={handleChange}
-                placeholder={
-                  isEditing
-                    ? 'Deixe em branco para manter a senha atual'
-                    : 'Digite a senha'
-                }
-                className="w-full"
-                required={!isEditing}
-              />
+              <div className='flex items-center gap-2'>
+                <Input
+                  id="password"
+                  name="password"
+                  type={showPassword ? 'text' : 'password'}
+                  value={formState.password}
+                  onChange={handleChange}
+                  placeholder={
+                    isEditing
+                      ? 'Deixe em branco para manter a senha atual'
+                      : 'Digite a senha'
+                  }
+                  className="w-full"
+                  required={!isEditing}
+                />
+                {!showPassword ? (
+                  <EyeIcon
+                    className="h-4 w-4 cursor-pointer absolute right-10"
+                    aria-hidden="true"
+                    onClick={() => setShowPassword(true)}
+                  />
+                ) : (
+                  <EyeOffIcon
+                    className="h-4 w-4 cursor-pointer absolute right-10"
+                    aria-hidden="true"
+                    onClick={() => setShowPassword(false)}
+                  />
+                )}
+              </div>
               {formErrors.password && (
                 <p className="text-sm text-red-500">{formErrors.password}</p>
               )}
@@ -320,16 +333,32 @@ export function UserDialog({
 
             <div className="space-y-2">
               <Label htmlFor="password_confirmation">Confirmar Senha</Label>
+              <div className='flex items-center gap-2'>
+
               <Input
                 id="password_confirmation"
                 name="password_confirmation"
-                type="password"
+                type={showPassword ? 'text' : 'password'}
                 value={formState.password_confirmation}
                 onChange={handleChange}
                 placeholder="Confirme a senha"
                 className="w-full"
                 required={!isEditing || !!formState.password}
               />
+              {!showPassword ? (
+                  <EyeIcon
+                    className="h-4 w-4 cursor-pointer absolute right-10"
+                    aria-hidden="true"
+                    onClick={() => setShowPassword(true)}
+                  />
+                ) : (
+                  <EyeOffIcon
+                    className="h-4 w-4 cursor-pointer absolute right-10"
+                    aria-hidden="true"
+                    onClick={() => setShowPassword(false)}
+                  />
+                )}
+              </div>
               {formErrors.password_confirmation && (
                 <p className="text-sm text-red-500">
                   {formErrors.password_confirmation}
@@ -338,7 +367,7 @@ export function UserDialog({
             </div>
           </div>
 
-          <DialogFooter className='flex gap-2'>
+          <DialogFooter className="flex gap-2">
             <Button
               type="button"
               variant="outline"

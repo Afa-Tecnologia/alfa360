@@ -41,7 +41,7 @@ class PedidoPagamentoService
         return $this->db->transaction(function () use ($pedido, $data) {
             $metodo = PagamentoMetodo::where('code', $data['payment_method_code'])->firstOrFail();
 
-            $totalBruto = $pedido->total - $pedido->desconto;
+            $totalBruto = $pedido->total; //Já vem co o desconto no pedido
             $totalPagoAnterior = $pedido->pagamentos()
                 ->where('status', PedidoPagamento::STATUS_CAPTURED)
                 ->sum('total');

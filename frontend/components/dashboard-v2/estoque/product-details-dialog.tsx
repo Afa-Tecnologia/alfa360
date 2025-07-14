@@ -29,9 +29,11 @@ import {
 } from 'lucide-react';
 import { BarcodeLabel } from '@/components/estoquenovo/BarcodeLabel';
 import Image from 'next/image';
+import { ProductEstoque } from '@/types/product';
+import { Atributos } from '@/types/estoque';
 
 interface ProductDetailsDialogProps {
-  product: Product | null;
+  product: ProductEstoque | null;
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
 }
@@ -189,18 +191,21 @@ export function ProductDetailsDialog({
                         <TableCell className="font-medium">
                           {variant.name}
                         </TableCell>
+                        {variant.atributos.map((item) =>(
                         <TableCell>
                           <div className="flex items-center gap-2">
                             <div
                               className="w-4 h-4 rounded-full border"
-                              style={{
-                                backgroundColor: variant.color.toLowerCase(),
-                              }}
+                              // style={{
+                              //   backgroundColor: variant.color.toLowerCase(),
+                              // }}
                             />
-                            {variant.color}
+                            {item.name}
                           </div>
                         </TableCell>
-                        <TableCell>{variant.size}</TableCell>
+                          
+                        ))}
+                        {/* <TableCell>{variant.size}</TableCell> */}
                         <TableCell className="text-right">
                           {variant.stock || variant.quantity || 0}
                         </TableCell>

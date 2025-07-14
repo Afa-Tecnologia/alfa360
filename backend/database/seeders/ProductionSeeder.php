@@ -22,9 +22,6 @@ class ProductionSeeder extends Seeder
          * Run the database seeds específicos para ambiente de produção.
          * Este seeder NÃO usa Faker e contém apenas dados essenciais.
          */
-
-         
-    
         public function run(): void
         {
             $tenantId = Str::uuid(); // Gerando UUID para o tenant_id
@@ -114,7 +111,7 @@ class ProductionSeeder extends Seeder
         );
 
         $tenantUmId = $tenant->tenant_id; // Obtendo o UUID do tenant criado
-        TenantContext::setTenantId($tenantUmId);// Definindo o tenant_id para o ambiente de produção
+        TenantContext::setTenantId($tenant->id);// Definindo o tenant_id para o ambiente de produção
 
         $tenantDoisId = $tenantDaEmpresaDois->id; // Obtendo o UUID do tenant criado
         $tenantTresId = $tenantDaEmpresaTres->id; // Obtendo o UUID do tenant criado
@@ -126,6 +123,7 @@ class ProductionSeeder extends Seeder
             TiposDeProdutosSeeder::class,
             ConfigDoNegocioSeeder::class,
             RolesAndPermissionsSeeder::class,
+            AtributosSeeder::class
         ]);
 
         // Criação de usuários essenciais para o sistema
@@ -179,7 +177,6 @@ class ProductionSeeder extends Seeder
                 "categoria_id" => $categoria->id,
                 "tipo_de_produto_id" => 1,
                 "brand" => "Marca Padrão",
-                "code" => 1001,
                 "tenant_id" => $tenantDoisId, // Definindo tenant_id para o ambiente de produção
             ]
         );
@@ -190,9 +187,7 @@ class ProductionSeeder extends Seeder
             [
                 "produto_id" => $produto->id,
                 "name" => "PRODUTO PADRÃO M",
-                "color" => "PRETO",
                 "type" => "default",
-                "size" => "M",
                 "quantity" => 10,
                 "active" => true,
                 "tenant_id" => $tenantDoisId, // Definindo tenant_id para o ambiente de produção

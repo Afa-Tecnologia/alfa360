@@ -42,15 +42,22 @@ export const productFormSchema = z.object({
 export const variantSchema = z.object({
   id: z.any().optional(),
   name: z.string().default(''),
-  color: z.string().min(1, { message: 'A cor é obrigatória' }),
-  size: z.string().min(1, { message: 'O tamanho é obrigatório' }),
-  stock: z
+  quantity: z
     .string()
     .or(z.number())
     .refine((val) => !isNaN(Number(val)) && Number(val) >= 0, {
       message: 'O estoque deve ser um número positivo',
     }),
   images: z.array(z.string()).optional().default([]),
+atributos: z
+  .array(
+    z.object({
+      atributo_id: z.union([z.string(), z.number()]),
+      valor: z.string().min(1, 'O valor do atributo é obrigatório'),
+    })
+  )
+  .min(1, 'Pelo menos um atributo é obrigatório')
+  .default([]),
   type: z.string().optional(),
 });
 

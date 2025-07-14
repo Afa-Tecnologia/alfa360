@@ -92,6 +92,7 @@ export default function CreateProductForm(props: ICreateProductForm) {
         images: [],
         name: '',
         quantity: 0,
+         atributos: [],
       },
     ]);
   };

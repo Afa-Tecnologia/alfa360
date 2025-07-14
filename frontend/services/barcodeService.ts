@@ -59,64 +59,27 @@ export class BarcodeService {
     let attempts = 0;
     let barcode = '';
     let exists = true;
-
-    // Se a categoria não for um número válido, usa 0
     const safeCategory = isNaN(categoryId) ? 0 : categoryId;
 
-    try {
-      while (exists && attempts < maxAttempts) {
-        // Gera um novo código de barras
-        barcode = this.generateUniqueBarcode(safeCategory);
-
-        // Verifica se o código gerado é válido
-        if (!this.isValidEAN13(barcode)) {
-          console.warn('Código gerado inválido, gerando novo código...');
-          attempts++;
-          continue;
-        }
-
-        try {
-          // Verifica se o código já existe no banco de dados
-          exists = await ProductService.checkBarcodeExists(barcode);
-          if (!exists) {
-            return barcode; // Retorna o código se não existir
-          }
-
-          console.log(`Código ${barcode} já existe, gerando outro...`);
-          attempts++;
-        } catch (error) {
-          console.error('Erro ao verificar código de barras:', error);
-          return barcode; // Em caso de erro na verificação, retorna o código gerado
-        }
+    while (exists && attempts < maxAttempts) {
+      barcode = this.generateUniqueBarcode(safeCategory);
+      if (!this.isValidEAN13(barcode)) {
+        attempts++;
+        continue;
       }
-
-      // Se todas as tentativas falharem, gera um código com timestamp para garantir unicidade
-      if (exists) {
-        const timestamp = Date.now().toString().slice(-7).padStart(7, '0');
-        const prefix = this.PREFIX.slice(0, 3).padStart(3, '0');
-        const categoryDigits = safeCategory
-          .toString()
-          .padStart(2, '0')
-          .slice(-2);
-
-        // Cria um código usando timestamp (garantindo unicidade por tempo)
-        const codeWithoutCheckDigit =
-          `${prefix}${categoryDigits}${timestamp}`.slice(0, 12);
-        const checkDigit = this.calculateEAN13CheckDigit(codeWithoutCheckDigit);
-
-        return `${codeWithoutCheckDigit}${checkDigit}`;
-      }
-
-      return barcode;
-    } catch (error) {
-      console.error('Erro grave ao gerar código de barras verificado:', error);
-      // Em último caso, retorna um código baseado no timestamp atual
-      const timestamp = Date.now().toString().slice(-10).padStart(10, '0');
-      const codeWithoutCheckDigit = `789${timestamp}`.slice(0, 12);
-      const checkDigit = this.calculateEAN13CheckDigit(codeWithoutCheckDigit);
-
-      return `${codeWithoutCheckDigit}${checkDigit}`;
+      // try {
+      //   exists = await ProductService.checkBarcodeExists(barcode);
+      //   if (!exists) {
+      //     return barcode;
+      //   }
+      // } catch (error) {
+      //   // Em caso de erro, retorna o código gerado
+      //   return barcode;
+      // }
+      // attempts++;
     }
+    // Se todas as tentativas falharem, retorna o último código gerado
+    return barcode;
   }
 
   /**

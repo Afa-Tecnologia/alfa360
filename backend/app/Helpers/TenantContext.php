@@ -3,15 +3,15 @@ namespace App\Helpers;
 
 class TenantContext
 {
-    protected static ?string $tenantId = null;
+    protected static ?string $id = null;
 
-    public static function setTenantId(string $tenantId): void
+    public static function setTenantId(string $id): void
     {
-        self::$tenantId = $tenantId;
+        self::$id = $id;
     }
 
     public static function getTenantId(): ?string
     {
-        return self::$tenantId;
+        return self::$id;
     }
 }

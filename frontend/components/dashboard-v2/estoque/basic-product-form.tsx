@@ -99,10 +99,11 @@ export function BasicProductForm({
                   <Input
                     placeholder="Código do produto"
                     {...field}
-                    className="flex-1"
+                    className="flex-1 bg-slate-100 dark:bg-slate-800"
+                    readOnly={true}
                   />
                 </FormControl>
-                <Button
+                {/* <Button
                   type="button"
                   variant="outline"
                   size="icon"
@@ -110,13 +111,13 @@ export function BasicProductForm({
                   title="Gerar código de barras"
                 >
                   <Barcode className="h-4 w-4" />
-                </Button>
-                <BarcodeScanner
+                </Button> */}
+                {/* <BarcodeScanner
                   onScan={(result) => {
                     form.setValue('code', result);
                   }}
                   buttonSize="sm"
-                />
+                /> */}
               </div>
               <FormMessage />
             </FormItem>

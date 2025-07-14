@@ -1,3 +1,5 @@
+import { User } from "@/stores/user-store";
+
 export type OrderStatus =
   | 'PENDING'
   | 'PAYMENT_CONFIRMED'
@@ -18,6 +20,34 @@ export interface Order {
   paidAmount?: number;
 }
 
+
+
+export interface itemsProducts{
+ id?: string,
+ pedido_id?: string,
+ produto_id?: string,
+ vendedor_id?: string,
+ quantidade?: string,
+ preco_unitario?: number,
+ vendedor?: User
+}
+
+export interface Cliente {
+  id: 1,
+  name:string; 
+  last_name:string; 
+  email:string; 
+  phone:string;
+  cpf:string; 
+  adress:string; 
+  city:string; 
+  state:string; 
+  cep:string; 
+  date_of_birth:string; 
+  created_at:string;
+  updated_at:string;
+    
+}
 export interface OrderDetail {
   id: number;
   cliente_id: number;
@@ -27,6 +57,8 @@ export interface OrderDetail {
   total: number;
   created_at: string;
   updated_at: string;
+  items: itemsProducts[];
+  cliente: Cliente;
   vendedor: {
     id: number;
     name: string;

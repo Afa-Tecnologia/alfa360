@@ -10,7 +10,7 @@ class Variantes extends Model
     use TenantAware;
     
         protected $fillable = [
-            'produto_id', 'name', 'type', 'color', 'size', 'quantity', 'active', 'images', 'code'
+            'produto_id', 'name', 'type', 'quantity', 'active', 'images', 'code'
         ];
     
         protected $casts = [
@@ -25,6 +25,13 @@ class Variantes extends Model
     public function imagens()
     {
         return $this->hasMany(Imagens::class, 'variante_id');
+    }
+
+    public function atributos()
+    {
+    return $this->belongsToMany(Atributo::class, 'variantes_atributos', 'variante_id')
+                ->withPivot('valor')
+                ->withTimestamps();
     }
 
 

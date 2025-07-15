@@ -66,9 +66,9 @@ export function AbrirCaixaForm({ onSuccess }: AbrirCaixaFormProps) {
         });
         return;
       }
-      
-      await openCaixa(saldoInicial, user.id, values.observacao);
-      
+
+      await openCaixa(saldoInicial, user.id ? +user.id : 0, values.observacao);
+
       toast({
         title: 'Caixa aberto',
         description: 'O caixa foi aberto com sucesso.',

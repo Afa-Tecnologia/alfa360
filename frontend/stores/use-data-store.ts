@@ -3,6 +3,7 @@ import { Role } from '@/lib/auth/route-access';
 import { create } from 'zustand';
 
 export interface PublicUserData {
+  id?: string | number;
   name: string;
   email: string;
   role: Role;

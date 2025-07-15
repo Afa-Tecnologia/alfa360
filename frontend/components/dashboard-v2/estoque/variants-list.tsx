@@ -3,6 +3,7 @@
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 import { VariantForm, VariantFormValues } from './variant-form';
+import { Atributos } from '@/types/estoque';
 
 interface VariantsListProps {
   variants: VariantFormValues[];

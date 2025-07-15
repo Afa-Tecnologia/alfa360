@@ -31,7 +31,7 @@ import { tiposDeProdutosService } from '@/services/TiposDeProdutosService';
 import { TipoDeProduto } from '@/types/configuracoes';
 import { gerarNotificacao } from '@/utils/toast';
 import { AtributoRequest, Atributos } from '@/types/estoque';
-import { AtributoTipoDeNegocio, ProductEstoque } from '@/types/product';
+import { AtributoTipoDeNegocio, ProductEstoque, ResponseAtributos } from '@/types/product';
 interface VariantAtributo {
   atributo_id: string | number;
   valor: string;
@@ -45,6 +45,7 @@ interface ProductFormDialogProps {
   onSuccess?: () => void;
   categories: any[]; // Adicionando categorias como prop opcional
   tiposDeProdutos: TipoDeProduto[]; // Adicionando tipos de produtos como prop opcional
+  atributosVariante: ResponseAtributos[]; // Adicionando atributos variante como prop opcional
 }
 
 export function ProductFormDialog({
@@ -54,6 +55,7 @@ export function ProductFormDialog({
   onSuccess,
   categories,
   tiposDeProdutos,
+  atributosVariante
 }: ProductFormDialogProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [currentTab, setCurrentTab] = useState('basic');
@@ -447,6 +449,7 @@ export function ProductFormDialog({
 
               {currentTab === 'variants' && (
                 <VariantsList
+                  atributosVariante={atributosVariante}
                   variants={variants}
                   productName={form.getValues('name')}
                   onAddVariant={handleAddVariant}

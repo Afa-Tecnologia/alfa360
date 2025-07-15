@@ -259,6 +259,7 @@ function OrderSummary({
   formatPrice,
   onFinalizeSale,
 }: OrderSummaryProps) {
+  console.log('items tesssss', items);
   return (
     <div className="border-t p-4 space-y-4 bg-muted/30">
       <div className="space-y-3">

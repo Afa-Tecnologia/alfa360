@@ -21,11 +21,12 @@ import { Barcode } from 'lucide-react';
 import { UseFormReturn } from 'react-hook-form';
 import { BarcodeScanner } from '@/components/Reusable/BarcodeScanner';
 import { useState, useEffect } from 'react';
+import { TipoDeProduto } from '@/types/configuracoes';
 
 interface BasicProductFormProps {
   form: UseFormReturn<any>;
   categories: { id: number; name: string }[];
-  productTypes: { id: string; nome: string }[];
+  productTypes: TipoDeProduto[];
   generateUniqueBarcode: () => Promise<void>;
 }
 
@@ -64,6 +65,7 @@ export function BasicProductForm({
 
   // Inicializa os valores formatados
   useEffect(() => {
+    console.log('[productTypes]:', productTypes);
     const purchasePrice = form.getValues('purchase_price');
     const sellingPrice = form.getValues('selling_price');
 
@@ -166,8 +168,8 @@ export function BasicProductForm({
             <FormItem>
               <FormLabel>Tipo de Produto</FormLabel>
               <Select
-                onValueChange={field.onChange}
-                defaultValue={field.value || undefined}
+                onValueChange={(value) => field.onChange(value)}
+                defaultValue={field.value.toString() || ''}
               >
                 <FormControl>
                   <SelectTrigger>
@@ -177,7 +179,7 @@ export function BasicProductForm({
                 <SelectContent>
                   {productTypes.length > 0 ? (
                     productTypes.map((type) => (
-                      <SelectItem key={type.id} value={type.id}>
+                      <SelectItem key={type.id} value={type.id.toString()}>
                         {type.nome}
                       </SelectItem>
                     ))

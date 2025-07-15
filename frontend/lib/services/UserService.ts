@@ -1,3 +1,4 @@
+import { apiFetch } from '@/app/api/server-api';
 import { api } from '../../app/api/api';
 
 export interface User {
@@ -32,7 +33,7 @@ class UserService {
    */
   async getVendedores() {
     try {
-      const response = await api.get('/users/vendedores');
+      const response = await apiFetch('/users/vendedores');
       console.log(
         'Resposta da API de vendedores (UserService):',
         response.data

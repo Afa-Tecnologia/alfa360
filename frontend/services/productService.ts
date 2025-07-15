@@ -1,4 +1,5 @@
 import { api } from '@/app/api/api';
+import { apiFetch } from '@/app/api/server-api';
 import { ResponseAtributos } from '@/types/product';
 import { Product } from '@/types/sales';
 
@@ -85,8 +86,8 @@ class ProductService {
    */
   async getAtributosVarianteByBusiness(): Promise<ResponseAtributos[]> {
     try {
-      const response = await api.get('/atributos/por-tipo-de-negocio');
-      return response.data as ResponseAtributos[];
+      const response = await apiFetch('/atributos/por-tipo-de-negocio');
+      return response as ResponseAtributos[];
     } catch (error) {
       console.error('Erro ao buscar atributos de variantes:', error);
       return [];

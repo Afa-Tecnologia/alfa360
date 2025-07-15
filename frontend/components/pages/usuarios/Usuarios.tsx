@@ -35,7 +35,7 @@ export default function UsuariosPage() {
         ? user.name.toLowerCase().includes(searchTerm.toLowerCase())
         : true;
 
-      const roleMatches = roleFilter ? user.role === roleFilter : true;
+      const roleMatches = roleFilter ? user.roles[0].name === roleFilter : true;
 
       return nameMatches && roleMatches;
     });

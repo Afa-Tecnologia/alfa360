@@ -79,7 +79,7 @@ export function ViewDetails({ open, onOpenChange, user }: ViewDetailsProps) {
               <p className="text-sm font-medium text-muted-foreground">
                 Função
               </p>
-              <div className="pt-1">{getRoleBadge(user.role)}</div>
+              <div className="pt-1">{getRoleBadge(user.roles[0].name)}</div>
             </div>
 
             <div>

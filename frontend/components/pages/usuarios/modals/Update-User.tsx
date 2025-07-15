@@ -57,7 +57,7 @@ export function UpdateUser({ open, onOpenChange, user }: UpdateUserProps) {
       setUserData({
         name: user.name,
         email: user.email,
-        role: user.role,
+        role: user.roles[0].name || '',
         password: '',
         password_confirmation: '',
       });

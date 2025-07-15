@@ -79,7 +79,7 @@ export function VendasDashboard({
   const [isScannerOpen, setIsScannerOpen] = useState(false);
   const [isReceiptOpen, setIsReceiptOpen] = useState(false);
   const [saleReceipt, setSaleReceipt] = useState<any>(null);
-
+const [selectVariant, setSelectedVariant] = useState<number | null>(null);
   // Get current user
   const user = useAuthStore((state) => state.user);
 
@@ -142,7 +142,7 @@ export function VendasDashboard({
         ...product,
         selectedColor: defaultVariant.color,
         selectedSize: defaultVariant.size,
-        selectedColorId: defaultVariant.id,
+        selectedColorId: selectVariant ||  0,
       });
     }
 
@@ -182,7 +182,10 @@ export function VendasDashboard({
       gerarNotificacao('error', 'Erro ao processar itens escaneados');
     }
   };
+const handleSelectChange = (value: number) => {
+setSelectedVariant(value);
 
+}
   const handleAddToCart = () => {
     if (selectedProduct && selectedSeller) {
       // Adiciona o produto ao carrinho com o ID do vendedor associado
@@ -209,12 +212,12 @@ export function VendasDashboard({
 
     // Definir valores padrão para variantes se existirem
     if (product.variants && product.variants.length > 0) {
-      const defaultVariant = product.variants[0];
+      console.log('Variants:', product.variants);
+     
       setSelectedProduct({
         ...product,
-        selectedColor: defaultVariant.color,
-        selectedSize: defaultVariant.size,
-        selectedColorId: defaultVariant.id,
+       
+        selectedColorId: selectVariant || 0,
       });
     }
 
@@ -248,7 +251,7 @@ export function VendasDashboard({
         total_paid: paymentData.total_paid, // Valor total pago
         remaining_balance: paymentData.remaining_balance, // Valor restante a pagar
         produtos: items.map((item) => ({
-          variante_id: item.selectedColorId,
+          variante_id: selectVariant || 0,
           produto_id: item.id,
           quantidade: item.quantity,
           vendedor_id: item.vendedor_id,
@@ -677,6 +680,7 @@ export function VendasDashboard({
 
       {/* Modal de detalhes do produto */}
       <ProductDetailsDialog
+      onVariantChange={handleSelectChange}
         product={selectedProduct}
         isOpen={showProductDetails}
         onClose={() => setShowProductDetails(false)}

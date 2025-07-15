@@ -44,7 +44,7 @@ export default function Vendas() {
   const [viewMode, setViewMode] = useState<'grid' | 'table'>('table');
   // Novo estado para o vendedor selecionado
   const [selectedSeller, setSelectedSeller] = useState<Seller | null>(null);
-
+  const [selectedVariant, setSelectedVariant] = useState<number | null>(null);
   const {
     items,
     addItem,
@@ -57,6 +57,7 @@ export default function Vendas() {
   } = useCartStore();
 
   // Define o modo de visualização com base na tela
+  console.log('items', items);
   useEffect(() => {
     const handleResize = () => {
       setViewMode(window.innerWidth < 768 ? 'grid' : 'table');
@@ -127,7 +128,10 @@ export default function Vendas() {
 
     return matchesSearch && matchesCategory;
   });
+const handleSelectChange = (value: number) => {
+setSelectedVariant(value);
 
+}
   // Manipuladores de eventos
   const handleProductSelect = (product: Product) => {
     setSelectedProduct(product);
@@ -137,12 +141,11 @@ export default function Vendas() {
 
     // Definir valores padrão para variantes se existirem
     if (product.variants && product.variants.length > 0) {
-      const defaultVariant = product.variants[0];
+      console.log('Variants:', selectedVariant);
       setSelectedProduct({
         ...product,
-        selectedColor: defaultVariant.color,
-        selectedSize: defaultVariant.size,
-        selectedColorId: defaultVariant.id,
+       
+        selectedColorId: selectedVariant || 0,
       });
     }
 
@@ -234,7 +237,7 @@ export default function Vendas() {
         ...product,
         selectedColor: defaultVariant.color,
         selectedSize: defaultVariant.size,
-        selectedColorId: defaultVariant.id,
+        selectedColorId: 8,
       });
     }
 
@@ -443,6 +446,7 @@ export default function Vendas() {
         quantity={quantity}
         onIncreaseQuantity={increaseQuantity}
         onDecreaseQuantity={decreaseQuantity}
+        
         onAddToCart={handleAddToCart}
         formatPrice={formatPrice}
         selectedSeller={selectedSeller}

@@ -55,6 +55,7 @@ type NavHref =
   | '/dashboard/vendas'
   | '/dashboard/categorias'
   | '/dashboard/caixa'
+  | '/dashboard/clientes'
   | '/dashboard/estoque'
   | '/dashboard/pedidos'
   | '/dashboard/relatorios'
@@ -71,6 +72,7 @@ const ICONS_MAP: Record<NavHref, LucideIcon> = {
   '/dashboard/relatorios': BarChart3,
   '/dashboard/usuarios': Users,
   '/dashboard/configuracoes': Settings,
+  '/dashboard/clientes': Users,
 };
 
 export function SidebarNavigation({

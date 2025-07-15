@@ -11,8 +11,8 @@ use Illuminate\Support\Facades\Auth;
 class ListAtributosByTipoDeNegocio {
 
     public function execute() {
-        // Busca o tenant do usuário autenticado
-        $tenant = Tenant::where('id', Auth::user()->id)->first();
+
+        $tenant = Tenant::where('id', Auth::user()->tenant_id)->first();
 
         // Busca a configuração do negócio associada a esse tenant
         $configDoNegocio = ConfigDoNegocio::where('tenant_id', $tenant->id)->first();

@@ -37,6 +37,7 @@ export function CartPanel({
   onApplyDiscount,
   onFinalizeSale,
 }: CartPanelProps) {
+  console.log('items AQUIIII', items);
   const [percentageInput, setPercentageInput] = useState(
     discount > 0
       ? (

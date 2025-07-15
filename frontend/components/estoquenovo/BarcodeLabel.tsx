@@ -184,7 +184,7 @@ export function BarcodeLabel({ product }: BarcodeLabelProps) {
 
           return (
             <div
-              key={code}
+              key={index}
               className="border border-gray-300 p-2 flex flex-col justify-between items-center"
               style={{
                 width: '32mm',

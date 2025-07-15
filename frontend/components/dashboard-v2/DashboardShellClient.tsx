@@ -17,6 +17,7 @@ import {
 import { useRouter } from "next/navigation";
 
 export interface UserData {
+  id: number;
   name: string;
   email: string;
   role: Role;
@@ -49,6 +50,13 @@ const NAV_ITEMS = [
     label: 'Categorias',
     href: '/dashboard/categorias',
     roles: ['admin', 'gerente', 'super_admin'],
+  },
+  {
+    label: 'Clientes',
+    href: '/dashboard/clientes',
+    
+
+    roles: ['admin', 'super_admin', 'gerente'],
   },
   {
     label: 'Pedidos',
@@ -100,6 +108,7 @@ const router = useRouter();
       try {
         if (!dataUser && user && user.name && user.email && user.role) {
           setUser({
+            id: user.id,
             name: user.name,
             email: user.email,
             role: user.role,

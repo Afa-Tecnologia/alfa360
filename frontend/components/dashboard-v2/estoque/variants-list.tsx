@@ -3,9 +3,12 @@
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 import { VariantForm, VariantFormValues } from './variant-form';
+import { Atributos } from '@/types/estoque';
+import { ResponseAtributos } from '@/types/product';
 
 interface VariantsListProps {
   variants: VariantFormValues[];
+  atributosVariante: ResponseAtributos[];
   productName: string;
   onAddVariant: () => void;
   onRemoveVariant: (index: number) => void;
@@ -20,6 +23,7 @@ interface VariantsListProps {
 export function VariantsList({
   variants,
   productName,
+  atributosVariante,
   onAddVariant,
   onRemoveVariant,
   onUpdateVariant,
@@ -55,6 +59,7 @@ export function VariantsList({
             <VariantForm
               key={variant.id || index}
               variant={variant}
+              atributosVariante={atributosVariante}
               index={index}
               onUpdate={onUpdateVariant}
               onRemove={onRemoveVariant}

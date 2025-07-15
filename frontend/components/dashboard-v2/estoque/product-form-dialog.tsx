@@ -30,18 +30,22 @@ import {
 import { tiposDeProdutosService } from '@/services/TiposDeProdutosService';
 import { TipoDeProduto } from '@/types/configuracoes';
 import { gerarNotificacao } from '@/utils/toast';
-import { AtributoRequest } from '@/types/estoque';
-import { ProductEstoque } from '@/types/product';
+import { AtributoRequest, Atributos } from '@/types/estoque';
+import { AtributoTipoDeNegocio, ProductEstoque, ResponseAtributos } from '@/types/product';
 interface VariantAtributo {
   atributo_id: string | number;
   valor: string;
 }
 
 interface ProductFormDialogProps {
+
   open: boolean;
   onOpenChange: (open: boolean) => void;
   product?: ProductEstoque;
   onSuccess?: () => void;
+  categories: any[]; // Adicionando categorias como prop opcional
+  tiposDeProdutos: TipoDeProduto[]; // Adicionando tipos de produtos como prop opcional
+  atributosVariante: ResponseAtributos[]; // Adicionando atributos variante como prop opcional
 }
 
 export function ProductFormDialog({
@@ -49,14 +53,13 @@ export function ProductFormDialog({
   onOpenChange,
   product,
   onSuccess,
+  categories,
+  tiposDeProdutos,
+  atributosVariante
 }: ProductFormDialogProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [currentTab, setCurrentTab] = useState('basic');
   const [variants, setVariants] = useState<VariantFormValues[]>([]);
-  const [categories, setCategories] = useState<{ id: number; name: string }[]>(
-    []
-  );
-  const [tiposDeProdutos, setTiposDeProdutos] = useState<TipoDeProduto[]>([]);
   const [isSuccessDialogOpen, setIsSuccessDialogOpen] = useState(false);
   const [createdProduct, setCreatedProduct] = useState<ProductEstoque | null>(
     null
@@ -65,42 +68,43 @@ export function ProductFormDialog({
   const isEditing = !!product;
 
   // Buscar categorias e tipos de produtos
-  useEffect(() => {
-    console.log('product: ', product);
-    const fetchData = async () => {
-      try {
-        // Buscar categorias
-        const categoriesResponse = await api.get('/categorias');
-        setCategories(categoriesResponse.data);
+  // useEffect(() => {
+  //   console.log('product: ', product);
 
-        // Buscar tipos de produtos
-        const tiposDeProdutosResponse = await tiposDeProdutosService.getAll();
+  //   const fetchData = async () => {
+  //     try {
+  //       // Buscar categorias
+  //       const categoriesResponse = await api.get('/categorias');
+  //       setCategories(categoriesResponse.data);
 
-        if (tiposDeProdutosResponse && tiposDeProdutosResponse.length > 0) {
-          setTiposDeProdutos(tiposDeProdutosResponse);
-        } else {
-          console.warn('Nenhum tipo de produto encontrado na API');
-          setTiposDeProdutos([]);
-          toast({
-            title: 'Aviso',
-            description:
-              'Nenhum tipo de produto cadastrado. Acesse as configurações do sistema para cadastrar.',
-          });
-        }
-      } catch (error) {
-        console.error('Erro ao buscar dados:', error);
-        toast({
-          title: 'Erro',
-          description: 'Não foi possível carregar os dados necessários',
-          variant: 'destructive',
-        });
-      }
-    };
+  //       // Buscar tipos de produtos
+  //       const tiposDeProdutosResponse = await tiposDeProdutosService.getAll();
 
-    if (open) {
-      fetchData();
-    }
-  }, [open, toast]);
+  //       if (tiposDeProdutosResponse && tiposDeProdutosResponse.length > 0) {
+  //         setTiposDeProdutos(tiposDeProdutosResponse);
+  //       } else {
+  //         console.warn('Nenhum tipo de produto encontrado na API');
+  //         setTiposDeProdutos([]);
+  //         toast({
+  //           title: 'Aviso',
+  //           description:
+  //             'Nenhum tipo de produto cadastrado. Acesse as configurações do sistema para cadastrar.',
+  //         });
+  //       }
+  //     } catch (error) {
+  //       console.error('Erro ao buscar dados:', error);
+  //       toast({
+  //         title: 'Erro',
+  //         description: 'Não foi possível carregar os dados necessários',
+  //         variant: 'destructive',
+  //       });
+  //     }
+  //   };
+
+  //   if (open) {
+  //     fetchData();
+  //   }
+  // }, [open, toast]);
 
   // Inicializar form com hook
   const form = useForm<ProductFormValues>({
@@ -129,9 +133,9 @@ export function ProductFormDialog({
           selling_price: product.selling_price.toString(),
           quantity: product.quantity.toString(),
           brand: product.brand,
-          tipo_de_produto_id: product.tipo_de_produto_id,
+          tipo_de_produto_id: product.tipo_de_produto_id?.toString() || '',
           code: product.code || '',
-          categoria_id: product.categoria_id,
+          categoria_id: product.categoria_id?.toString() || '',
         });
 
         if (product.variants && product.variants.length > 0) {
@@ -266,27 +270,6 @@ export function ProductFormDialog({
   const onSubmit = async (data: ProductFormValues) => {
     try {
       setIsSubmitting(true);
-
-      // Sempre gerar código de barras se estiver vazio
-      // if (!data.code) {
-      //   try {
-      //     const generatedBarcode =
-      //       await BarcodeService.generateVerifiedUniqueBarcode(
-      //         Number(data.categoria_id)
-      //       );
-      //     data.code = generatedBarcode;
-      //     form.setValue('code', generatedBarcode); // Atualiza o campo no form também
-      //   } catch (error) {
-      //     console.error('Erro ao gerar código de barras automático:', error);
-      //     gerarNotificacao(
-      //       'error',
-      //       'Erro ao gerar código de barras automático.'
-      //     );
-      //     return; // não continua sem código
-      //   }
-      // }
-
-      // Validar variantes
       // Validar variantes
       const validatedVariants: VariantFormValues[] = [];
       let hasVariantError = false;
@@ -339,13 +322,13 @@ export function ProductFormDialog({
       const processedVariants = validatedVariants.map((variant) => {
         const autoName =
           `${data.name} ${variant.atributos?.map((atributo) => atributo.valor).join(' ')}`.trim();
-        const tipoProduto = tiposDeProdutos.find(
+        const tipoProduto = tiposDeProdutos?.find(
           (tipo) => tipo.id.toString() === data.tipo_de_produto_id.toString()
         );
 
         return {
           ...variant,
-          id: variant.id || Date.now() + Math.floor(Math.random() * 1000),
+          id: variant.id,
           name: variant.name || autoName,
           quantity: Number(variant.quantity),
           type:
@@ -459,16 +442,14 @@ export function ProductFormDialog({
                 <BasicProductForm
                   form={form}
                   categories={categories}
-                  productTypes={tiposDeProdutos.map((tipo) => ({
-                    id: tipo.id.toString(),
-                    nome: tipo.nome,
-                  }))}
+                  productTypes={tiposDeProdutos}
                   generateUniqueBarcode={generateUniqueBarcode}
                 />
               )}
 
               {currentTab === 'variants' && (
                 <VariantsList
+                  atributosVariante={atributosVariante}
                   variants={variants}
                   productName={form.getValues('name')}
                   onAddVariant={handleAddVariant}

@@ -1,3 +1,5 @@
+import { Atributos } from "./estoque";
+
 export type ScannedItem = {
     code: string;
     quantity: number;
@@ -10,6 +12,7 @@ export type ScannedItem = {
     quantity: number;
     name: string;
     images: string[];
+    atributos: Atributos[];
   }
   
   export interface Product {

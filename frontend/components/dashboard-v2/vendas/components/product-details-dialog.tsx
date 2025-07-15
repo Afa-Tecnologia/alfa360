@@ -39,6 +39,7 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
+import { on } from 'events';
 
 interface ProductDetailsDialogProps {
   product: Product | null;
@@ -47,12 +48,13 @@ interface ProductDetailsDialogProps {
   quantity: number;
   onQuantityChange: (quantity: number) => void;
   onAddToCart: () => void;
+ onVariantChange: (value: number) => void;
   sellers: User[];
   selectedSeller: User | null;
   onSellerChange: (seller: User) => void;
 }
 
-export function ProductDetailsDialog({
+export function   ProductDetailsDialog({
   product,
   isOpen,
   onClose,
@@ -61,6 +63,7 @@ export function ProductDetailsDialog({
   onAddToCart,
   sellers,
   selectedSeller,
+  onVariantChange,
   onSellerChange,
 }: ProductDetailsDialogProps) {
   const [selectedVariant, setSelectedVariant] = useState<number | null>(null);
@@ -207,9 +210,11 @@ export function ProductDetailsDialog({
                         <Label>Variante</Label>
                         <Select
                           value={selectedVariant?.toString() || ''}
-                          onValueChange={(value) =>
-                            setSelectedVariant(Number(value))
-                          }
+                          onValueChange={(value) => {
+                            const numValue = Number(value);
+                            setSelectedVariant(numValue);
+                            onVariantChange(numValue);
+                          }}
                         >
                           <SelectTrigger className="w-full">
                             <SelectValue placeholder="Selecione uma variante" />
@@ -222,22 +227,7 @@ export function ProductDetailsDialog({
                                 disabled={variant.quantity <= 0}
                               >
                                 <div className="flex items-center justify-between w-full">
-                                  <span>
-                                    {variant.color} - {variant.size}
-                                  </span>
-                                  <Badge
-                                  variant={'outline'}
-                                    className={
-                                        ` m-2
-                                      ${variant.quantity > 0
-                                        ? 'text-green-600'
-                                        : 'text-red-500'}
-                                    `}
-                                  >
-                                    {variant.quantity > 0
-                                      ? `${variant.quantity} em estoque`
-                                      : 'Sem estoque'}
-                                  </Badge>
+                                  <span>{variant.name}</span>
                                 </div>
                               </SelectItem>
                             ))}
@@ -248,26 +238,21 @@ export function ProductDetailsDialog({
                       {currentVariant && (
                         <div className="space-y-2">
                           <div className="flex items-center justify-between">
-                            <div>
+                            {currentVariant.atributos.map((attr, index) => (
+                              <div key={index} className="flex-1">
+                                <Label>{attr.name}</Label>
+                                <p>{attr.pivot.valor}</p>
+                              </div>
+                            ))}
+
+                            {/* <div>
                               <Label>Cor</Label>
                               <p>{currentVariant.color}</p>
                             </div>
                             <div>
                               <Label>Tamanho</Label>
                               <p>{currentVariant.size}</p>
-                            </div>
-                            <div>
-                              <Label>Estoque</Label>
-                              <p
-                                className={
-                                  currentVariant.quantity <= 0
-                                    ? 'text-red-500'
-                                    : 'text-green-600'
-                                }
-                              >
-                                {currentVariant.quantity}
-                              </p>
-                            </div>
+                            </div> */}
                           </div>
                         </div>
                       )}

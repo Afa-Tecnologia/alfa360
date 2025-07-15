@@ -35,6 +35,7 @@ export interface VariantFormValues {
 
 interface VariantFormProps {
   variant: VariantFormValues;
+  atributosVariante: ResponseAtributos[];
   index: number;
   onUpdate: (index: number, field: keyof VariantFormValues, value: any) => void;
   onRemove: (index: number) => void;
@@ -44,13 +45,16 @@ interface VariantFormProps {
 
 export function VariantForm({
   variant,
+  atributosVariante,
   index,
   onUpdate,
   onRemove,
   onUpdateImages,
   productName,
 }: VariantFormProps) {
-  const [atributosDisponiveis, setAtributosDisponiveis] = useState<any[]>([]);
+  const [atributosDisponiveis, setAtributosDisponiveis] = useState<any[]>(
+    atributosVariante || []
+  );
   const [attrDiv, setattrDiv] = useState<
     { atributo_id: string | number; valor: string }[]
   >([]);
@@ -60,7 +64,10 @@ export function VariantForm({
   function isEqual(a1: any[], a2: any[]) {
     if (a1.length !== a2.length) return false;
     for (let i = 0; i < a1.length; i++) {
-      if (a1[i].atributo_id !== a2[i].atributo_id || a1[i].valor !== a2[i].valor) {
+      if (
+        a1[i].atributo_id !== a2[i].atributo_id ||
+        a1[i].valor !== a2[i].valor
+      ) {
         return false;
       }
     }
@@ -80,19 +87,18 @@ export function VariantForm({
       setattrDiv(parsed);
     }
 
-    const fetchAtributos = async () => {
-       const responseAtributos = (await productService.getAtributosVarianteByBusiness()) as unknown as {
-    atributos: AtributoTipoDeNegocio[];
-  };
-      console.log('responseAtributos:', responseAtributos);
+    // const fetchAtributos = async () => {
+    //   const responseAtributos =
+    //     (await productService.getAtributosVarianteByBusiness()) as unknown as {
+    //       atributos: AtributoTipoDeNegocio[];
+    //     };
+    //   console.log('responseAtributos:', responseAtributos);
 
-  const allAtributos = responseAtributos.atributos || [];
-  setAtributosDisponiveis(allAtributos);
+    //   const allAtributos = responseAtributos.atributos || [];
+    //   setAtributosDisponiveis(allAtributos);
+    // };
 
-
-    };
-
-    fetchAtributos();
+    // fetchAtributos();
   }, [variant.atributos]);
 
   // Preenche automaticamente um atributo vazio ao iniciar, caso não exista nenhum
@@ -113,7 +119,8 @@ export function VariantForm({
 
   // Atualiza o nome automaticamente com base nos atributos
   useEffect(() => {
-    const nomeGerado = `${productName} ${attrDiv.map((a) => a.valor).join(' ')}`.trim();
+    const nomeGerado =
+      `${productName} ${attrDiv.map((a) => a.valor).join(' ')}`.trim();
     if (nomeGerado !== prevNomeRef.current) {
       prevNomeRef.current = nomeGerado;
       onUpdate(index, 'name', nomeGerado);
@@ -219,7 +226,11 @@ export function VariantForm({
                 <Input
                   value={item.valor || ''}
                   onChange={(e) =>
-                    handleUpdateAtributo(attrIndex, 'valor', e.target.value.toUpperCase())
+                    handleUpdateAtributo(
+                      attrIndex,
+                      'valor',
+                      e.target.value.toUpperCase()
+                    )
                   }
                   placeholder="Valor"
                   className="uppercase h-9"

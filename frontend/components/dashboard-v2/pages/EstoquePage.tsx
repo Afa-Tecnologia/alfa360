@@ -42,12 +42,14 @@ interface EstoquePageProps {
     products: ProductEstoque[];
     categories: any[];
     tiposDeProdutos: any[];
+    atributosVariante: ResponseAtributos[];
 }
 export default function EstoquePage(props: EstoquePageProps) {
   // Custom hooks para separar responsabilidades
   const [products, setProducts] = useState<ProductEstoque[]>(props.products || []);
   const [categories, setCategories] = useState<any[]>(props.categories || []);
   const [tiposDeProdutos, setTiposDeProdutos] = useState<any[]>(props.tiposDeProdutos || []);
+  const [atributosVariante, setAtributosVariante] = useState<ResponseAtributos[]>(props.atributosVariante || []);
   const {
     isLoading,
     deleteProduct,
@@ -278,6 +280,7 @@ export default function EstoquePage(props: EstoquePageProps) {
         product={selectedProduct || undefined}
         categories={categories}
         tiposDeProdutos={tiposDeProdutos}
+        atributosVariante={atributosVariante}
         onSuccess={refreshProducts}
       />
 

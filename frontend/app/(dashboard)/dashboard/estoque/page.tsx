@@ -35,15 +35,26 @@ export default async function Page() {
     }
   };
 
+  const fetchAtributosVarianteByBusiness = async () => {
+    try {
+      const response = await productService.getAtributosVarianteByBusiness();
+      return response;
+    } catch (error) {
+      console.error('Error fetching atributos variante by business:', error);
+      return [];
+    }
+  };
 
   const products = await fetchProducts();
   const categories = await fetchCategories();
   const tiposDeProdutos = await fetchTiposDeProdutos();
+  const atributosVariante = await fetchAtributosVarianteByBusiness();
   return (
     <EstoquePage
       products={products}
       categories={categories}
       tiposDeProdutos={tiposDeProdutos}
+      atributosVariante={atributosVariante}
     />
   );
 }

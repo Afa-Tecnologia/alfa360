@@ -260,13 +260,13 @@ export function VariantForm({
           />
         </div>
 
-        <div>
+        {/* <div>
           <label className="text-sm font-medium">Imagens</label>
           <VariantImageUploader
             initialImages={variant.images || []}
             onChange={(urls) => onUpdateImages(index, urls)}
           />
-        </div>
+        </div> */}
       </div>
     </div>
   );

@@ -176,43 +176,55 @@ export function ProductDetailsDialog({
           <TabsContent value="variants" className="mt-4">
             {product.variants && product.variants.length > 0 ? (
               <div className="border rounded-md">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Nome</TableHead>
-                      <TableHead>Cor</TableHead>
-                      <TableHead>Tamanho</TableHead>
-                      <TableHead className="text-right">Estoque</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {product.variants.map((variant) => (
-                      <TableRow key={variant.id}>
-                        <TableCell className="font-medium">
-                          {variant.name}
-                        </TableCell>
-                        {variant.atributos.map((item) =>(
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            <div
-                              className="w-4 h-4 rounded-full border"
-                              // style={{
-                              //   backgroundColor: variant.color.toLowerCase(),
-                              // }}
-                            />
-                            {item.name}
-                          </div>
-                        </TableCell>
-                          
+                {/* Gera todos os atributos únicos presentes nas variantes */}
+                {(() => {
+                  const uniqueAtributos = Array.from(
+                    new Set(
+                      product.variants.flatMap(
+                        (variant) => variant.atributos?.map((a) => a.name) || []
+                      )
+                    )
+                  );
+
+                  return (
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Nome</TableHead>
+                          {uniqueAtributos.map((name, index) => (
+                            <TableHead key={index}>{name}</TableHead>
+                          ))}
+                          <TableHead className="text-right">Estoque</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {product.variants.map((variant, index) => (
+                          <TableRow key={variant.id || index}>
+                            <TableCell className="font-medium">
+                              {variant.name}
+                            </TableCell>
+                            {uniqueAtributos.map((name, i) => {
+                              const attr = variant.atributos?.find(
+                                (a) => a.name === name
+                              );
+                              return (
+                                <TableCell key={i}>
+                                  <div className="flex items-center gap-2">
+                                    <div className="w-4 h-4 rounded-full border" />
+                                    {attr?.pivot?.valor || '—'}
+                                  </div>
+                                </TableCell>
+                              );
+                            })}
+                            <TableCell className="text-right">
+                              {variant.stock || variant.quantity || 0}
+                            </TableCell>
+                          </TableRow>
                         ))}
-                        {/* <TableCell>{variant.size}</TableCell> */}
-                        <TableCell className="text-right">
-                          {variant.stock || variant.quantity || 0}
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                      </TableBody>
+                    </Table>
+                  );
+                })()}
               </div>
             ) : (
               <div className="text-center py-8 text-muted-foreground">

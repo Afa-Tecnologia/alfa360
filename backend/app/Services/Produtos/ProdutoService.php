@@ -63,29 +63,59 @@ class ProdutoService
         
     }
     
+
     public function update($id, array $data)
     {
         $produto = Produto::findOrFail($id);
         $produto->update($data);
-    
+
+        $idsRecebidos = [];
+
         if (isset($data['variants']) && is_array($data['variants'])) {
             foreach ($data['variants'] as $variantData) {
                 if (isset($variantData['id'])) {
                     try {
                         $this->varianteService->update($variantData['id'], $variantData);
+                        $idsRecebidos[] = $variantData['id'];
                     } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
                         $variantData['produto_id'] = $produto->id;
-                        $this->varianteService->create($variantData);
+                        $novaVariante = $this->varianteService->create($variantData);
+                        $idsRecebidos[] = $novaVariante->id;
+
+                        // ✅ Associa atributos à nova variante
+                        if (isset($variantData['atributos']) && is_array($variantData['atributos'])) {
+                            app(\App\Actions\Atributo\UpdateAtributosVariante::class)
+                                ->handle($novaVariante, $variantData['atributos']);
+                        }
                     }
                 } else {
                     $variantData['produto_id'] = $produto->id;
-                    $this->varianteService->create($variantData);
+                    $novaVariante = $this->varianteService->create($variantData);
+                    $idsRecebidos[] = $novaVariante->id;
+
+                    // ✅ Associa atributos à nova variante
+                    if (isset($variantData['atributos']) && is_array($variantData['atributos'])) {
+                        app(\App\Actions\Atributo\UpdateAtributosVariante::class)
+                            ->handle($novaVariante, $variantData['atributos']);
+                    }
                 }
             }
+
+            // ❌ Remove variantes não presentes no payload
+            $produto->variants()->whereNotIn('id', $idsRecebidos)->delete();
+
+            // ✅ Atualiza atributos de variantes existentes
+            $this->varianteService->updateOrSyncAttributesByCodeOrId($produto->id, $data['variants']);
         }
+
         $this->estoqueService->atualizarEstoqueProduto($produto->id);
+
         return $produto->load('variants.atributos');
     }
+
+
+
+
     
 
     public function delete($id)

@@ -345,7 +345,7 @@ export function ProductFormDialog({
 
         return {
           ...variant,
-          id: variant.id || Date.now() + Math.floor(Math.random() * 1000),
+          id: variant.id,
           name: variant.name || autoName,
           quantity: Number(variant.quantity),
           type:

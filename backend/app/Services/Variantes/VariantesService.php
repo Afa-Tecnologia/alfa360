@@ -1,6 +1,8 @@
 <?php
 
 namespace App\Services\Variantes;
+
+use App\Actions\Atributo\UpdateAtributosVariante;
 use App\Models\Variantes;
 use Exception;
 use Illuminate\Http\Response;
@@ -52,12 +54,40 @@ class VariantesService
 
     public function update($variantId, $data)
     {
-
         $variant = Variantes::findOrFail($variantId);
         $variant->update($data);
         return $variant;
     }
     
+
+    public function updateOrSyncAttributesByCodeOrId(int $produtoId, array $variantDataList)
+{
+    $updatedVariants = [];
+
+    foreach ($variantDataList as $variantData) {
+        // Prioriza ID se vier no payload, senão usa o código
+        $variant = null;
+
+        if (isset($variantData['id'])) {
+            $variant = Variantes::where('produto_id', $produtoId)
+                ->where('id', $variantData['id'])
+                ->first();
+        } elseif (isset($variantData['code'])) {
+            $variant = Variantes::where('produto_id', $produtoId)
+                ->where('code', $variantData['code'])
+                ->first();
+        }
+
+        // Se a variante for encontrada, atualiza atributos se existirem no payload
+        if ($variant && isset($variantData['atributos'])) {
+            app(UpdateAtributosVariante::class)->handle($variant, $variantData['atributos']);
+            $updatedVariants[] = $variant;
+        }
+    }
+
+    return $updatedVariants;
+}
+
     
 
     // Método para excluir um usuário

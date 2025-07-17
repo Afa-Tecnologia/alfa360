@@ -302,7 +302,7 @@ export default function EstoquePage(props: EstoquePageProps) {
                               <SelectValue placeholder="Itens por página" />
                             </SelectTrigger>
                             <SelectContent>
-                              {[1, 25, 50, 100].map((option) => (
+                              {[10, 25, 50, 100].map((option) => (
                                 <SelectItem key={option} value={option.toString()}>
                                   {option}
                                 </SelectItem>

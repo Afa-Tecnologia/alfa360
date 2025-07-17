@@ -140,7 +140,7 @@ function DesktopProductsSkeleton() {
   )
 }
 
-function TableViewSkeleton() {
+export function TableViewSkeleton() {
   return (
     <div className="border rounded-md">
       <div className="overflow-x-auto">

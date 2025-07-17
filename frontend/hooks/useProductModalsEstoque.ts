@@ -15,10 +15,22 @@ export function useProductModalsEstoque() {
   const [bulkDeleteIds, setBulkDeleteIds] = useState<(number | string)[]>([])
   const [isDeleting, setIsDeleting] = useState(false)
   const [isBulkDeleting, setIsBulkDeleting] = useState(false)
+  const [isSpecificProduct, setIsSpecificProduct] = useState(false)
+  const [isKeyDown, setIsKeyDown] = useState(false)
 
   const openForm = (product?: ProductEstoque) => {
     setSelectedProduct(product || null)
     setIsFormOpen(true)
+  }
+
+  const openSpecificProduct = (product: ProductEstoque) => {
+    setSelectedProduct(product)
+    setIsSpecificProduct(true)
+  }
+
+  const closeSpecificProduct = () => {
+    setIsSpecificProduct(false)
+    setTimeout(() => setSelectedProduct(null), 300)
   }
 
   const closeForm = () => {
@@ -40,6 +52,7 @@ export function useProductModalsEstoque() {
     setProductToDelete(productId)
     setIsDeleteDialogOpen(true)
   }
+
 
   const closeDeleteDialog = () => {
     setIsDeleteDialogOpen(false)
@@ -71,6 +84,8 @@ export function useProductModalsEstoque() {
     bulkDeleteIds,
     isDeleting,
     isBulkDeleting,
+    isSpecificProduct,
+    isKeyDown,
     // Actions
     openForm,
     closeForm,
@@ -82,5 +97,9 @@ export function useProductModalsEstoque() {
     closeBulkDeleteDialog,
     setIsDeleting,
     setIsBulkDeleting,
+    openSpecificProduct,
+    setIsSpecificProduct,
+    closeSpecificProduct,
+    setIsKeyDown
   }
 }

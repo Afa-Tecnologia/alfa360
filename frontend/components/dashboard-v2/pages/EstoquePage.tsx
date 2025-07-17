@@ -1,6 +1,6 @@
 'use client';
 
-import { Package, ListMinus, LayoutGrid } from 'lucide-react';
+import { Package, ListMinus, LayoutGrid, SearchCheckIcon } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
   Card,
@@ -34,17 +34,19 @@ import { ProductFormDialog } from '@/components/dashboard-v2/estoque/product-for
 import { ProductDetailsDialog } from '@/components/dashboard-v2/estoque/product-details-dialog';
 import { DeleteConfirmDialog } from '@/components/dashboard-v2/estoque/delete-confirm-dialog';
 import { BulkDeleteConfirmDialog } from '@/components/dashboard-v2/estoque/BulkDeleteConfirmDialog';
-import { ProductTableSkeleton } from '@/components/dashboard-v2/estoque/ProductTableSkeleton';
+import { ProductTableSkeleton, TableViewSkeleton } from '@/components/dashboard-v2/estoque/ProductTableSkeleton';
 
 import { ProductServiceEstoque } from '@/services/products/productEstoqueService';
 import { ProductFilters } from '@/components/dashboard-v2/estoque/ProductFilters';
 import { ProductPageHeader } from '@/components/dashboard-v2/estoque/ProductPageHeader';
 import { ProductTable } from '@/components/dashboard-v2/estoque/ProductEstoqueTable';
 import { AtributoTipoDeNegocio, Product, ProductEstoque, ResponseAtributos, ResponseProducts } from '@/types/product';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
-;
+import Spinner from '@/components/ui/spinner';
+import { set } from 'date-fns';
+
 
 // Dependency injection - seguindo DIP
 const productService = new ProductServiceEstoque();
@@ -69,16 +71,10 @@ export default function EstoquePage(props: EstoquePageProps) {
     deleteProduct,
     deleteProducts,
     refreshProducts,
+    setIsLoading
   } = useProducts(productService);
 
-  const {
-    filters,
-    filteredProducts,
-    updateSearchTerm,
-    updateCategory,
-    updateSort,
-    clearFilters,
-  } = useProductFilters(products);
+  
 
   const {
     isFormOpen,
@@ -90,6 +86,8 @@ export default function EstoquePage(props: EstoquePageProps) {
     bulkDeleteIds,
     isDeleting,
     isBulkDeleting,
+    isSpecificProduct,
+    isKeyDown,
     openForm,
     closeForm,
     openDetails,
@@ -100,7 +98,20 @@ export default function EstoquePage(props: EstoquePageProps) {
     closeBulkDeleteDialog,
     setIsDeleting,
     setIsBulkDeleting,
+    openSpecificProduct,
+    setIsSpecificProduct,
+    closeSpecificProduct,
+    setIsKeyDown
   } = useProductModalsEstoque();
+
+  const {
+    filters,
+    filteredProducts,
+    updateSearchTerm,
+    updateCategory,
+    updateSort,
+    clearFilters,
+  } = useProductFilters(setIsKeyDown, products);
 
   //Função de paginação
   const router = useRouter();
@@ -178,6 +189,9 @@ export default function EstoquePage(props: EstoquePageProps) {
     return <ProductTableSkeleton />;
   }
 
+
+
+
   return (
     <div className="space-y-6">
       <ProductPageHeader onAddProduct={() => openForm()} />
@@ -229,6 +243,7 @@ export default function EstoquePage(props: EstoquePageProps) {
             onSearchChange={updateSearchTerm}
             onCategoryChange={updateCategory}
             onBarcodeSearch={handleBarcodeSearch}
+            setIsKeyDown={setIsKeyDown}
           />
 
           {localProducts.length === 0 ? (
@@ -276,7 +291,7 @@ export default function EstoquePage(props: EstoquePageProps) {
                   </TabsList>
 
                   <TabsContent value="table" className="mt-6">
-                    
+                    {isKeyDown && <TableViewSkeleton />}
                     <ProductTable
                       products={localProducts}
                       sortField={filters.sortField as string}
@@ -302,7 +317,7 @@ export default function EstoquePage(props: EstoquePageProps) {
                               <SelectValue placeholder="Itens por página" />
                             </SelectTrigger>
                             <SelectContent>
-                              {[1, 25, 50, 100].map((option) => (
+                              {[10, 25, 50, 100].map((option) => (
                                 <SelectItem key={option} value={option.toString()}>
                                   {option}
                                 </SelectItem>

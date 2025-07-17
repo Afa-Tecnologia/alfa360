@@ -156,4 +156,12 @@ class ProdutoController extends Controller
         
         return ApiResponseService::json($produto, Response::HTTP_OK);
     }
+
+    public function search(Request $request)
+    {
+        $query = $request->input('query');
+
+        $produtos = $this->produtoService->search($query);
+        return ApiResponseService::json($produtos, Response::HTTP_OK);
+    }
 }

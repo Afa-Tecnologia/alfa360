@@ -92,5 +92,6 @@ export function useProducts(productService: IProductService) {
     deleteProduct,
     deleteProducts,
     refreshProducts,
+    setIsLoading
   }
 }

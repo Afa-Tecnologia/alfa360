@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Services\EstoqueService;
 use App\Traits\ServiceCacheable;
+use Illuminate\Http\Request;
 
 class ProdutoService
 {
@@ -22,10 +23,14 @@ class ProdutoService
         $this->varianteService = $varianteService;
         $this->estoqueService = $estoqueService;
     }
-    public function getAll()
+    public function getAll(Request $request)
     {
-        return Produto::with('variants.atributos')->get();
+        $perPage = $request->input('per_page', 10); 
+
+        return Produto::with('variants.atributos')
+            ->paginate($perPage);
     }
+
 
     public function getById($id)
     {

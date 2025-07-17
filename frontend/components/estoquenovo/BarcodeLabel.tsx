@@ -59,7 +59,7 @@ export function BarcodeLabel({ product }: BarcodeLabelProps) {
     const labelContent = product.variants ? 
     product.variants.map((variant, index) => {
         const code = `${product.code || product.id}-${variant.id}`;
-        const info = [variant.color, variant.size].filter(Boolean).join(' | ');
+        const info = `${variant.name}`
 
         return `
           <div class="label">
@@ -80,68 +80,70 @@ export function BarcodeLabel({ product }: BarcodeLabelProps) {
         <head>
           <title>Etiquetas</title>
           <style>
-              body {
+            body {
                 margin: 0;
                 padding: 0;
                 font-family: Arial, sans-serif;
               }
-              .page {
-                display: grid;
-                grid-template-columns: repeat(3, 32mm);
-                gap: 0;
-              }
-                
-              .label {
-                width: 32mm;
-                height: 25mm;
-                display: flex;
-                flex-direction: column;
-                justify-content: space-between;
-                align-items: center;
-                padding: 3mm;
-                box-sizing: border-box;
-                border: 1px solid #ccc;
-              }
-              .product-name {
-                font-size: 8px;
-                font-weight: bold;
-                text-align: center;
-                line-height: 1;
-              }
-              .product-info {
-                font-size: 8px;
-                font-weight: bold;
-                text-align: center;
-                line-height: 1;
-              }
-              .barcode {
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                width: 100%;
-                max-height: 12mm;
-              }
-              .barcode svg {
-                max-width: 100%;
-                height: auto;
-                max-height: 12mm;
-              }
-              .product-price {
-                font-size: 8px;
-                font-weight: bold;
-                text-align: center;
-                line-height: 1;
-              }
-              @media print {
-                @page {
-                size: 96mm 25mm;
+
+            .page {
+              display: grid;
+              grid-template-columns: repeat(3, 32mm);
+              grid-auto-rows: 25mm;
+              gap: 0mm;
+              width: 96mm;
+            }
+
+            .label {
+              width: 32mm;
+              height: 25mm;
+              display: flex;
+              flex-direction: column;
+              justify-content: space-between;
+              align-items: center;
+              padding: 2mm;
+              box-sizing: border-box;
+              overflow: hidden;
+            }
+
+            .product-name,
+            .product-info,
+            .product-price {
+              font-size: 8px;
+              font-weight: bold;
+              text-align: center;
+              line-height: 1;
+            }
+
+            .barcode {
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              width: 100%;
+              max-height: 12mm;
+            }
+
+            .barcode svg {
+              max-width: 100%;
+              height: auto;
+              max-height: 12mm;
+            }
+
+            @media print {
+              @page {
+                size: 96mm auto; /* largura da bobina, altura automática */
                 margin: 0;
               }
-                .label {
-                  page-break-inside: avoid;
-                  border: none;
-                }
+
+              body, html {
+                margin: 0;
+                padding: 0;
               }
+
+              .label {
+                page-break-inside: avoid;
+              }
+            }
             </style>
         </head>
         <body>

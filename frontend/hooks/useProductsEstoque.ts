@@ -15,8 +15,8 @@ export function useProducts(productService: IProductService) {
   const fetchProducts = async () => {
     setIsLoading(true)
     try {
-      const data = await productService.getProducts()
-      setProducts(data)
+      const response = await productService.getProducts()
+      setProducts(response.data)
     } catch (error) {
       console.error("Error fetching products:", error)
       toast({

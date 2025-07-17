@@ -3,58 +3,31 @@ import { ProductServiceEstoque } from '@/services/products/productEstoqueService
 
 import { tiposDeProdutosService } from '@/services/TiposDeProdutosService';
 
-export default async function Page() {
+type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>
+
+export default async function Page(props: {searchParams:SearchParams}) {
+  //Paginação
+  const page =  (await props.searchParams).page || '1'
+  const perPage = (await props.searchParams).perPage || '10'
+  
   const productService = new ProductServiceEstoque();
-  const fetchProducts = async () => {
-    try {
-      const products = await productService.getProducts();
-      return products;
-    } catch (error) {
-      console.error('Error fetching products:', error);
-      return [];
-    }
-  };
+  const [responseProducts, categories, tiposDeProdutos, atributosVariante] =
+    await Promise.all([
+      productService.getProducts(+page, +perPage),
+      productService.getCategories(),
+      tiposDeProdutosService.getAll(),
+      productService.getAtributosVarianteByBusiness(),
+    ]);
 
-  const fetchCategories = async () => {
-    try {
-      const response = await productService.getCategories();
-      return response;
-    } catch (error) {
-      console.error('Error fetching categories:', error);
-      return [];
-    }
-  };
-
-  const fetchTiposDeProdutos = async () => {
-    try {
-      const response = await tiposDeProdutosService.getAll();
-      return response;
-    } catch (error) {
-      console.error('Error fetching tipos de produtos:', error);
-      return [];
-    }
-  };
-
-  const fetchAtributosVarianteByBusiness = async () => {
-    try {
-      const response = await productService.getAtributosVarianteByBusiness();
-      return response;
-    } catch (error) {
-      console.error('Error fetching atributos variante by business:', error);
-      return [];
-    }
-  };
-
-  const products = await fetchProducts();
-  const categories = await fetchCategories();
-  const tiposDeProdutos = await fetchTiposDeProdutos();
-  const atributosVariante = await fetchAtributosVarianteByBusiness();
+  
   return (
     <EstoquePage
-      products={products}
+      responseProducts={responseProducts}
       categories={categories}
       tiposDeProdutos={tiposDeProdutos}
       atributosVariante={atributosVariante}
+      page={+page}
+      perPage={+perPage}
     />
   );
 }

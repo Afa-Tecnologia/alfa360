@@ -50,16 +50,17 @@ import { EnhancedBarcodeScanner } from '@/components/Reusable/EnhancedBarcodeSca
 import { ScannedItem } from '@/components/Reusable/EnhancedBarcodeScanner';
 import { SalesStatsCard } from './components/sales-stats-card';
 import { SalesReceipt } from './components/sales-receipt';
+import { ProductEstoque, ResponseProducts, ResponseProductsToSalesComponent } from '@/types/product';
 
 interface VendasDashboardProps {
-  products: Product[];
+  responseProducts: ResponseProductsToSalesComponent;
   sellers: User[];
   categories: any[];
   isLoading: boolean;
 }
 
 export function VendasDashboard({
-  products,
+  responseProducts,
   sellers,
   categories,
   isLoading,
@@ -79,6 +80,7 @@ export function VendasDashboard({
   const [isScannerOpen, setIsScannerOpen] = useState(false);
   const [isReceiptOpen, setIsReceiptOpen] = useState(false);
   const [saleReceipt, setSaleReceipt] = useState<any>(null);
+  const [products, setProducts] = useState<Product[]>(responseProducts.data || [])
 const [selectVariant, setSelectedVariant] = useState<number | null>(null);
   // Get current user
   const user = useAuthStore((state) => state.user);
@@ -119,7 +121,7 @@ const [selectVariant, setSelectedVariant] = useState<number | null>(null);
       product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       product.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
       product.brand.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      product.code.toLowerCase().includes(searchTerm.toLowerCase());
+      product.code?.toLowerCase().includes(searchTerm.toLowerCase()) ;
 
     // Filtro por categoria
     const matchesCategory = selectedCategory

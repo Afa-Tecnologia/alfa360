@@ -1,6 +1,7 @@
 'use client';
 
 import { Package, ListMinus, LayoutGrid } from 'lucide-react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import {
   Card,
   CardContent,
@@ -13,7 +14,15 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 // Services and utilities
 import { ProductCalculator, CurrencyFormatter } from '@/utils/productUtils';
-
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination"
 // Hooks
 import { useProducts } from '@/hooks/useProductsEstoque';
 import { useProductFilters } from '@/hooks/useProductFiltersEstoques';
@@ -31,22 +40,27 @@ import { ProductServiceEstoque } from '@/services/products/productEstoqueService
 import { ProductFilters } from '@/components/dashboard-v2/estoque/ProductFilters';
 import { ProductPageHeader } from '@/components/dashboard-v2/estoque/ProductPageHeader';
 import { ProductTable } from '@/components/dashboard-v2/estoque/ProductEstoqueTable';
-import { AtributoTipoDeNegocio, Product, ProductEstoque, ResponseAtributos } from '@/types/product';
+import { AtributoTipoDeNegocio, Product, ProductEstoque, ResponseAtributos, ResponseProducts } from '@/types/product';
 import { useState } from 'react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Label } from '@/components/ui/label';
 ;
 
 // Dependency injection - seguindo DIP
 const productService = new ProductServiceEstoque();
 
 interface EstoquePageProps {
-    products: ProductEstoque[];
+    responseProducts: ResponseProducts;
     categories: any[];
     tiposDeProdutos: any[];
     atributosVariante: ResponseAtributos[];
+    page: string | number,
+    perPage: string | number,
+
 }
 export default function EstoquePage(props: EstoquePageProps) {
   // Custom hooks para separar responsabilidades
-  const [products, setProducts] = useState<ProductEstoque[]>(props.products || []);
+  const [products, setProducts] = useState<ProductEstoque[]>(props.responseProducts.data || []);
   const [categories, setCategories] = useState<any[]>(props.categories || []);
   const [tiposDeProdutos, setTiposDeProdutos] = useState<any[]>(props.tiposDeProdutos || []);
   const [atributosVariante, setAtributosVariante] = useState<ResponseAtributos[]>(props.atributosVariante || []);
@@ -87,6 +101,25 @@ export default function EstoquePage(props: EstoquePageProps) {
     setIsDeleting,
     setIsBulkDeleting,
   } = useProductModalsEstoque();
+
+  //Função de paginação
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const currentPage = Number(searchParams.get('page') || '1');
+  const perPage = Number(searchParams.get('perPage') || '10');
+
+  const handlePageChange = (newPage: number, newPerPage?: number) => {
+  const params = new URLSearchParams(searchParams.toString());
+  params.set('page', String(newPage));
+  if (newPerPage !== undefined) {
+    params.set('perPage', String(newPerPage));
+  } else {
+    params.set('perPage', String(perPage)); // manter atual se não mudar
+  }
+  //Forçando porque o router.push não tira o cache.
+  window.location.href=`?${params.toString()}`;
+};
 
   // Cálculos usando utility class
   const stats = ProductCalculator.calculateStats(products);
@@ -243,6 +276,7 @@ export default function EstoquePage(props: EstoquePageProps) {
                   </TabsList>
 
                   <TabsContent value="table" className="mt-6">
+                    
                     <ProductTable
                       products={localProducts}
                       sortField={filters.sortField as string}
@@ -253,6 +287,81 @@ export default function EstoquePage(props: EstoquePageProps) {
                       onDeleteProduct={(id) => openDeleteDialog(Number(id))}
                       formatCurrency={CurrencyFormatter.format}
                     />
+                    <Pagination className="mt-6 flex justify-end">
+                      <div className="mt-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                        {/* Select: Itens por página */}
+                        <div className="flex items-center gap-2 justify-start">
+                          <Label htmlFor="perPageSelect" className="text-sm text-muted-foreground">
+                            Itens por página:
+                          </Label>
+                          <Select
+                            value={perPage.toString()}
+                            onValueChange={(value) => handlePageChange(1, Number(value))}
+                          >
+                            <SelectTrigger className="w-[120px]">
+                              <SelectValue placeholder="Itens por página" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {[1, 25, 50, 100].map((option) => (
+                                <SelectItem key={option} value={option.toString()}>
+                                  {option}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        {/* Paginação normal */}
+                        <Pagination>
+                          <PaginationContent>
+                            <PaginationItem>
+                              <PaginationPrevious
+                                href="#"
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  const prev = Number(props.responseProducts.current_page) - 1;
+                                  if (prev >= 1) handlePageChange(prev, perPage);
+                                }}
+                              />
+                            </PaginationItem>
+
+                            {Array.from({ length: Number(props.responseProducts.last_page) }, (_, i) => {
+                              const pageNumber = i + 1;
+                              const isActive = pageNumber === Number(props.responseProducts.current_page);
+                              return (
+                                <PaginationItem key={pageNumber}>
+                                  <PaginationLink
+                                    href="#"
+                                    isActive={isActive}
+                                    onClick={(e) => {
+                                      e.preventDefault();
+                                      handlePageChange(pageNumber, perPage);
+                                    }}
+                                  >
+                                    {pageNumber}
+                                  </PaginationLink>
+                                </PaginationItem>
+                              );
+                            })}
+
+                            <PaginationItem>
+                              <PaginationNext
+                                href="#"
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  const next = Number(props.responseProducts.current_page) + 1;
+                                  if (next <= Number(props.responseProducts.last_page)) {
+                                    handlePageChange(next, perPage);
+                                  }
+                                }}
+                              />
+                            </PaginationItem>
+                          </PaginationContent>
+                        </Pagination>
+                      </div>
+
+                    </Pagination>
+
                   </TabsContent>
 
                   <TabsContent value="cards" className="mt-6">

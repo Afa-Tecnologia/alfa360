@@ -4,18 +4,19 @@ import type {
   Category,
   ProductEstoque,
   ResponseAtributos,
+  ResponseProducts,
 } from '@/types/product';
 
 export interface IProductService {
-  getProducts(): Promise<ProductEstoque[]>;
+  getProducts(): Promise<ResponseProducts>;
   getCategories(): Promise<Category[]>;
   deleteProduct(id: number | string): Promise<void>;
   deleteProducts(ids: (number | string)[]): Promise<void>;
 }
 
 export class ProductServiceEstoque implements IProductService {
-  async getProducts(): Promise<ProductEstoque[]> {
-    const response = await apiFetch('/produtos');
+  async getProducts(page?: number, perPage = 1): Promise<ResponseProducts | any> {
+    const response = await apiFetch(`/produtos?page=${page}&per_page=${perPage}`);
     return response;
   }
 

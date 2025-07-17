@@ -15,6 +15,8 @@ interface Product {
 }
 
 interface ProductTableProps {
+  isIsSpecificProduct?: boolean
+  specificProduct?: Product
   products: Product[]
   sortField: string
   sortOrder: "asc" | "desc"
@@ -27,6 +29,8 @@ interface ProductTableProps {
 
 export function ProductTable({
   products,
+  specificProduct,
+  isIsSpecificProduct = false,
   sortField,
   sortOrder,
   onSort,
@@ -79,7 +83,7 @@ export function ProductTable({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {products.map((product) => (
+            {!isIsSpecificProduct ? products.map((product) => (
               <TableRow
                 key={product.id}
                 onClick={() => onViewDetails(product)}
@@ -136,7 +140,64 @@ export function ProductTable({
                   </DropdownMenu>
                 </TableCell>
               </TableRow>
-            ))}
+            )) : (
+              specificProduct && <TableRow
+                key={specificProduct?.id}
+                onClick={() => onViewDetails(specificProduct)}
+                className="cursor-pointer hover:bg-muted/50"
+              >
+                <TableCell className="font-medium min-w-[200px]">
+                  <span className="truncate block">{specificProduct.name}</span>
+                </TableCell>
+                <TableCell className="min-w-[150px]">
+                  <span className="truncate block">{specificProduct.brand}</span>
+                </TableCell>
+                <TableCell className="min-w-[100px]">
+                  <span
+                    className={
+                      Number(specificProduct?.quantity) === 0
+                        ? "text-red-500 font-medium"
+                        : Number(specificProduct?.quantity) < 5
+                          ? "text-orange-500 font-medium"
+                          : ""
+                    }
+                  >
+                    {specificProduct?.quantity}
+                  </span>
+                </TableCell>
+                <TableCell className="min-w-[120px]">{formatCurrency(specificProduct?.selling_price)}</TableCell>
+                <TableCell className="text-right min-w-[80px] w-[80px]">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                        <MoreVertical className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          onEditProduct(specificProduct)
+                        }}
+                      >
+                        <Edit className="mr-2 h-4 w-4" />
+                        Editar
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        className="text-red-600"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          onDeleteProduct(specificProduct.id as number)
+                        }}
+                      >
+                        <Trash2 className="mr-2 h-4 w-4" />
+                        Excluir
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </TableCell>
+              </TableRow>
+            )}
           </TableBody>
         </Table>
       </div>

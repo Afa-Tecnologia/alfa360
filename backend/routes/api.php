@@ -72,6 +72,7 @@ Route::prefix('empresas')->middleware(['auth:api', 'role:super_admin'])->group(f
 
 Route::prefix('produtos')->middleware('auth:api', TenantResolver::class)->group(function () {
     Route::get('/', [ProdutoController::class, 'index']);
+    Route::get('/search', [ProdutoController::class, 'search']);
     Route::get('{id}', [ProdutoController::class, 'show']);
     Route::get('/categoria/{id}', [ProdutoController::class, 'findByCategory']);
     Route::get('/barcode/{code}', [ProdutoController::class, 'findByBarcode']);

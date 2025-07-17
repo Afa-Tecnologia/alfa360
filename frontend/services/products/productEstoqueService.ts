@@ -25,6 +25,15 @@ export class ProductServiceEstoque implements IProductService {
     return response;
   }
 
+  async getProductsBySearchTerm(
+    searchTerm: string,
+  ): Promise<ProductEstoque[] | any> {
+    const response = await apiFetch(
+      `/produtos/search?query=${searchTerm}`
+    );
+    return response || [];
+  }
+
   async deleteProduct(id: number | string): Promise<void> {
     await api.delete(`/produtos/${id}`);
   }

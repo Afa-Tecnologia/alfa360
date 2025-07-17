@@ -1,26 +1,40 @@
 "use client"
 
-import { useState, useMemo } from "react"
-import type { ProductEstoque,  ProductFilters } from "@/types/product"
+import { useState, useEffect } from "react"
+import type { ProductEstoque, ProductFilters } from "@/types/product"
 import { ProductFilter } from "@/utils/productUtils"
+import { set } from "date-fns"
 
-export function useProductFilters(products: ProductEstoque[]) {
+import { useProductModalsEstoque } from "@/hooks/useProductModalsEstoque"
+export function useProductFilters(setIsKeyDown : (value: boolean) => void) {
   const [filters, setFilters] = useState<ProductFilters>({
     searchTerm: "",
     filterCategory: "all",
     sortOrder: "asc",
     sortField: "name",
   })
+  
+  const [filteredProducts, setFilteredProducts] = useState<ProductEstoque[]>([])
+  const [loading, setLoading] = useState<boolean>(false)
 
-  const filteredProducts = useMemo(() => {
-    return ProductFilter.filterProducts(
-      products,
-      filters.searchTerm,
-      filters.filterCategory,
-      filters.sortField,
-      filters.sortOrder,
-    )
-  }, [products, filters])
+  useEffect(() => {
+    const fetchFilteredProducts = async () => {
+      setLoading(true)
+      const result = await ProductFilter.filterProductsFromAPI(
+        filters.searchTerm,
+        filters.filterCategory,
+        filters.sortField,
+        filters.sortOrder
+      )
+      
+      console.log("Filtered Products:", result)
+      setFilteredProducts(result)
+      setLoading(false)
+      setIsKeyDown(false)
+    }
+
+    fetchFilteredProducts()
+  }, [filters])
 
   const updateSearchTerm = (searchTerm: string) => {
     setFilters((prev) => ({ ...prev, searchTerm }))
@@ -50,6 +64,7 @@ export function useProductFilters(products: ProductEstoque[]) {
   return {
     filters,
     filteredProducts,
+    loading,
     updateSearchTerm,
     updateCategory,
     updateSort,

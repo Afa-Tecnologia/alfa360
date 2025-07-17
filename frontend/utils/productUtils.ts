@@ -1,3 +1,5 @@
+import { ProductServiceEstoque } from "@/services/products/productEstoqueService"
+import ProductService from "@/services/products/ProductServices"
 import type { LocalProduct, ProductStats, ProductEstoque } from "@/types/product"
 
 
@@ -29,45 +31,45 @@ export class ProductCalculator {
 }
 
 export class ProductFilter {
-  static filterProducts(
-    products: ProductEstoque[],
+  static async filterProductsFromAPI(
     searchTerm: string,
     filterCategory: string,
     sortField: keyof ProductEstoque,
-    sortOrder: "asc" | "desc",
-  ): ProductEstoque[] {
-    let result = [...products]
+    sortOrder: "asc" | "desc"
+  ): Promise<ProductEstoque[]> {
+    try {
+      // 🔍 Busca os produtos via API
+      const productService = new ProductServiceEstoque();
+      let result: ProductEstoque[] = await productService.getProductsBySearchTerm(searchTerm);
 
-    // Apply search filter
-    if (searchTerm) {
-      result = result.filter(
-        (product) =>
-          product.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          product.brand?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          product.code?.toLowerCase().includes(searchTerm.toLowerCase()),
-      )
-    }
-
-    // Apply category filter
-    if (filterCategory && filterCategory !== "all") {
-      result = result.filter((product) => product.categoria_id?.toString() === filterCategory)
-    }
-
-    // Apply sorting
-    result = result.sort((a, b) => {
-      const fieldA = a[sortField]
-      const fieldB = b[sortField]
-
-      if (typeof fieldA === "string" && typeof fieldB === "string") {
-        return sortOrder === "asc" ? fieldA.localeCompare(fieldB) : fieldB.localeCompare(fieldA)
-      } else {
-        const numA = Number(fieldA) || 0
-        const numB = Number(fieldB) || 0
-        return sortOrder === "asc" ? numA - numB : numB - numA
+      // 🏷️ Filtro por categoria (se necessário)
+      if (filterCategory && filterCategory !== "all") {
+        result = result.filter(
+          (product) => product.categoria_id?.toString() === filterCategory
+        );
       }
-    })
 
-    return result
+      // ↕️ Ordenação
+      result = result.sort((a, b) => {
+        const fieldA = a[sortField];
+        const fieldB = b[sortField];
+
+        if (typeof fieldA === "string" && typeof fieldB === "string") {
+          return sortOrder === "asc"
+            ? fieldA.localeCompare(fieldB)
+            : fieldB.localeCompare(fieldA);
+        } else {
+          const numA = Number(fieldA) || 0;
+          const numB = Number(fieldB) || 0;
+          return sortOrder === "asc" ? numA - numB : numB - numA;
+        }
+      });
+
+      return result;
+    } catch (error) {
+      console.error("Erro ao filtrar produtos:", error);
+      return [];
+    }
   }
 }
 

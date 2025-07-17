@@ -63,7 +63,7 @@ export function BarcodeLabel({ product }: BarcodeLabelProps) {
 
         return `
           <div class="label">
-            <div class="product-name">${truncate(product.name)}</div>
+            <div class="product-name"></div>
             ${info ? `<div class="product-info">
               ${truncate(product.name)} <br/>| ${info}</div>` : ''}
             <div class="barcode">

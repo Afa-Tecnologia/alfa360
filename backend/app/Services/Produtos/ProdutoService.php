@@ -25,9 +25,18 @@ class ProdutoService
     }
     public function getAll(Request $request)
     {
-        $perPage = $request->input('per_page', 10); 
+        $perPage = $request->input('per_page', 10);
+        $query = $request->input('query'); 
 
         return Produto::with('variants.atributos')
+            ->where('name', 'like', '%' . $query . '%')
+            ->orWhere('code', 'like', '%' . $query . '%')
+            ->orWhere('brand', 'like', '%' . $query . '%')
+            ->orWhereHas('variants', function ($q) use ($query) {
+                $q->where('name', 'like', '%' . $query . '%')
+                  ->orWhere('code', 'like', '%' . $query . '%');
+            })
+            // ->orWhere('categoria', 'like', '%' . $query . '%')
             ->paginate($perPage);
     }
 

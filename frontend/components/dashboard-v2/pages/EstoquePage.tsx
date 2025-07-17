@@ -111,7 +111,7 @@ export default function EstoquePage(props: EstoquePageProps) {
     updateCategory,
     updateSort,
     clearFilters,
-  } = useProductFilters(setIsKeyDown);
+  } = useProductFilters(setIsKeyDown, products);
 
   //Função de paginação
   const router = useRouter();

@@ -34,27 +34,7 @@ class UserService {
   async getVendedores() {
     try {
       const response = await apiFetch('/users/vendedores');
-      console.log(
-        'Resposta da API de vendedores (UserService):',
-        response.data
-      );
-
-      // Verificar diferentes possibilidades de estrutura de dados
-      if (Array.isArray(response.data)) {
-        return response.data;
-      } else if (response.data && response.data.vendedores) {
-        return Array.isArray(response.data.vendedores)
-          ? response.data.vendedores
-          : [];
-      } else if (response.data && response.data.data) {
-        return Array.isArray(response.data.data) ? response.data.data : [];
-      } else {
-        console.warn(
-          'Estrutura de resposta da API de vendedores não reconhecida:',
-          response.data
-        );
-        return [];
-      }
+      return response.vendedores;
     } catch (error) {
       console.error('Erro ao buscar vendedores:', error);
       return [];

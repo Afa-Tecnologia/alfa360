@@ -37,6 +37,8 @@ import { gerarNotificacao } from '@/utils/toast';
 import useAuthStore from '@/stores/authStore';
 import OrdersSales from '@/services/pedidos/SalesOrders';
 import { createPaymentService } from '@/services/pagamentos/CreatePaymentService';
+import productService from '@/services/productService';
+import { normalizeProduct } from '@/utils/normalizeProduct';
 
 // Componentes
 import { ProductFilters } from './components/product-filters';
@@ -50,7 +52,11 @@ import { EnhancedBarcodeScanner } from '@/components/Reusable/EnhancedBarcodeSca
 import { ScannedItem } from '@/components/Reusable/EnhancedBarcodeScanner';
 import { SalesStatsCard } from './components/sales-stats-card';
 import { SalesReceipt } from './components/sales-receipt';
-import { ProductEstoque, ResponseProducts, ResponseProductsToSalesComponent } from '@/types/product';
+import {
+  ProductEstoque,
+  ResponseProducts,
+  ResponseProductsToSalesComponent,
+} from '@/types/product';
 
 interface VendasDashboardProps {
   responseProducts: ResponseProductsToSalesComponent;
@@ -59,11 +65,17 @@ interface VendasDashboardProps {
   isLoading: boolean;
 }
 
+// Definir tipo CartItem para o carrinho
+interface CartItem extends Product {
+  variante_id: number;
+  vendedor_id: number;
+  vendedor_nome: string;
+}
+
 export function VendasDashboard({
   responseProducts,
   sellers,
   categories,
-  isLoading,
 }: VendasDashboardProps) {
   // Estados
   const [searchTerm, setSearchTerm] = useState('');
@@ -80,8 +92,11 @@ export function VendasDashboard({
   const [isScannerOpen, setIsScannerOpen] = useState(false);
   const [isReceiptOpen, setIsReceiptOpen] = useState(false);
   const [saleReceipt, setSaleReceipt] = useState<any>(null);
-  const [products, setProducts] = useState<Product[]>(responseProducts.data || [])
-const [selectVariant, setSelectedVariant] = useState<number | null>(null);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [selectVariant, setSelectedVariant] = useState<number | null>(null);
   // Get current user
   const user = useAuthStore((state) => state.user);
 
@@ -97,6 +112,23 @@ const [selectVariant, setSelectedVariant] = useState<number | null>(null);
     totalWithDiscount,
     clearCart,
   } = useCartStore();
+
+  useEffect(() => {
+    async function fetchProducts() {
+      setIsLoading(true);
+      const response: any = await productService.getProducts({
+        page: currentPage,
+        query: searchTerm,
+      });
+      const arr = Array.isArray(response.data)
+        ? response.data
+        : response.data?.data || [];
+      setProducts(arr.map(normalizeProduct));
+      setTotalPages(response.last_page || 1);
+      setIsLoading(false);
+    }
+    fetchProducts();
+  }, [currentPage, searchTerm]);
 
   // Define o modo de visualização com base na tela
   useEffect(() => {
@@ -121,7 +153,7 @@ const [selectVariant, setSelectedVariant] = useState<number | null>(null);
       product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       product.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
       product.brand.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      product.code?.toLowerCase().includes(searchTerm.toLowerCase()) ;
+      product.code?.toLowerCase().includes(searchTerm.toLowerCase());
 
     // Filtro por categoria
     const matchesCategory = selectedCategory
@@ -136,18 +168,6 @@ const [selectVariant, setSelectedVariant] = useState<number | null>(null);
     setSelectedProduct(product);
     setQuantity(1);
     setSelectedSeller(null);
-
-    // Definir valores padrão para variantes se existirem
-    if (product.variants && product.variants.length > 0) {
-      const defaultVariant = product.variants[0];
-      setSelectedProduct({
-        ...product,
-        selectedColor: defaultVariant.color,
-        selectedSize: defaultVariant.size,
-        selectedColorId: selectVariant ||  0,
-      });
-    }
-
     setShowProductDetails(true);
   };
 
@@ -163,13 +183,7 @@ const [selectVariant, setSelectedVariant] = useState<number | null>(null);
           // O produto já está completamente formatado e com variante selecionada
           const productToAdd = {
             ...item.product,
-            selectedColorId: item.variantId,
-            selectedColor: item.product.variants.find(
-              (v) => v.id === item.variantId
-            )?.color,
-            selectedSize: item.product.variants.find(
-              (v) => v.id === item.variantId
-            )?.size,
+            variante_id: item.variantId,
           };
 
           addItem(productToAdd as any, item.quantity, 0);
@@ -184,22 +198,19 @@ const [selectVariant, setSelectedVariant] = useState<number | null>(null);
       gerarNotificacao('error', 'Erro ao processar itens escaneados');
     }
   };
-const handleSelectChange = (value: number) => {
-setSelectedVariant(value);
-
-}
+  const handleSelectChange = (value: number) => {
+    setSelectedVariant(value);
+  };
+  // Corrigir handleAddToCart para tipar corretamente
   const handleAddToCart = () => {
-    if (selectedProduct && selectedSeller) {
-      // Adiciona o produto ao carrinho com o ID do vendedor associado
-      addItem(
-        {
-          ...selectedProduct,
-          vendedor_id: selectedSeller.id,
-          vendedor_nome: selectedSeller.name,
-        } as any,
-        quantity,
-        0
-      );
+    if (selectedProduct && selectedSeller && selectVariant) {
+      const item: CartItem = {
+        ...selectedProduct,
+        variante_id: selectVariant,
+        vendedor_id: selectedSeller.id,
+        vendedor_nome: selectedSeller.name,
+      };
+      addItem(item, quantity, 0);
       setShowProductDetails(false);
       gerarNotificacao('success', 'Produto adicionado ao carrinho');
     } else if (!selectedSeller) {
@@ -215,12 +226,8 @@ setSelectedVariant(value);
     // Definir valores padrão para variantes se existirem
     if (product.variants && product.variants.length > 0) {
       console.log('Variants:', product.variants);
-     
-      setSelectedProduct({
-        ...product,
-       
-        selectedColorId: selectVariant || 0,
-      });
+
+      setSelectedProduct(product);
     }
 
     setShowProductDetails(true);
@@ -237,23 +244,23 @@ setSelectedVariant(value);
     setIsPaymentDialogOpen(true);
   };
 
+  // Corrigir montagem do pedido para aceitar itens do tipo CartItem ou do store antigo
   const handleProcessSale = async (paymentData: any) => {
     setIsProcessingSale(true);
     try {
-      // Preparar dados do pedido
       const pedido = {
         vendedor_id: user?.id,
         cliente_id: paymentData.cliente_id,
         type: 'loja',
         status: paymentData.status,
         payment_method: paymentData.payment_method,
-        payment_type: paymentData.payment_type, // Tipo de pagamento (FULL, PARTIAL, CREDIT)
+        payment_type: paymentData.payment_type,
         payment_splits: paymentData.payment_splits,
         desconto: discount,
-        total_paid: paymentData.total_paid, // Valor total pago
-        remaining_balance: paymentData.remaining_balance, // Valor restante a pagar
-        produtos: items.map((item) => ({
-          variante_id: selectVariant || 0,
+        total_paid: paymentData.total_paid,
+        remaining_balance: paymentData.remaining_balance,
+        produtos: items.map((item: any) => ({
+          variante_id: item.variante_id ?? selectVariant ?? 0,
           produto_id: item.id,
           quantidade: item.quantity,
           vendedor_id: item.vendedor_id,
@@ -425,9 +432,9 @@ setSelectedVariant(value);
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight">Vendas</h2>
+          <h2 className="text-3xl font-bold tracking-tight">Ponto de Venda</h2>
           <p className="text-muted-foreground">
-            Gerencie suas vendas e produtos
+            Realize vendas e gerencie seus produtos
           </p>
         </div>
         <div className="flex gap-2">
@@ -441,14 +448,14 @@ setSelectedVariant(value);
           </Button> */}
 
           <EnhancedBarcodeScanner
-          onScan={handleEnhancedBarcodeScan}
-          buttonLabel="Escanear"
-          formatPrice={formatPrice}
-          onClose={() => setIsScannerOpen(false)}
-          sellers={sellers}
-          selectedSeller={selectedSeller}
-          onSellerChange={handleSellerChange}
-        />
+            onScan={handleEnhancedBarcodeScan}
+            buttonLabel="Escanear"
+            formatPrice={formatPrice}
+            onClose={() => setIsScannerOpen(false)}
+            sellers={sellers}
+            selectedSeller={selectedSeller}
+            onSellerChange={handleSellerChange}
+          />
           <Button
             variant="default"
             size="sm"
@@ -467,7 +474,7 @@ setSelectedVariant(value);
       </div>
 
       {/* Cards de estatísticas */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      {/* <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <SalesStatsCard
           title="Produtos"
           value={totalProducts}
@@ -496,7 +503,7 @@ setSelectedVariant(value);
           icon={<Users className="h-4 w-4" />}
           variant="purple"
         />
-      </div>
+      </div> */}
 
       <div className="grid lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
@@ -516,7 +523,10 @@ setSelectedVariant(value);
                       placeholder="Buscar produtos..."
                       className="pl-8"
                       value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
+                      onChange={(e) => {
+                        setSearchTerm(e.target.value);
+                        setCurrentPage(1);
+                      }}
                     />
                   </div>
 
@@ -633,11 +643,34 @@ setSelectedVariant(value);
                   />
                 )}
               </div>
+              {totalPages > 1 && (
+                <div className="flex justify-center mt-4">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={currentPage === 1}
+                    onClick={() => setCurrentPage(currentPage - 1)}
+                  >
+                    Anterior
+                  </Button>
+                  <span className="mx-2">
+                    Página {currentPage} de {totalPages}
+                  </span>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={currentPage === totalPages}
+                    onClick={() => setCurrentPage(currentPage + 1)}
+                  >
+                    Próxima
+                  </Button>
+                </div>
+              )}
             </CardContent>
           </Card>
 
           {/* Histórico de vendas recentes */}
-          <Card className="hidden sm:block">
+          {/* <Card className="hidden sm:block">
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center">
                 <Clock className="h-5 w-5 mr-2" />
@@ -658,7 +691,7 @@ setSelectedVariant(value);
                 <ArrowUpRight className="h-4 w-4 ml-1" />
               </Button>
             </CardFooter>
-          </Card>
+          </Card> */}
         </div>
 
         {/* Painel do carrinho (visível apenas em telas grandes) */}
@@ -682,7 +715,7 @@ setSelectedVariant(value);
 
       {/* Modal de detalhes do produto */}
       <ProductDetailsDialog
-      onVariantChange={handleSelectChange}
+        onVariantChange={setSelectedVariant}
         product={selectedProduct}
         isOpen={showProductDetails}
         onClose={() => setShowProductDetails(false)}

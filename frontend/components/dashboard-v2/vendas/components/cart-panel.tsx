@@ -15,14 +15,26 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import { Product } from '@/types/sales';
+import { formatCurrency } from '@/utils/format';
+
+/**
+ * Props para o painel do carrinho de vendas.
+ */
+export interface CartPanelItem extends Product {
+  quantity: number;
+  vendedor_nome?: string;
+  discount?: number;
+  variante_id?: number;
+}
 
 interface CartPanelProps {
-  items: any[];
+  items: CartPanelItem[];
   total: number | (() => number);
   discount: number;
   totalWithDiscount: number | (() => number);
-  onRemoveItem: (id: number, colorId?: number) => void;
-  onUpdateQuantity: (id: number, quantity: number, colorId?: number) => void;
+  onRemoveItem: (id: number, varianteId?: number) => void;
+  onUpdateQuantity: (id: number, quantity: number, varianteId?: number) => void;
   onApplyDiscount: (discount: number) => void;
   onFinalizeSale: () => void;
 }
@@ -46,14 +58,6 @@ export function CartPanel({
         ).toFixed(1)
       : '0'
   );
-
-  // Formatação de preço
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL',
-    }).format(price);
-  };
 
   // Calcular o total
   const getTotalValue = () => {
@@ -123,101 +127,114 @@ export function CartPanel({
         <ScrollArea className="h-[calc(100vh-350px)]">
           <div className="px-6">
             <AnimatePresence>
-              {items.map((item) => (
-                <motion.div
-                  key={`${item.id}-${item.selectedColorId || 'default'}`}
-                  variants={itemVariants}
-                  initial="hidden"
-                  animate="visible"
-                  exit="exit"
-                  layout
-                  className="py-3 border-b last:border-b-0"
-                >
-                  <div className="flex justify-between">
-                    <div className="flex-grow">
-                      <div className="flex items-center justify-between">
-                        <h4 className="font-medium">{item.name}</h4>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-8 w-8 p-0 text-destructive"
-                          onClick={() =>
-                            onRemoveItem(item.id, item.selectedColorId)
-                          }
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-
-                      {(item.selectedColor || item.selectedSize) && (
-                        <div className="flex gap-2 mt-1">
-                          {item.selectedColor && (
-                            <Badge variant="outline" className="text-xs">
-                              Cor: {item.selectedColor}
-                            </Badge>
-                          )}
-                          {item.selectedSize && (
-                            <Badge variant="outline" className="text-xs">
-                              Tamanho: {item.selectedSize}
-                            </Badge>
-                          )}
-                        </div>
-                      )}
-
-                      {item.vendedor_nome && (
-                        <p className="text-xs text-muted-foreground mt-1">
-                          Vendedor: {item.vendedor_nome}
-                        </p>
-                      )}
-
-                      <div className="flex items-center justify-between mt-2">
-                        <div className="flex items-center">
+              {items.map((item) => {
+                const variant = item.variants.find(
+                  (v) => v.id === item.variante_id
+                );
+                return (
+                  <motion.div
+                    key={`${item.name}-${item.variante_id}`}
+                    variants={itemVariants}
+                    initial="hidden"
+                    animate="visible"
+                    exit="exit"
+                    layout
+                    className="py-3 border-b last:border-b-0"
+                  >
+                    <div className="flex justify-between">
+                      <div className="flex-grow">
+                        <div className="flex items-center justify-between">
+                          <h4 className="font-medium">{item.name}</h4>
                           <Button
-                            variant="outline"
+                            variant="ghost"
                             size="sm"
-                            className="h-7 w-7 rounded-r-none p-0"
+                            className="h-8 w-8 p-0 text-destructive"
                             onClick={() =>
-                              onUpdateQuantity(
-                                item.id,
-                                Math.max(1, item.quantity - 1),
-                                item.selectedColorId
-                              )
+                              onRemoveItem(item.id, item.variante_id)
                             }
-                            disabled={item.quantity <= 1}
                           >
-                            <Minus className="h-3 w-3" />
+                            <Trash2 className="h-4 w-4" />
                           </Button>
-                          <div className="h-7 px-2 flex items-center justify-center border-t border-b">
-                            {item.quantity}
+                        </div>
+
+                        {/* Exibir atributos da variante */}
+                        {variant &&
+                          variant.atributos &&
+                          variant.atributos.length > 0 && (
+                            <div className="flex gap-2 mt-1 flex-wrap">
+                              {variant.atributos.map((attr, idx) => (
+                                <Badge
+                                  key={idx}
+                                  variant="outline"
+                                  className="text-xs"
+                                >
+                                  {attr.name}: {attr.pivot.valor}
+                                </Badge>
+                              ))}
+                            </div>
+                          )}
+
+                        {item.vendedor_nome && (
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Vendedor: {item.vendedor_nome}
+                          </p>
+                        )}
+
+                        <div className="flex items-center justify-between mt-2">
+                          <div className="flex items-center">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="h-7 w-7 rounded-r-none p-0"
+                              onClick={() =>
+                                onUpdateQuantity(
+                                  item.id,
+                                  Math.max(1, item.quantity - 1),
+                                  item.variante_id
+                                )
+                              }
+                              disabled={item.quantity <= 1}
+                            >
+                              <Minus className="h-3 w-3" />
+                            </Button>
+                            <div className="h-7 px-2 flex items-center justify-center border-t border-b">
+                              {item.quantity}
+                            </div>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="h-7 w-7 rounded-l-none p-0"
+                              onClick={() =>
+                                onUpdateQuantity(
+                                  item.id,
+                                  item.quantity + 1,
+                                  item.variante_id
+                                )
+                              }
+                              disabled={
+                                variant && item.quantity >= variant.quantity
+                              }
+                            >
+                              <Plus className="h-3 w-3" />
+                            </Button>
                           </div>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="h-7 w-7 rounded-l-none p-0"
-                            onClick={() =>
-                              onUpdateQuantity(
-                                item.id,
-                                item.quantity + 1,
-                                item.selectedColorId
-                              )
-                            }
-                          >
-                            <Plus className="h-3 w-3" />
-                          </Button>
-                        </div>
-                        <div className="text-right">
-                          <p className="font-medium">
-                            {formatPrice(item.sellingPrice * item.quantity)}
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            {item.quantity} x {formatPrice(item.sellingPrice)}
-                          </p>
+                          <div className="text-right">
+                            <p className="font-medium">
+                              {formatCurrency(
+                                item.sellingPrice * item.quantity
+                              )}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              {item.quantity} x{' '}
+                              {formatCurrency(item.sellingPrice)}
+                            </p>
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                </motion.div>
-              ))}
+                  </motion.div>
+                );
+              })}
             </AnimatePresence>
           </div>
         </ScrollArea>
@@ -228,7 +245,7 @@ export function CartPanel({
           <div className="flex items-center justify-between">
             <span className="text-base font-medium">Subtotal</span>
             <span className="text-xl font-bold">
-              {formatPrice(getTotalValue())}
+              {formatCurrency(getTotalValue())}
             </span>
           </div>
 
@@ -260,7 +277,7 @@ export function CartPanel({
               <span>
                 Desconto ({((discount / getTotalValue()) * 100).toFixed(1)}%)
               </span>
-              <span>-{formatPrice(discount)}</span>
+              <span>-{formatCurrency(discount)}</span>
             </div>
           )}
 
@@ -269,7 +286,7 @@ export function CartPanel({
           <div className="flex items-center justify-between font-medium">
             <span className="text-base">Total</span>
             <span className="text-2xl font-bold">
-              {formatPrice(getTotalWithDiscountValue())}
+              {formatCurrency(getTotalWithDiscountValue())}
             </span>
           </div>
 

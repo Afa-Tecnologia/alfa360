@@ -157,11 +157,9 @@ const currentPath = pathname; // pega a rota atual
   }
 
   const canAccess = hasAccess(pathname, dataUser.role);
-console.log('canAccess', canAccess);
-console.log('url', pathname);
+
   if (!canAccess) {
     const fallback = getFirstAccessiblePath(dataUser.role);
-    console.log('fallback', fallback);
     if (fallback) {
        router.push('/dashboard/unauthorized?from=' + encodeURIComponent(currentPath));
     } else {

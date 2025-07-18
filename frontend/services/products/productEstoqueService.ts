@@ -1,5 +1,6 @@
 import { api } from '@/app/api/api';
 import { apiFetch } from '@/app/api/server-api';
+import { User, userService } from '@/lib/services/UserService';
 import type {
   Category,
   ProductEstoque,
@@ -17,6 +18,11 @@ export interface IProductService {
 export class ProductServiceEstoque implements IProductService {
   async getProducts(page?: number, perPage = 1): Promise<ResponseProducts | any> {
     const response = await apiFetch(`/produtos?page=${page}&per_page=${perPage}`);
+    return response;
+  }
+
+  async getVendedores(): Promise<User[]> {
+    const response = await userService.getVendedores();
     return response;
   }
 

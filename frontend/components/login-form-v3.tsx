@@ -3,7 +3,14 @@
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { motion, AnimatePresence } from 'framer-motion';
-import { AtSign, KeyRound, ArrowRight, Loader2 } from 'lucide-react';
+import {
+  AtSign,
+  KeyRound,
+  ArrowRight,
+  Loader2,
+  EyeOffIcon,
+  EyeIcon,
+} from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -26,7 +33,7 @@ export function LoginFormV3({
   const [isLoading, setIsLoading] = useState(false);
   const [currentView, setCurrentView] = useState<'email' | 'password'>('email');
   const [email, setEmail] = useState('');
-
+  const [showPassword, setShowPassword] = useState(false);
   const {
     register,
     handleSubmit,
@@ -36,7 +43,7 @@ export function LoginFormV3({
     setValue,
   } = useForm<LoginFormData>();
 
-   const setUser = useUserDataStore((state) => state.setUser);
+  const setUser = useUserDataStore((state) => state.setUser);
 
   const setToken = useAuthStore((state) => state.setToken);
   const router = useRouter();
@@ -51,6 +58,7 @@ export function LoginFormV3({
 
   const handleBack = () => {
     setCurrentView('email');
+    setShowPassword(false);
   };
 
   const onSubmit = async (data: LoginFormData) => {
@@ -61,12 +69,12 @@ export function LoginFormV3({
 
       setUser(user);
       gerarNotificacao('success', message);
-       if (user?.role) {
-              const firstPath = getFirstAccessiblePath(user.role) || '/';
-              router.push(firstPath);
-            } else {
-              router.push('/dashboard');
-            }
+      if (user?.role) {
+        const firstPath = getFirstAccessiblePath(user.role) || '/';
+        router.push(firstPath);
+      } else {
+        router.push('/dashboard');
+      }
     } catch (error: any) {
       const { response } = error;
       if (error.code === 'ERR_NETWORK') {
@@ -176,8 +184,7 @@ export function LoginFormV3({
                       {email.charAt(0).toUpperCase()}
                     </div>
                     <div>
-                      <div
-                        className=" text-sm font-medium  max-w-[200px] truncate sm:max-w-none sm:truncate-0">
+                      <div className=" text-sm font-medium  max-w-[200px] truncate sm:max-w-none sm:truncate-0">
                         {email}
                       </div>
                     </div>
@@ -189,7 +196,7 @@ export function LoginFormV3({
                     </div>
                     <Input
                       id="password"
-                      type="password"
+                      type={showPassword ? 'text' : 'password'}
                       placeholder="Sua senha"
                       className={cn(
                         'pl-10 h-12 text-base bg-muted/50 ',
@@ -200,6 +207,19 @@ export function LoginFormV3({
                         required: 'Digite sua senha',
                       })}
                     />
+                    {!showPassword ? (
+                      <EyeIcon
+                        className="h-4 w-4 cursor-pointer absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+                        aria-hidden="true"
+                        onClick={() => setShowPassword(true)}
+                      />
+                    ) : (
+                      <EyeOffIcon
+                        className="h-4 w-4 cursor-pointer absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+                        aria-hidden="true"
+                        onClick={() => setShowPassword(false)}
+                      />
+                    )}
                   </div>
 
                   {errors.password && (

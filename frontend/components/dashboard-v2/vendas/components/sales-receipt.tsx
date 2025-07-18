@@ -22,15 +22,12 @@ import {
   DialogClose,
 } from '@/components/ui/dialog';
 import { useReactToPrint } from 'react-to-print';
+import { formatCurrency } from '@/utils/format';
 
-// Environment variables with fallbacks
-const STORE_NAME = process.env.NEXT_PUBLIC_STORE_NAME || 'Alfa Manager';
-const STORE_CNPJ = process.env.NEXT_PUBLIC_STORE_CNPJ || '00.000.000/0000-00';
-const STORE_ADDRESS =
-  process.env.NEXT_PUBLIC_STORE_ADDRESS || 'Endereço da Loja, 123';
-const STORE_PHONE = process.env.NEXT_PUBLIC_STORE_PHONE || '(00) 0000-0000';
-
-interface SaleItem {
+/**
+ * Props para o comprovante de venda.
+ */
+export interface SaleItem {
   productId: number;
   productName: string;
   quantity: number;
@@ -39,7 +36,7 @@ interface SaleItem {
   vendedor?: string;
 }
 
-interface SaleReceipt {
+export interface SaleReceipt {
   id?: string | number;
   items: SaleItem[];
   total: number;
@@ -55,7 +52,7 @@ interface SaleReceipt {
   createdAt: Date;
 }
 
-interface SalesReceiptProps {
+export interface SalesReceiptProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   sale: SaleReceipt;
@@ -65,13 +62,10 @@ export function SalesReceipt({ open, onOpenChange, sale }: SalesReceiptProps) {
   const printRef = useRef<HTMLDivElement>(null);
   const [isPrinting, setIsPrinting] = useState(false);
 
-  // Format currency
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL',
-    }).format(value);
-  };
+  const STORE_NAME = process.env.NEXT_PUBLIC_STORE_NAME || 'Alfa Tecnologia';
+  const STORE_CNPJ = process.env.NEXT_PUBLIC_STORE_CNPJ || '1234567890';
+  const STORE_ADDRESS = process.env.NEXT_PUBLIC_STORE_ADDRESS || 'Rua das Flores, 123';
+  const STORE_PHONE = process.env.NEXT_PUBLIC_STORE_PHONE || '(11) 99999-9999';
 
   // Handle print
   const handlePrint = useReactToPrint({
@@ -103,9 +97,15 @@ export function SalesReceipt({ open, onOpenChange, sale }: SalesReceiptProps) {
           {/* Cabeçalho da loja */}
           <div className="text-center mb-4">
             <h2 className="text-xl font-bold">{STORE_NAME}</h2>
-            <p className="text-sm font-bold dark:text-gray-300">CNPJ: {STORE_CNPJ}</p>
-            <p className="text-sm font-bold dark:text-gray-300">{STORE_ADDRESS}</p>
-            <p className="text-sm font-bold dark:text-gray-300">{STORE_PHONE}</p>
+            <p className="text-sm font-bold dark:text-gray-300">
+              CNPJ: {STORE_CNPJ}
+            </p>
+            <p className="text-sm font-bold dark:text-gray-300">
+              {STORE_ADDRESS}
+            </p>
+            <p className="text-sm font-bold dark:text-gray-300">
+              {STORE_PHONE}
+            </p>
           </div>
 
           <Separator className="my-4" />

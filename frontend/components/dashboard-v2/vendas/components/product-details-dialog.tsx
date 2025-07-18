@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { ShoppingCart, X, Package, Minus, Plus, Check } from 'lucide-react';
 import { Product } from '@/types/sales';
+import { formatCurrency } from '@/utils/format';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -41,20 +42,23 @@ import {
 import { cn } from '@/lib/utils';
 import { on } from 'events';
 
-interface ProductDetailsDialogProps {
+/**
+ * Props para o diálogo de detalhes do produto.
+ */
+export interface ProductDetailsDialogProps {
   product: Product | null;
   isOpen: boolean;
   onClose: () => void;
   quantity: number;
   onQuantityChange: (quantity: number) => void;
   onAddToCart: () => void;
- onVariantChange: (value: number) => void;
+  onVariantChange: (value: number) => void;
   sellers: User[];
   selectedSeller: User | null;
   onSellerChange: (seller: User) => void;
 }
 
-export function   ProductDetailsDialog({
+export function ProductDetailsDialog({
   product,
   isOpen,
   onClose,
@@ -66,32 +70,27 @@ export function   ProductDetailsDialog({
   onVariantChange,
   onSellerChange,
 }: ProductDetailsDialogProps) {
-  const [selectedVariant, setSelectedVariant] = useState<number | null>(null);
+  const [selectedVariantId, setSelectedVariantId] = useState<number | null>(
+    null
+  );
   const [openSellerPopover, setOpenSellerPopover] = useState(false);
 
-  // Resetar variante selecionada quando o produto muda
   useEffect(() => {
     if (product && product.variants && product.variants.length > 0) {
-      // Always select the first variant with stock if available
-      const variantWithStock = product.variants.find((v) => v.quantity > 0);
-      if (variantWithStock) {
-        setSelectedVariant(variantWithStock.id);
-      } else {
-        setSelectedVariant(product.selectedColorId || product.variants[0].id);
-      }
+      setSelectedVariantId(product.variants[0].id);
+      onVariantChange(product.variants[0].id);
     } else {
-      setSelectedVariant(null);
+      setSelectedVariantId(null);
+      onVariantChange(0);
     }
-  }, [product]);
+  }, [product, onVariantChange]);
 
-  // Log for debugging
-  useEffect(() => {
-    if (product && hasVariants && currentVariant) {
-      console.log('Selected variant:', currentVariant);
-      console.log('Variant stock:', currentVariant.quantity);
-      console.log('variantHasStock:', variantHasStock);
-    }
-  }, [selectedVariant]);
+  const selectedVariant = product?.variants.find(
+    (v) => v.id === selectedVariantId
+  );
+  const isSellersArray = Array.isArray(sellers);
+
+  if (!product) return null;
 
   // Formatação de preço
   const formatPrice = (price: number) => {
@@ -109,42 +108,6 @@ export function   ProductDetailsDialog({
     }
     return new Intl.DateTimeFormat('pt-BR').format(date);
   };
-
-  if (!product) return null;
-
-  // Verificar se o produto tem variantes
-  const hasVariants = product.variants && product.variants.length > 0;
-
-  // Obter variante selecionada
-  const currentVariant = hasVariants
-    ? product.variants.find((v) => v.id === selectedVariant)
-    : null;
-
-  // Ensure we're correctly checking variant stock
-  const variantHasStock = currentVariant ? currentVariant.quantity > 0 : true;
-  const productHasStock = hasVariants ? variantHasStock : product.stock > 0;
-
-  // Agrupar variantes por cor
-  const variantsByColor = hasVariants
-    ? product.variants.reduce((acc: any, variant) => {
-        if (!acc[variant.color]) {
-          acc[variant.color] = [];
-        }
-        acc[variant.color].push(variant);
-        return acc;
-      }, {})
-    : {};
-
-  // Cores disponíveis
-  const availableColors = Object.keys(variantsByColor);
-
-  // Tamanhos disponíveis para a cor selecionada
-  const selectedColor = currentVariant?.color || '';
-  const availableSizes =
-    variantsByColor[selectedColor]?.map((v: any) => v.size) || [];
-
-  // Verificar se sellers é um array
-  const isSellersArray = Array.isArray(sellers);
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
@@ -182,7 +145,7 @@ export function   ProductDetailsDialog({
 
                   <div>
                     <p className="text-2xl font-bold">
-                      {formatPrice(product.sellingPrice)}
+                      {formatCurrency(product.sellingPrice)}
                     </p>
                     <p className="text-sm text-muted-foreground">
                       Código: {product.code}
@@ -202,18 +165,20 @@ export function   ProductDetailsDialog({
                     </Badge>
                   </div>
 
-                  {hasVariants && (
+                  {/* Select de variantes */}
+                  {product.variants.length > 0 && (
                     <div className="space-y-4">
                       <Separator />
-
                       <div className="space-y-2">
                         <Label>Variante</Label>
                         <Select
-                          value={selectedVariant?.toString() || ''}
+                          value={selectedVariantId?.toString() || ''}
                           onValueChange={(value) => {
-                            const numValue = Number(value);
-                            setSelectedVariant(numValue);
-                            onVariantChange(numValue);
+                            const variant = product.variants.find(
+                              (v) => v.id === Number(value)
+                            );
+                            setSelectedVariantId(variant?.id || null);
+                            onVariantChange(variant?.id || 0);
                           }}
                         >
                           <SelectTrigger className="w-full">
@@ -226,38 +191,43 @@ export function   ProductDetailsDialog({
                                 value={variant.id.toString()}
                                 disabled={variant.quantity <= 0}
                               >
-                                <div className="flex items-center justify-between w-full">
-                                  <span>{variant.name}</span>
-                                </div>
+                                {variant.name}
                               </SelectItem>
                             ))}
                           </SelectContent>
                         </Select>
                       </div>
-
-                      {currentVariant && (
-                        <div className="space-y-2">
-                          <div className="flex items-center justify-between">
-                            {currentVariant.atributos.map((attr, index) => (
-                              <div key={index} className="flex-1">
-                                <Label>{attr.name}</Label>
-                                <p>{attr.pivot.valor}</p>
-                              </div>
-                            ))}
-
-                            {/* <div>
-                              <Label>Cor</Label>
-                              <p>{currentVariant.color}</p>
-                            </div>
-                            <div>
-                              <Label>Tamanho</Label>
-                              <p>{currentVariant.size}</p>
-                            </div> */}
-                          </div>
+                      {/* Badge de estoque da variante selecionada */}
+                      {selectedVariant && (
+                        <div className="flex items-center gap-2 mt-2">
+                          <Badge
+                            variant={
+                              selectedVariant.quantity > 0
+                                ? 'secondary'
+                                : 'destructive'
+                            }
+                          >
+                            {selectedVariant.quantity > 0
+                              ? `${selectedVariant.quantity} em estoque`
+                              : 'Sem estoque'}
+                          </Badge>
                         </div>
                       )}
-
                       <Separator />
+                    </div>
+                  )}
+
+                  {/* Exibir atributos da variante selecionada */}
+                  {selectedVariant && (
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        {selectedVariant.atributos.map((attr, index) => (
+                          <div key={index} className="flex-1">
+                            <Label>{attr.name}</Label>
+                            <p>{attr.pivot.valor}</p>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   )}
 
@@ -332,6 +302,10 @@ export function   ProductDetailsDialog({
                         variant="outline"
                         size="icon"
                         onClick={() => onQuantityChange(quantity + 1)}
+                        disabled={
+                          !!selectedVariant &&
+                          quantity >= selectedVariant.quantity
+                        }
                       >
                         <Plus className="h-4 w-4" />
                       </Button>
@@ -371,8 +345,8 @@ export function   ProductDetailsDialog({
             onClick={onAddToCart}
             disabled={
               !selectedSeller ||
-              (hasVariants && !selectedVariant) ||
-              !productHasStock
+              !selectedVariantId ||
+              (selectedVariant && selectedVariant.quantity <= 0)
             }
           >
             <ShoppingCart className="h-4 w-4 mr-2" />

@@ -10,8 +10,9 @@ export default async function Page(){
     await Promise.all([
       productService.getProducts(),
       productService.getCategories(),
-      userService.getVendedores()
+      productService.getVendedores()
     ])
+
   return (
     <VendasPage
       responseProducts={responseProducts}

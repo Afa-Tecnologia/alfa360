@@ -47,6 +47,12 @@ const NAV_ITEMS = [
     roles: ['admin', 'vendedor', 'super_admin', 'gerente'],
   },
   {
+    label: 'Etiquetas',
+    href: '/dashboard/etiquetas',
+
+    roles: ['admin', 'vendedor', 'super_admin', 'gerente'],
+  },
+  {
     label: 'Categorias',
     href: '/dashboard/categorias',
     roles: ['admin', 'gerente', 'super_admin'],

@@ -1,5 +1,5 @@
 import { api } from '@/app/api/api';
-import { CartItem } from '@/stores/cart-store';
+// import { CartItem } from '@/stores/cart-store';
 import { gerarNotificacao } from '@/utils/toast';
 
 interface PedidoRequest {

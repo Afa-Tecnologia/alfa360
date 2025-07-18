@@ -45,8 +45,8 @@ export const useCartStore = create<CartStore>((set, get) => ({
       const existingItemIndex = state.items.findIndex(
         (item) =>
           item.id === product.id &&
-          (product.variante_id
-            ? item.variante_id === product.variante_id
+          (product.variants[0].id
+            ? item.variants[0].id === product.variants[0].id
             : true)
       );
 

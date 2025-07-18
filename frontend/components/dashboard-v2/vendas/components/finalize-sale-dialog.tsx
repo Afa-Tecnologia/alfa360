@@ -63,15 +63,19 @@ import { cn } from '@/lib/utils';
 import CustomerService from '@/services/clientes/CustomerServices';
 import { paymentMethodService } from '@/lib/services/PaymentMethodService';
 import { PaymentMethod } from '@/stores/paymentMethodStore';
+import { formatCurrency } from '@/utils/format';
 
-interface FinalizeSaleDialogProps {
+/**
+ * Props para o diálogo de finalização de venda.
+ */
+export interface FinalizeSaleDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  items: any[];
+  items: any[]; // Substituir por tipo forte se disponível
   total: number;
   discount: number;
   totalWithDiscount: number;
-  onFinalize: (paymentData: any) => void;
+  onFinalize: (paymentData: any) => void; // Substituir por tipo forte se disponível
   isProcessing: boolean;
 }
 
@@ -459,13 +463,13 @@ export function FinalizeSaleDialog({
               <CardContent className="space-y-3">
                 <div className="flex justify-between text-sm">
                   <span>Subtotal</span>
-                  <span>{formatPrice(total)}</span>
+                  <span>{formatCurrency(total)}</span>
                 </div>
 
                 {discount > 0 && (
                   <div className="flex justify-between text-sm text-destructive">
                     <span>Desconto</span>
-                    <span>-{formatPrice(discount)}</span>
+                    <span>-{formatCurrency(discount)}</span>
                   </div>
                 )}
 
@@ -473,7 +477,7 @@ export function FinalizeSaleDialog({
 
                 <div className="flex justify-between font-medium text-lg">
                   <span>Total</span>
-                  <span>{formatPrice(totalWithDiscount)}</span>
+                  <span>{formatCurrency(totalWithDiscount)}</span>
                 </div>
               </CardContent>
             </Card>
@@ -740,7 +744,7 @@ export function FinalizeSaleDialog({
                             : 'text-green-500'
                       }`}
                     >
-                      {formatPrice(remainingAmount)}
+                      {formatCurrency(remainingAmount)}
                     </span>
                   </div>
                 </div>

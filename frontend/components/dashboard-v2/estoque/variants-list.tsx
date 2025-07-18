@@ -33,11 +33,11 @@ export function VariantsList({
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h3 className="text-sm font-medium">Variantes do Produto</h3>
-        <Button type="button" size="sm" onClick={onAddVariant}>
+      </div>
+        {/* <Button type="button" size="sm" onClick={onAddVariant}>
           <Plus className="h-4 w-4 mr-1" />
           Adicionar
-        </Button>
-      </div>
+        </Button> */}
 
       {variants.length === 0 ? (
         <div className="text-center py-8 border rounded-md bg-muted/20">

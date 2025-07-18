@@ -11,6 +11,7 @@ import {
   ChevronsUpDown,
   Loader2,
   User,
+  Package,
 } from 'lucide-react';
 import {
   Dialog,
@@ -137,7 +138,7 @@ export function EnhancedBarcodeScanner({
           const defaultVariant = formattedProduct.variants[0];
           setSelectedVariant({
             id: defaultVariant.id,
-            name: `${defaultVariant.color} - ${defaultVariant.size}`,
+            name: `${defaultVariant.name}`,
           });
         } else {
           setSelectedVariant({ id: undefined, name: undefined });
@@ -216,13 +217,11 @@ export function EnhancedBarcodeScanner({
   // Função para selecionar variante
   const handleSelectVariant = (variantId: number) => {
     if (!currentProduct) return;
-
     const variant = currentProduct.variants.find((v) => v.id === variantId);
     if (!variant) return;
-
     setSelectedVariant({
       id: variant.id,
-      name: `${variant.color} - ${variant.size}`,
+      name: `${variant.name}`,
     });
   };
 
@@ -400,13 +399,9 @@ export function EnhancedBarcodeScanner({
                         }}
                       />
                     ) : (
-                      <Image
-                        src="/placeholder.svg"
-                        alt="Produto sem imagem"
-                        fill
-                        className="object-cover"
-                        unoptimized
-                      />
+                      <div className="flex items-center justify-center h-full w-full">
+                        <Package className="h-16 w-16 text-muted-foreground" />
+                      </div>
                     )}
                   </div>
                   <div className="flex-1">
@@ -451,23 +446,17 @@ export function EnhancedBarcodeScanner({
                                 {currentProduct.variants.map((variant) => (
                                   <CommandItem
                                     key={variant.id}
-                                    value={`${variant.color} - ${variant.size}`}
+                                    value={variant.name}
                                     onSelect={() =>
                                       handleSelectVariant(variant.id)
                                     }
                                     disabled={variant.quantity <= 0}
                                   >
                                     <div className="flex items-center justify-between w-full">
-                                      <span>
-                                        {variant.color} - {variant.size}
-                                      </span>
+                                      <span>{variant.name}</span>
                                       <Badge
                                         variant="outline"
-                                        className={`ml-2 ${
-                                          variant.quantity > 0
-                                            ? 'text-green-600'
-                                            : 'text-red-500'
-                                        }`}
+                                        className={`ml-2 ${variant.quantity > 0 ? 'text-green-600' : 'text-red-500'}`}
                                       >
                                         {variant.quantity > 0
                                           ? `${variant.quantity} em estoque`
@@ -540,6 +529,18 @@ export function EnhancedBarcodeScanner({
                   </div>
                 )}
 
+                {selectedVariant.id && (
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {currentProduct.variants
+                      .find((v) => v.id === selectedVariant.id)
+                      ?.atributos.map((attr) => (
+                        <Badge key={attr.name}>
+                          {attr.name}: {attr.pivot.valor}
+                        </Badge>
+                      ))}
+                  </div>
+                )}
+
                 <div className="mt-4 flex justify-end">
                   <Button
                     onClick={handleAddToScannedItems}
@@ -582,13 +583,7 @@ export function EnhancedBarcodeScanner({
                             {
                               item.product.variants.find(
                                 (v) => v.id === item.variantId
-                              )?.color
-                            }{' '}
-                            -
-                            {
-                              item.product.variants.find(
-                                (v) => v.id === item.variantId
-                              )?.size
+                              )?.name
                             }
                           </div>
                         )}
@@ -610,6 +605,14 @@ export function EnhancedBarcodeScanner({
                           size="icon"
                           className="h-7 w-7"
                           onClick={() => adjustQuantity(index, 1)}
+                          disabled={
+                            !!item.product &&
+                            !!item.variantId &&
+                            item.quantity >=
+                              (item.product.variants.find(
+                                (v) => v.id === item.variantId
+                              )?.quantity ?? 0)
+                          }
                         >
                           <Plus className="h-3 w-3" />
                         </Button>

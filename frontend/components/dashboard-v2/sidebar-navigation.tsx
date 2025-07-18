@@ -19,6 +19,8 @@ import {
   CreditCard,
   Receipt,
   Tag,
+  Printer,
+  Barcode,
  
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -57,6 +59,7 @@ type NavHref =
   | '/dashboard/caixa'
   | '/dashboard/clientes'
   | '/dashboard/estoque'
+  | '/dashboard/etiquetas'
   | '/dashboard/pedidos'
   | '/dashboard/relatorios'
   | '/dashboard/usuarios'
@@ -68,6 +71,7 @@ const ICONS_MAP: Record<NavHref, LucideIcon> = {
   '/dashboard/categorias': Tag,
   '/dashboard/caixa': CreditCard,
   '/dashboard/estoque': Package,
+  '/dashboard/etiquetas': Barcode,
   '/dashboard/pedidos': Receipt,
   '/dashboard/relatorios': BarChart3,
   '/dashboard/usuarios': Users,

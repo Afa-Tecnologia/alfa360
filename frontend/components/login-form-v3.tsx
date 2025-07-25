@@ -34,6 +34,7 @@ export function LoginFormV3({
   const [currentView, setCurrentView] = useState<'email' | 'password'>('email');
   const [email, setEmail] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [isSubmiting, setIsSubmiting] = useState(false);
   const {
     register,
     handleSubmit,
@@ -61,36 +62,48 @@ export function LoginFormV3({
     setShowPassword(false);
   };
 
+  const resetForm = () =>{
+    setCurrentView('email');
+    setShowPassword(false);
+  }
+
   const onSubmit = async (data: LoginFormData) => {
     try {
       setIsLoading(true);
+      setIsSubmiting(true);
       const response = await api.post('/login', data);
       const { user, message } = response.data;
 
       setUser(user);
       gerarNotificacao('success', message);
-      if (user?.role) {
-        const firstPath = getFirstAccessiblePath(user.role) || '/';
-        router.push(firstPath);
-      } else {
-        router.push('/dashboard');
+      if (response.status == 200) {
+        setIsSubmiting(false);
+        window.location.href = '/dashboard';
+
+        if (user?.role) {
+          const firstPath = getFirstAccessiblePath(user.role) || '/';
+          window.location.href = firstPath;
+        } else {
+          window.location.href = '/dashboard';
+        }
       }
     } catch (error: any) {
       const { response } = error;
       if (error.code === 'ERR_NETWORK') {
         gerarNotificacao(
           'error',
-          'Ops!! Parece que você está offline ou o servidor está fora do ar'
+          'Ops!! Parece que você está offline ou o servidor está fora do ar', 5000
         );
       } else {
         gerarNotificacao(
           'error',
-          response?.data?.message || 'Erro ao fazer login'
+          response?.data?.message || 'Erro ao fazer login', 5000
         );
       }
-    } finally {
-      setIsLoading(false);
-    }
+    } 
+    setIsLoading(false);
+      setIsSubmiting(false);
+      handleBack();
   };
 
   return (
@@ -235,7 +248,7 @@ export function LoginFormV3({
                   <Button
                     type="submit"
                     className="w-full h-12 text-base font-medium rounded-lg"
-                    disabled={isLoading}
+                    disabled={isLoading || isSubmiting}
                   >
                     {isLoading ? (
                       <>

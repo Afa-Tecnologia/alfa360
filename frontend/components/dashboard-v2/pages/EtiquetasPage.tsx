@@ -9,7 +9,7 @@ import {
   CardFooter,
 } from '@/components/ui/card';
 import { motion } from 'framer-motion';
-import { Layers } from 'lucide-react';
+import { Layers, Section } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Table,
@@ -19,6 +19,12 @@ import {
   TableHead,
   TableCell,
 } from '@/components/ui/table';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion';
 import { ProductTable } from '../estoque/ProductEstoqueTable';
 import { EtiquetaPreview } from '../etiquetas/components/EtiquetaPreview';
 import { ImprimirEtiquetasButton } from '../etiquetas/components/ImprimirEtiquetasButton';
@@ -28,6 +34,11 @@ import {
   EtiquetaProduto,
 } from '../etiquetas/types/etiqueta.types';
 import etiquetasService from '@/services/etiquetas/etiquetasService';
+import { TableViewSkeleton } from '../estoque/ProductTableSkeleton';
+import Spinner from '@/components/ui/spinner';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { gerarNotificacao } from '@/utils/toast';
 
 // Simulação de API (substitua por chamada real)
 const fetchProdutos = async (page: number, perPage: number, query: string) => {
@@ -52,9 +63,11 @@ function mapEtiquetaProdutoToProduct(p: EtiquetaProduto) {
 
 const EtiquetasPage: React.FC = () => {
   // Configuração dinâmica de etiquetas
-  const [etiquetaWidth, setEtiquetaWidth] = useState(32); // mm
-  const [etiquetaHeight, setEtiquetaHeight] = useState(25); // mm
-  const [colunas, setColunas] = useState(3);
+  const [etiquetaWidth, setEtiquetaWidth] = useState(0); // mm
+  const [etiquetaHeight, setEtiquetaHeight] = useState(0); // mm
+  const [colunas, setColunas] = useState(0);
+  const [offsetX, setOffsetX] = useState(0); // deslocamento horizontal (mm)
+  const [offsetY, setOffsetY] = useState(0); // deslocamento vertical (mm)
 
   // Estado de produtos e paginação
   const [produtos, setProdutos] = useState<EtiquetaProduto[]>([]);
@@ -63,6 +76,10 @@ const EtiquetasPage: React.FC = () => {
   const [perPage, setPerPage] = useState(10);
   const [busca, setBusca] = useState('');
   const [loading, setLoading] = useState(false);
+
+  //Evita multiplas chamadas na api
+  const inputBuscaRef = useRef<HTMLInputElement>(null);
+  const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Estado de seleção múltipla de produtos
   const [produtosSelecionados, setProdutosSelecionados] = useState<
@@ -76,9 +93,42 @@ const EtiquetasPage: React.FC = () => {
     >
   >({});
 
-  const printRef = useRef<HTMLDivElement>(null);
+  const printRef = useRef<HTMLInputElement>(null);
 
-  // Buscar produtos ao carregar/paginar/buscar
+  const handleBusca = () => {
+    setBusca(printRef?.current?.value || '');
+  };
+
+  useEffect(() => {
+    const configEtiquetas = localStorage.getItem('config_etiquetas');
+    if (configEtiquetas) {
+      const configParsed = JSON.parse(configEtiquetas);
+      console.log('configParsed.etiquetaWidt', configParsed);
+      setEtiquetaWidth(configParsed.etiquetaWidth),
+        setEtiquetaHeight(configParsed.etiquetaHeight),
+        setColunas(configParsed.colunas),
+        setOffsetX(configParsed.offsetX),
+        setOffsetY(configParsed.offsetY);
+    }
+  }, []);
+  const handleSaveConfigEtiquetas = () => {
+    const save = localStorage.setItem(
+      'config_etiquetas',
+      JSON.stringify({
+        etiquetaWidth: etiquetaWidth,
+        etiquetaHeight: etiquetaHeight,
+        colunas: colunas,
+        offsetX: offsetX,
+        offsetY: offsetY,
+      })
+    );
+
+    gerarNotificacao(
+      'success',
+      'Configuração de etiquetas atualizadas com sucesso',
+      5000
+    );
+  };
   useEffect(() => {
     setLoading(true);
     fetchProdutos(page, perPage, busca).then((res) => {
@@ -181,56 +231,103 @@ const EtiquetasPage: React.FC = () => {
         </div>
       </div>
       <Card>
-        <CardHeader>
-          <CardTitle>Configuração de Etiquetas</CardTitle>
-          <CardDescription>
-            Defina o tamanho e colunas das etiquetas antes de imprimir.
-          </CardDescription>
-        </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex flex-wrap gap-4 items-end mb-4">
-            <div>
-              <label className="block text-xs font-semibold mb-1">
-                Largura (mm)
-              </label>
-              <input
-                type="number"
-                min={10}
-                max={100}
-                value={etiquetaWidth}
-                onChange={(e) => setEtiquetaWidth(Number(e.target.value))}
-                className="border rounded px-2 py-1 w-20"
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-semibold mb-1">
-                Altura (mm)
-              </label>
-              <input
-                type="number"
-                min={10}
-                max={100}
-                value={etiquetaHeight}
-                onChange={(e) => setEtiquetaHeight(Number(e.target.value))}
-                className="border rounded px-2 py-1 w-20"
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-semibold mb-1">
-                Colunas
-              </label>
-              <input
-                type="number"
-                min={1}
-                max={10}
-                value={colunas}
-                onChange={(e) => setColunas(Number(e.target.value))}
-                className="border rounded px-2 py-1 w-20"
-              />
-            </div>
-          </div>
+          <Accordion type="single" collapsible>
+            <AccordionItem value="item-1">
+              <AccordionTrigger>Configuração de Etiquetas</AccordionTrigger>
+              <AccordionContent>
+              <CardDescription>
+                Defina o tamanho, colunas e deslocamento das etiquetas antes de
+                imprimir.
+              </CardDescription>
+                <div className="flex flex-wrap gap-4 items-end mb-4">
+                  <section className="w-full flex flex-row gap-2">
+                    <div>
+                      <Label className="block text-xs font-semibold mb-1">
+                        Largura (mm)
+                      </Label>
+                      <Input
+                        type="number"
+                        min={10}
+                        max={100}
+                        value={etiquetaWidth}
+                        onChange={(e) =>
+                          setEtiquetaWidth(Number(e.target.value))
+                        }
+                        className="border rounded  w-20"
+                      />
+                    </div>
+                    <div>
+                      <Label className="block text-xs font-semibold mb-1">
+                        Altura (mm)
+                      </Label>
+                      <Input
+                        type="number"
+                        min={10}
+                        max={100}
+                        value={etiquetaHeight}
+                        onChange={(e) =>
+                          setEtiquetaHeight(Number(e.target.value))
+                        }
+                        className="border rounded  w-20"
+                      />
+                    </div>
+                    <div>
+                      <Label className="block text-xs font-semibold mb-1">
+                        Colunas
+                      </Label>
+                      <Input
+                        type="number"
+                        min={1}
+                        max={10}
+                        value={colunas}
+                        onChange={(e) => setColunas(Number(e.target.value))}
+                        className="border rounded  w-20"
+                      />
+                    </div>
+                  </section>
+                  <section className="flex flex-col">
+                    <div>
+                      <Label className="block text-xs font-semibold mb-1">
+                        Deslocamento horizontal (mm)
+                      </Label>
+                      <Input
+                        type="number"
+                        min={0}
+                        max={100}
+                        value={offsetX}
+                        onChange={(e) => setOffsetX(Number(e.target.value))}
+                        className="border rounded  w-20"
+                      />
+                    </div>{' '}
+                    <div>
+                      <Label className="block text-xs font-semibold mb-1">
+                        Deslocamento vertical (mm)
+                      </Label>
+                      <Input
+                        type="number"
+                        min={0}
+                        max={100}
+                        value={offsetY}
+                        onChange={(e) => setOffsetY(Number(e.target.value))}
+                        className="border rounded w-20"
+                      />
+                    </div>
+                  </section>
+                </div>
+                <Button
+                  className="bg-green-600 hover:bg-green-500"
+                  onClick={handleSaveConfigEtiquetas}
+                >
+                  Salvar configuração
+                </Button>
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
         </CardContent>
       </Card>
+
+      {/** CARD DE PRODUTOS */}
       <Card>
         <CardHeader>
           <CardTitle>Produtos</CardTitle>
@@ -240,18 +337,21 @@ const EtiquetasPage: React.FC = () => {
         </CardHeader>
         <CardContent>
           {/* Filtros e busca */}
-          <div className="flex flex-col sm:flex-row gap-4 mb-4 items-center">
-            <input
+          <div className="flex flex-col sm:flex-row gap-4 mb-4 items-center justify-center">
+            <Input
               type="search"
               placeholder="Buscar produtos..."
               className="border rounded px-2 py-1 flex-1"
-              value={busca}
-              onChange={(e) => setBusca(e.target.value)}
+              ref={inputBuscaRef}
+              onInput={() => {
+                if (debounceTimeoutRef.current)
+                  clearTimeout(debounceTimeoutRef.current);
+                debounceTimeoutRef.current = setTimeout(() => {
+                  setBusca(inputBuscaRef.current?.value || '');
+                }, 500);
+              }}
             />
-            <div>
-              <label className="block text-xs font-semibold mb-1">
-                Itens por página
-              </label>
+            <div className="flex flex-col">
               <select
                 value={perPage}
                 onChange={(e) => {
@@ -267,47 +367,54 @@ const EtiquetasPage: React.FC = () => {
                 ))}
               </select>
             </div>
+            <Label className=" text-xs font-semibold mb-1">
+              Itens por página
+            </Label>
           </div>
           {/* Tabela de produtos com seleção múltipla */}
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-8"></TableHead>
-                <TableHead>Produto</TableHead>
-                <TableHead>Marca</TableHead>
-                <TableHead>Estoque</TableHead>
-                <TableHead>Preço</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {produtos.map((produto) => (
-                <TableRow
-                  key={produto.id}
-                  className={
-                    produtosSelecionados.some((p) => p.id === produto.id)
-                      ? 'bg-emerald-50'
-                      : ''
-                  }
-                >
-                  <TableCell>
-                    <input
-                      type="checkbox"
-                      checked={produtosSelecionados.some(
-                        (p) => p.id === produto.id
-                      )}
-                      onChange={() => handleToggleProduto(produto)}
-                    />
-                  </TableCell>
-                  <TableCell>{produto.name}</TableCell>
-                  <TableCell>{produto.brand}</TableCell>
-                  <TableCell>{produto.quantity}</TableCell>
-                  <TableCell>
-                    R$ {Number(produto.selling_price).toFixed(2)}
-                  </TableCell>
+          {produtos.length > 0 && !loading ? (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-8"></TableHead>
+                  <TableHead>Produto</TableHead>
+                  <TableHead>Marca</TableHead>
+                  <TableHead>Estoque</TableHead>
+                  <TableHead>Preço</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {produtos.map((produto) => (
+                  <TableRow
+                    key={produto.id}
+                    className={
+                      produtosSelecionados.some((p) => p.id === produto.id)
+                        ? 'bg-emerald-50'
+                        : ''
+                    }
+                  >
+                    <TableCell>
+                      <input
+                        type="checkbox"
+                        checked={produtosSelecionados.some(
+                          (p) => p.id === produto.id
+                        )}
+                        onChange={() => handleToggleProduto(produto)}
+                      />
+                    </TableCell>
+                    <TableCell>{produto.name}</TableCell>
+                    <TableCell>{produto.brand}</TableCell>
+                    <TableCell>{produto.quantity}</TableCell>
+                    <TableCell>
+                      R$ {Number(produto.selling_price).toFixed(2)}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          ) : (
+            <TableViewSkeleton />
+          )}
           {/* Paginação */}
           <div className="flex justify-end mt-4 gap-2">
             <Button
@@ -439,6 +546,8 @@ const EtiquetasPage: React.FC = () => {
               printRef={printRef as React.RefObject<HTMLDivElement>}
               etiquetaWidth={etiquetaWidth}
               etiquetaHeight={etiquetaHeight}
+              offsetX={offsetX}
+              offsetY={offsetY}
               colunas={colunas}
             />
           </CardFooter>

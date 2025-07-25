@@ -87,6 +87,7 @@ const NAV_ITEMS = [
 
     roles: ['admin', 'super_admin'],
   },
+  
 ];
 
 interface DashboardShellClientProps {

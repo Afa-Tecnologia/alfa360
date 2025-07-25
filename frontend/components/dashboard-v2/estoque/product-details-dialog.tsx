@@ -31,7 +31,6 @@ import { BarcodeLabel } from '@/components/estoquenovo/BarcodeLabel';
 import Image from 'next/image';
 import { ProductEstoque } from '@/types/product';
 import { Atributos } from '@/types/estoque';
-import EtiquetasProdutoDialog from '../etiquetas/components/EtiquetasProdutoDialog';
 import { EtiquetaProduto } from '../etiquetas/types/etiqueta.types';
 
 interface ProductDetailsDialogProps {
@@ -100,9 +99,6 @@ export function ProductDetailsDialog({
             </TabsTrigger>
             <TabsTrigger value="financial" className="flex-1">
               Financeiro
-            </TabsTrigger>
-            <TabsTrigger value="barcode" className="flex-1">
-              Etiquetas
             </TabsTrigger>
           </TabsList>
 
@@ -315,11 +311,6 @@ export function ProductDetailsDialog({
             </div>
           </TabsContent>
 
-          <TabsContent value="barcode" className="mt-4">
-            <EtiquetasProdutoDialog
-              produto={product as unknown as EtiquetaProduto}
-            />
-          </TabsContent>
         </Tabs>
       </DialogContent>
     </Dialog>

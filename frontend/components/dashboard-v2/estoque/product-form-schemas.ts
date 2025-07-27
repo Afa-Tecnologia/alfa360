@@ -11,12 +11,24 @@ export const productFormSchema = z.object({
   purchase_price: z
     .string()
     .or(z.number())
+    .or(z.null())
+    .or(z.undefined())
+    .transform((val) => {
+      if (val === null || val === undefined || val === '') return '0';
+      return val.toString();
+    })
     .refine((val) => !isNaN(Number(val)) && Number(val) >= 0, {
       message: 'O preço de compra deve ser um número positivo',
     }),
   selling_price: z
     .string()
     .or(z.number())
+    .or(z.null())
+    .or(z.undefined())
+    .transform((val) => {
+      if (val === null || val === undefined || val === '') return '0';
+      return val.toString();
+    })
     .refine((val) => !isNaN(Number(val)) && Number(val) >= 0, {
       message: 'O preço de venda deve ser um número positivo',
     }),
@@ -49,15 +61,15 @@ export const variantSchema = z.object({
       message: 'O estoque deve ser um número positivo',
     }),
   images: z.array(z.string()).optional().default([]),
-atributos: z
-  .array(
-    z.object({
-      atributo_id: z.union([z.string(), z.number()]),
-      valor: z.string().min(1, 'O valor do atributo é obrigatório'),
-    })
-  )
-  .min(1, 'Pelo menos um atributo é obrigatório')
-  .default([]),
+  atributos: z
+    .array(
+      z.object({
+        atributo_id: z.union([z.string(), z.number()]),
+        valor: z.string().min(1, 'O valor do atributo é obrigatório'),
+      })
+    )
+    .min(1, 'Pelo menos um atributo é obrigatório')
+    .default([]),
   type: z.string().optional(),
 });
 

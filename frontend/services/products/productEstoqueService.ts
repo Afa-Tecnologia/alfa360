@@ -1,5 +1,4 @@
 import { api } from '@/app/api/api';
-import { apiFetch } from '@/app/api/server-api';
 import { User, userService } from '@/lib/services/UserService';
 import type {
   Category,
@@ -9,16 +8,40 @@ import type {
 } from '@/types/product';
 
 export interface IProductService {
-  getProducts(): Promise<ResponseProducts>;
+  getProducts(
+    page?: number,
+    perPage?: number,
+    query?: string,
+    categoria_id?: string
+  ): Promise<ResponseProducts>;
   getCategories(): Promise<Category[]>;
   deleteProduct(id: number | string): Promise<void>;
   deleteProducts(ids: (number | string)[]): Promise<void>;
 }
 
 export class ProductServiceEstoque implements IProductService {
-  async getProducts(page?: number, perPage = 1): Promise<ResponseProducts | any> {
-    const response = await apiFetch(`/produtos?page=${page}&per_page=${perPage}`);
-    return response;
+  async getProducts(
+    page?: number,
+    perPage?: number,
+    query?: string,
+    categoria_id?: string
+  ): Promise<ResponseProducts> {
+    try {
+      const params: any = {};
+
+      if (page) params.page = page;
+      if (perPage) params.per_page = perPage;
+      if (query) params.query = query;
+      if (categoria_id && categoria_id !== 'all')
+        params.categoria_id = categoria_id;
+
+      const response = await api.get('/produtos', { params });
+
+      return response.data;
+    } catch (error) {
+      console.error('Erro ao buscar produtos:', error);
+      throw error;
+    }
   }
 
   async getVendedores(): Promise<User[]> {
@@ -27,17 +50,8 @@ export class ProductServiceEstoque implements IProductService {
   }
 
   async getCategories(): Promise<Category[]> {
-    const response = await apiFetch('/categorias');
-    return response;
-  }
-
-  async getProductsBySearchTerm(
-    searchTerm: string,
-  ): Promise<ProductEstoque[] | any> {
-    const response = await apiFetch(
-      `/produtos/search?query=${searchTerm}`
-    );
-    return response || [];
+    const response = await api.get('/categorias');
+    return response.data;
   }
 
   async deleteProduct(id: number | string): Promise<void> {
@@ -53,8 +67,8 @@ export class ProductServiceEstoque implements IProductService {
    */
   async getAtributosVarianteByBusiness(): Promise<ResponseAtributos[]> {
     try {
-      const response = await apiFetch('/atributos/por-tipo-de-negocio');
-      return response.atributos;
+      const response = await api.get('/atributos/por-tipo-de-negocio');
+      return response.data.atributos;
     } catch (error) {
       console.error('Erro ao buscar atributos de variantes:', error);
       return [];

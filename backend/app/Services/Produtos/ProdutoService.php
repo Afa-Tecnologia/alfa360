@@ -26,18 +26,30 @@ class ProdutoService
     public function getAll(Request $request)
     {
         $perPage = $request->input('per_page', 10);
-        $query = $request->input('query'); 
+        $query = $request->input('query');
+        $categoria_id = $request->input('categoria_id');
 
-        return Produto::with('variants.atributos')
-            ->where('name', 'like', '%' . $query . '%')
-            ->orWhere('code', 'like', '%' . $query . '%')
-            ->orWhere('brand', 'like', '%' . $query . '%')
-            ->orWhereHas('variants', function ($q) use ($query) {
+        $produtosQuery = Produto::with('variants.atributos');
+
+        // Aplicar filtro de busca se fornecido
+        if (!empty($query)) {
+            $produtosQuery->where(function ($q) use ($query) {
                 $q->where('name', 'like', '%' . $query . '%')
-                  ->orWhere('code', 'like', '%' . $query . '%');
-            })
-            // ->orWhere('categoria', 'like', '%' . $query . '%')
-            ->paginate($perPage);
+                  ->orWhere('code', 'like', '%' . $query . '%')
+                  ->orWhere('brand', 'like', '%' . $query . '%')
+                  ->orWhereHas('variants', function ($variantQuery) use ($query) {
+                      $variantQuery->where('name', 'like', '%' . $query . '%')
+                                  ->orWhere('code', 'like', '%' . $query . '%');
+                  });
+            });
+        }
+
+        // Aplicar filtro de categoria se fornecido
+        if (!empty($categoria_id) && $categoria_id !== 'all') {
+            $produtosQuery->where('categoria_id', $categoria_id);
+        }
+
+        return $produtosQuery->paginate($perPage);
     }
 
 
@@ -49,8 +61,6 @@ class ProdutoService
     public function create(array $data, )
     {
         return DB::transaction(function () use ($data) {
-            // Log para debug
-            Log::info('Dados recebidos para criação de produto:', $data);
             
             $produto = Produto::create($data);
             $stock = 0;

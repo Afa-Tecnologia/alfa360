@@ -58,83 +58,150 @@ class ProdutoService
         return Produto::with('variants.atributos')->find($id);
     }
 
-    public function create(array $data, )
+    public function create(array $data)
     {
         return DB::transaction(function () use ($data) {
+            Log::info('Produto create iniciado', ['timestamp' => now()]);
             
             $produto = Produto::create($data);
             $stock = 0;
+            $variantsToCreate = [];
+            $atributosToAttach = [];
 
             if (!empty($data['variants']) && is_array($data['variants'])) {
+                // Preparar dados em lote
                 foreach ($data['variants'] as $variantData) {
                     $variantData['produto_id'] = $produto->id;
+                    $variantsToCreate[] = $variantData;
+                    $stock += $variantData['quantity'] ?? 0;
+                }
+                
+                // Criar variantes em lote
+                $createdVariants = [];
+                foreach ($variantsToCreate as $variantData) {
                     $createdVariant = $this->varianteService->create($variantData);
-                    $stock += $variantData['quantity'];
-
-                    //Cria os atributos
-                    if(!empty($variantData['atributos'])){
-                        $attVariante = new AssignAtributoVariante;
-                        $attVariante->execute($variantData['atributos'], $createdVariant->id);
+                    $createdVariants[] = $createdVariant;
+                    
+                    // Preparar atributos para processamento em lote
+                    if (!empty($variantData['atributos'])) {
+                        $atributosToAttach[] = [
+                            'variant_id' => $createdVariant->id,
+                            'atributos' => $variantData['atributos']
+                        ];
                     }
                 }
+                
+                // Processar atributos em lote
+                $this->processarAtributosEmLote($atributosToAttach);
             }
+
             $produto->quantity = $stock;
             $produto->save();
 
+            $duration = microtime(true) - $_SERVER['REQUEST_TIME_FLOAT'];
+            Log::info('Produto create finalizado', ['duration' => $duration]);
+
             return $produto->load('variants.atributos');
         });
+    }
 
+    private function processarAtributosEmLote(array $atributosToAttach)
+    {
+        if (empty($atributosToAttach)) {
+            return;
+        }
+
+        $pivotData = [];
         
+        foreach ($atributosToAttach as $item) {
+            foreach ($item['atributos'] as $atributo) {
+                $pivotData[] = [
+                    'variante_id' => $item['variant_id'],
+                    'atributo_id' => $atributo['atributo_id'],
+                    'valor' => $atributo['valor']
+                ];
+            }
+        }
+        
+        // Insert em lote se houver dados
+        if (!empty($pivotData)) {
+            DB::table('variante_atributo')->insert($pivotData);
+        }
     }
     
 
     public function update($id, array $data)
     {
-        $produto = Produto::findOrFail($id);
-        $produto->update($data);
+        return DB::transaction(function () use ($id, $data) {
+            Log::info('Produto update iniciado', ['produto_id' => $id, 'timestamp' => now()]);
+            
+            $produto = Produto::findOrFail($id);
+            $produto->update($data);
 
-        $idsRecebidos = [];
-
-        if (isset($data['variants']) && is_array($data['variants'])) {
-            foreach ($data['variants'] as $variantData) {
-                if (isset($variantData['id'])) {
-                    try {
-                        $this->varianteService->update($variantData['id'], $variantData);
-                        $idsRecebidos[] = $variantData['id'];
-                    } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-                        $variantData['produto_id'] = $produto->id;
-                        $novaVariante = $this->varianteService->create($variantData);
-                        $idsRecebidos[] = $novaVariante->id;
-
-                        // ✅ Associa atributos à nova variante
-                        if (isset($variantData['atributos']) && is_array($variantData['atributos'])) {
-                            app(\App\Actions\Atributo\UpdateAtributosVariante::class)
-                                ->handle($novaVariante, $variantData['atributos']);
-                        }
-                    }
-                } else {
-                    $variantData['produto_id'] = $produto->id;
-                    $novaVariante = $this->varianteService->create($variantData);
-                    $idsRecebidos[] = $novaVariante->id;
-
-                    // ✅ Associa atributos à nova variante
-                    if (isset($variantData['atributos']) && is_array($variantData['atributos'])) {
-                        app(\App\Actions\Atributo\UpdateAtributosVariante::class)
-                            ->handle($novaVariante, $variantData['atributos']);
-                    }
-                }
+            if (isset($data['variants']) && is_array($data['variants'])) {
+                $this->processarVariantesEmLote($produto->id, $data['variants']);
             }
 
-            // ❌ Remove variantes não presentes no payload
-            $produto->variants()->whereNotIn('id', $idsRecebidos)->delete();
+            $duration = microtime(true) - $_SERVER['REQUEST_TIME_FLOAT'];
+            Log::info('Produto update finalizado', ['produto_id' => $id, 'duration' => $duration]);
 
-            // ✅ Atualiza atributos de variantes existentes
-            $this->varianteService->updateOrSyncAttributesByCodeOrId($produto->id, $data['variants']);
+            return $produto->load('variants.atributos');
+        });
+    }
+
+    private function processarVariantesEmLote($produtoId, array $variants)
+    {
+        $toUpdate = [];
+        $toCreate = [];
+        $idsRecebidos = [];
+        
+        // Classificar operações
+        foreach ($variants as $variant) {
+            if (isset($variant['id'])) {
+                $toUpdate[] = $variant;
+                $idsRecebidos[] = $variant['id'];
+            } else {
+                $variant['produto_id'] = $produtoId;
+                $toCreate[] = $variant;
+            }
         }
-
-        $this->estoqueService->atualizarEstoqueProduto($produto->id);
-
-        return $produto->load('variants.atributos');
+        
+        // Executar operações em lote
+        if (!empty($toCreate)) {
+            foreach ($toCreate as $variantData) {
+                $createdVariant = $this->varianteService->create($variantData);
+                $idsRecebidos[] = $createdVariant->id;
+                
+                // Processar atributos em lote
+                if (isset($variantData['atributos']) && is_array($variantData['atributos'])) {
+                    $this->processarAtributosEmLote([
+                        [
+                            'variant_id' => $createdVariant->id,
+                            'atributos' => $variantData['atributos']
+                        ]
+                    ]);
+                }
+            }
+        }
+        
+        if (!empty($toUpdate)) {
+            foreach ($toUpdate as $variant) {
+                $this->varianteService->update($variant['id'], $variant);
+                
+                // Processar atributos em lote
+                if (isset($variant['atributos']) && is_array($variant['atributos'])) {
+                    app(\App\Actions\Atributo\UpdateAtributosVariante::class)
+                        ->handle(Variantes::find($variant['id']), $variant['atributos']);
+                }
+            }
+        }
+        
+        // Remover variantes não presentes no payload
+        if (!empty($idsRecebidos)) {
+            Variantes::where('produto_id', $produtoId)
+                ->whereNotIn('id', $idsRecebidos)
+                ->delete();
+        }
     }
 
 

@@ -125,7 +125,7 @@ class ProdutoService
         
         // Insert em lote se houver dados
         if (!empty($pivotData)) {
-            DB::table('variante_atributo')->insert($pivotData);
+            DB::table('variantes_atributos')->insert($pivotData);
         }
     }
     

@@ -1,7 +1,6 @@
 'use client';
 
-import { Package, ListMinus, LayoutGrid, SearchCheckIcon } from 'lucide-react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { Package, ListMinus, LayoutGrid } from 'lucide-react';
 import {
   Card,
   CardContent,
@@ -22,11 +21,12 @@ import {
   PaginationLink,
   PaginationNext,
   PaginationPrevious,
-} from "@/components/ui/pagination"
+} from '@/components/ui/pagination';
 // Hooks
 import { useProducts } from '@/hooks/useProductsEstoque';
 import { useProductFilters } from '@/hooks/useProductFiltersEstoques';
 import { useProductModalsEstoque } from '@/hooks/useProductModalsEstoque';
+import { usePagination } from '@/hooks/usePagination';
 
 import { ProductStatsCard } from '@/components/dashboard-v2/estoque/product-stats-card';
 import { ProductCards } from '@/components/dashboard-v2/estoque/ProductEstoqueCards';
@@ -34,47 +34,70 @@ import { ProductFormDialog } from '@/components/dashboard-v2/estoque/product-for
 import { ProductDetailsDialog } from '@/components/dashboard-v2/estoque/product-details-dialog';
 import { DeleteConfirmDialog } from '@/components/dashboard-v2/estoque/delete-confirm-dialog';
 import { BulkDeleteConfirmDialog } from '@/components/dashboard-v2/estoque/BulkDeleteConfirmDialog';
-import { ProductTableSkeleton, TableViewSkeleton } from '@/components/dashboard-v2/estoque/ProductTableSkeleton';
+import {
+  ProductTableSkeleton,
+  TableViewSkeleton,
+} from '@/components/dashboard-v2/estoque/ProductTableSkeleton';
 
 import { ProductServiceEstoque } from '@/services/products/productEstoqueService';
-import { ProductFilters } from '@/components/dashboard-v2/estoque/ProductFilters';
+import { ProductFiltersV2 } from '@/components/dashboard-v2/estoque/ProductFiltersV2';
 import { ProductPageHeader } from '@/components/dashboard-v2/estoque/ProductPageHeader';
-import { ProductTable } from '@/components/dashboard-v2/estoque/ProductEstoqueTable';
-import { AtributoTipoDeNegocio, Product, ProductEstoque, ResponseAtributos, ResponseProducts } from '@/types/product';
+import { ProductEstoqueTableV2 } from '@/components/dashboard-v2/estoque/ProductEstoqueTableV2';
+import { ResponseAtributos, ResponseProducts } from '@/types/product';
 import { useEffect, useState } from 'react';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
-import Spinner from '@/components/ui/spinner';
-import { set } from 'date-fns';
 
+import { gerarNotificacao } from '@/utils/toast';
 
 // Dependency injection - seguindo DIP
 const productService = new ProductServiceEstoque();
 
 interface EstoquePageProps {
-    responseProducts: ResponseProducts;
-    categories: any[];
-    tiposDeProdutos: any[];
-    atributosVariante: ResponseAtributos[];
-    page: string | number,
-    perPage: string | number,
-
+  responseProducts: ResponseProducts;
+  categories: any[];
+  tiposDeProdutos: any[];
+  atributosVariante: ResponseAtributos[];
+  page: string | number;
+  perPage: string | number;
 }
+
 export default function EstoquePage(props: EstoquePageProps) {
-  // Custom hooks para separar responsabilidades
-  const [products, setProducts] = useState<ProductEstoque[]>(props.responseProducts.data || []);
-  const [categories, setCategories] = useState<any[]>(props.categories || []);
-  const [tiposDeProdutos, setTiposDeProdutos] = useState<any[]>(props.tiposDeProdutos || []);
-  const [atributosVariante, setAtributosVariante] = useState<ResponseAtributos[]>(props.atributosVariante || []);
+  // Hook de paginação dinâmica
   const {
-    isLoading,
+    products,
+    paginationData,
+    isLoading: paginationLoading,
+    currentPage,
+    perPage,
+    categoria_id,
+    handlePageChange,
+    handlePerPageChange,
+    handleCategoryChange,
+  } = usePagination();
+
+  // Custom hooks para separar responsabilidades
+  const [categories, setCategories] = useState<any[]>(props.categories || []);
+  const [tiposDeProdutos, setTiposDeProdutos] = useState<any[]>(
+    props.tiposDeProdutos || []
+  );
+  const [atributosVariante, setAtributosVariante] = useState<
+    ResponseAtributos[]
+  >(props.atributosVariante || []);
+
+  const {
+    isLoading: deleteLoading,
     deleteProduct,
     deleteProducts,
     refreshProducts,
-    setIsLoading
+    setIsLoading,
   } = useProducts(productService);
-
-  
 
   const {
     isFormOpen,
@@ -101,36 +124,18 @@ export default function EstoquePage(props: EstoquePageProps) {
     openSpecificProduct,
     setIsSpecificProduct,
     closeSpecificProduct,
-    setIsKeyDown
+    setIsKeyDown,
   } = useProductModalsEstoque();
 
   const {
     filters,
     filteredProducts,
+    isSearching,
     updateSearchTerm,
     updateCategory,
     updateSort,
     clearFilters,
   } = useProductFilters(setIsKeyDown, products);
-
-  //Função de paginação
-  const router = useRouter();
-  const searchParams = useSearchParams();
-
-  const currentPage = Number(searchParams.get('page') || '1');
-  const perPage = Number(searchParams.get('perPage') || '10');
-
-  const handlePageChange = (newPage: number, newPerPage?: number) => {
-  const params = new URLSearchParams(searchParams.toString());
-  params.set('page', String(newPage));
-  if (newPerPage !== undefined) {
-    params.set('perPage', String(newPerPage));
-  } else {
-    params.set('perPage', String(perPage)); // manter atual se não mudar
-  }
-  //Forçando porque o router.push não tira o cache.
-  window.location.href=`?${params.toString()}`;
-};
 
   // Cálculos usando utility class
   const stats = ProductCalculator.calculateStats(products);
@@ -140,16 +145,32 @@ export default function EstoquePage(props: EstoquePageProps) {
 
   // Event handlers
   const handleViewDetails = (product: any) => {
-    const originalProduct = products.find((p) => p.id === product.id);
+    // Procura diretamente nos produtos filtrados (que podem ser da busca ou da página)
+    const originalProduct = filteredProducts.find((p) => p.id === product.id);
+
     if (originalProduct) {
       openDetails(originalProduct);
+    } else {
+      // Fallback: tenta encontrar nos produtos da página
+      const fallbackProduct = products.find((p) => p.id === product.id);
+      if (fallbackProduct) {
+        openDetails(fallbackProduct);
+      }
     }
   };
 
   const handleEditProduct = (product: any) => {
-    const originalProduct = products.find((p) => p.id === product.id);
+    // Procura diretamente nos produtos filtrados (que podem ser da busca ou da página)
+    const originalProduct = filteredProducts.find((p) => p.id === product.id);
+
     if (originalProduct) {
       openForm(originalProduct);
+    } else {
+      // Fallback: tenta encontrar nos produtos da página
+      const fallbackProduct = products.find((p) => p.id === product.id);
+      if (fallbackProduct) {
+        openForm(fallbackProduct);
+      }
     }
   };
 
@@ -160,6 +181,9 @@ export default function EstoquePage(props: EstoquePageProps) {
       setIsDeleting(true);
       await deleteProduct(productToDelete);
       closeDeleteDialog();
+      gerarNotificacao('success', 'Produto deletado com sucesso');
+      // Recarrega os dados da página atual
+      handlePageChange(currentPage, perPage);
     } catch (error) {
       // Error já tratado no hook
     } finally {
@@ -172,6 +196,8 @@ export default function EstoquePage(props: EstoquePageProps) {
       setIsBulkDeleting(true);
       await deleteProducts(bulkDeleteIds);
       closeBulkDeleteDialog();
+      // Recarrega os dados da página atual
+      handlePageChange(currentPage, perPage);
     } catch (error) {
       // Error já tratado no hook
     } finally {
@@ -185,12 +211,18 @@ export default function EstoquePage(props: EstoquePageProps) {
     }
   };
 
+  // Função para obter nome da categoria
+  const getCategoryName = (categoryId: number) => {
+    const category = categories.find((c) => c.id === categoryId);
+    return category ? category.name : 'N/A';
+  };
+
+  // Loading state combinado - apenas para operações que recarregam a página
+  const isLoading = paginationLoading || deleteLoading;
+
   if (isLoading) {
     return <ProductTableSkeleton />;
   }
-
-
-
 
   return (
     <div className="space-y-6">
@@ -236,14 +268,16 @@ export default function EstoquePage(props: EstoquePageProps) {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <ProductFilters
+          <ProductFiltersV2
             searchTerm={filters.searchTerm}
-            filterCategory={filters.filterCategory}
-            categories={categories}
             onSearchChange={updateSearchTerm}
-            onCategoryChange={updateCategory}
+            selectedCategory={categoria_id}
+            onCategoryChange={handleCategoryChange}
+            categories={categories}
+            onClearFilters={clearFilters}
             onBarcodeSearch={handleBarcodeSearch}
             setIsKeyDown={setIsKeyDown}
+            isSearching={isSearching}
           />
 
           {localProducts.length === 0 ? (
@@ -292,8 +326,9 @@ export default function EstoquePage(props: EstoquePageProps) {
 
                   <TabsContent value="table" className="mt-6">
                     {isKeyDown && <TableViewSkeleton />}
-                    <ProductTable
+                    <ProductEstoqueTableV2
                       products={localProducts}
+                      isLoading={isKeyDown}
                       sortField={filters.sortField as string}
                       sortOrder={filters.sortOrder}
                       onSort={updateSort}
@@ -301,24 +336,33 @@ export default function EstoquePage(props: EstoquePageProps) {
                       onEditProduct={handleEditProduct}
                       onDeleteProduct={(id) => openDeleteDialog(Number(id))}
                       formatCurrency={CurrencyFormatter.format}
+                      getCategoryName={getCategoryName}
                     />
                     <Pagination className="mt-6 flex justify-end">
                       <div className="mt-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                         {/* Select: Itens por página */}
                         <div className="flex items-center gap-2 justify-start">
-                          <Label htmlFor="perPageSelect" className="text-sm text-muted-foreground">
+                          <Label
+                            htmlFor="perPageSelect"
+                            className="text-sm text-muted-foreground"
+                          >
                             Itens por página:
                           </Label>
                           <Select
                             value={perPage.toString()}
-                            onValueChange={(value) => handlePageChange(1, Number(value))}
+                            onValueChange={(value) =>
+                              handlePerPageChange(Number(value))
+                            }
                           >
                             <SelectTrigger className="w-[120px]">
                               <SelectValue placeholder="Itens por página" />
                             </SelectTrigger>
                             <SelectContent>
                               {[10, 25, 50, 100].map((option) => (
-                                <SelectItem key={option} value={option.toString()}>
+                                <SelectItem
+                                  key={option}
+                                  value={option.toString()}
+                                >
                                   {option}
                                 </SelectItem>
                               ))}
@@ -334,39 +378,50 @@ export default function EstoquePage(props: EstoquePageProps) {
                                 href="#"
                                 onClick={(e) => {
                                   e.preventDefault();
-                                  const prev = Number(props.responseProducts.current_page) - 1;
-                                  if (prev >= 1) handlePageChange(prev, perPage);
+                                  const prev =
+                                    Number(paginationData.current_page) - 1;
+                                  if (prev >= 1) handlePageChange(prev);
                                 }}
                               />
                             </PaginationItem>
 
-                            {Array.from({ length: Number(props.responseProducts.last_page) }, (_, i) => {
-                              const pageNumber = i + 1;
-                              const isActive = pageNumber === Number(props.responseProducts.current_page);
-                              return (
-                                <PaginationItem key={pageNumber}>
-                                  <PaginationLink
-                                    href="#"
-                                    isActive={isActive}
-                                    onClick={(e) => {
-                                      e.preventDefault();
-                                      handlePageChange(pageNumber, perPage);
-                                    }}
-                                  >
-                                    {pageNumber}
-                                  </PaginationLink>
-                                </PaginationItem>
-                              );
-                            })}
+                            {Array.from(
+                              {
+                                length: Number(paginationData.last_page),
+                              },
+                              (_, i) => {
+                                const pageNumber = i + 1;
+                                const isActive =
+                                  pageNumber ===
+                                  Number(paginationData.current_page);
+                                return (
+                                  <PaginationItem key={pageNumber}>
+                                    <PaginationLink
+                                      href="#"
+                                      isActive={isActive}
+                                      onClick={(e) => {
+                                        e.preventDefault();
+                                        handlePageChange(pageNumber);
+                                      }}
+                                    >
+                                      {pageNumber}
+                                    </PaginationLink>
+                                  </PaginationItem>
+                                );
+                              }
+                            )}
 
                             <PaginationItem>
                               <PaginationNext
                                 href="#"
                                 onClick={(e) => {
                                   e.preventDefault();
-                                  const next = Number(props.responseProducts.current_page) + 1;
-                                  if (next <= Number(props.responseProducts.last_page)) {
-                                    handlePageChange(next, perPage);
+                                  const next =
+                                    Number(paginationData.current_page) + 1;
+                                  if (
+                                    next <= Number(paginationData.last_page)
+                                  ) {
+                                    handlePageChange(next);
                                   }
                                 }}
                               />
@@ -374,9 +429,7 @@ export default function EstoquePage(props: EstoquePageProps) {
                           </PaginationContent>
                         </Pagination>
                       </div>
-
                     </Pagination>
-
                   </TabsContent>
 
                   <TabsContent value="cards" className="mt-6">

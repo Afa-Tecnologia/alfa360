@@ -133,10 +133,10 @@ export function ProductFormDialog({
         form.reset({
           name: product.name,
           description: product.description,
-          purchase_price: product.purchase_price.toString(),
-          selling_price: product.selling_price.toString(),
-          quantity: product.quantity.toString(),
-          brand: product.brand,
+          purchase_price: product.purchase_price?.toString() || '0',
+          selling_price: product.selling_price?.toString() || '0',
+          quantity: product.quantity?.toString() || '0',
+          brand: product.brand || '',
           tipo_de_produto_id: product.tipo_de_produto_id?.toString() || '',
           code: product.code || '',
           categoria_id: product.categoria_id?.toString() || '',
@@ -166,9 +166,9 @@ export function ProductFormDialog({
         form.reset({
           name: '',
           description: '',
-          purchase_price: '',
-          selling_price: '',
-          quantity: '',
+          purchase_price: '0',
+          selling_price: '0',
+          quantity: '0',
           brand: '',
           tipo_de_produto_id: '',
           code: '',
@@ -204,7 +204,7 @@ export function ProductFormDialog({
   const handleUpdateVariant = (
     index: number,
     field: keyof VariantFormValues,
-    value: any // ❗ use any aqui, pois pode ser string, array, etc.
+    value: any // ❗ any aqui, pois pode ser string, array, etc.
   ) => {
     setVariants((prev) => {
       const updated = [...prev];

@@ -18,6 +18,10 @@ RUN apk update && apk add --no-cache \
     icu-dev \
     shadow \
     redis \
+    autoconf \
+    gcc \
+    g++ \
+    make \
     && rm -rf /var/cache/apk/*
 
 # Instalar extensões PHP
@@ -25,6 +29,9 @@ RUN docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd zip intl
 
 # Instalar Redis extension para PHP
 RUN pecl install redis && docker-php-ext-enable redis
+
+# Verificar se Redis extension foi instalada
+RUN php -m | grep redis
 
 # Instalar Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer

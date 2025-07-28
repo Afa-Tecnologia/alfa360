@@ -17,10 +17,14 @@ RUN apk update && apk add --no-cache \
     libzip-dev \
     icu-dev \
     shadow \
+    redis \
     && rm -rf /var/cache/apk/*
 
 # Instalar extensões PHP
 RUN docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd zip intl
+
+# Instalar Redis extension para PHP
+RUN pecl install redis && docker-php-ext-enable redis
 
 # Instalar Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
@@ -33,7 +37,7 @@ RUN useradd -G www-data,root -u ${APP_UID} -d ${APP_HOME} ${APP_USER} && \
 # Configurar diretório de trabalho
 WORKDIR /var/www/html
 
-# Configurar PHP para produção
+# Configurar PHP otimizado para desenvolvimento
 COPY backend/docker/php.ini /usr/local/etc/php/conf.d/app.ini
 
 # Copiar código da aplicação
@@ -45,9 +49,13 @@ RUN chown -R ${APP_USER}:${APP_USER} /var/www/html && \
 
 # Instalar dependências
 USER ${APP_USER}
-RUN composer install --no-interaction --no-dev --optimize-autoloader
+RUN composer install --no-interaction --optimize-autoloader
 
 EXPOSE 9001
-# Rodar o PHP-FPM
 
+# Script de inicialização para desenvolvimento
+COPY backend/optimize-dev.sh /usr/local/bin/optimize.sh
+RUN chmod +x /usr/local/bin/optimize.sh
+
+# Rodar o PHP-FPM
 CMD ["php-fpm"]

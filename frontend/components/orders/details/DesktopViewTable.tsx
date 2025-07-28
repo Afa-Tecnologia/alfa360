@@ -51,7 +51,7 @@ export function DesktopViewTable({ order }: OrderItemsProps) {
     0
   );
   const desconto = order.desconto ?? 0;
-  const total = order.total - desconto;
+  const total = order.total; // O total já vem com desconto aplicado do backend
   return (
     <>
       <div className="hidden sm:block">
@@ -100,7 +100,10 @@ export function DesktopViewTable({ order }: OrderItemsProps) {
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={() => setOpenDevolution(true)} className='cursor-pointer border-none'>
+                      <DropdownMenuItem
+                        onClick={() => setOpenDevolution(true)}
+                        className="cursor-pointer border-none"
+                      >
                         Devolução
                       </DropdownMenuItem>
                     </DropdownMenuContent>
@@ -124,10 +127,10 @@ export function DesktopViewTable({ order }: OrderItemsProps) {
             {desconto > 0 && (
               <TableRow>
                 <TableCell colSpan={3} className="text-right font-medium">
-                  Desconto
+                  Desconto ({desconto}%)
                 </TableCell>
                 <TableCell className="text-right font-medium text-red-600">
-                  -{formatCurrency(desconto/100 * subtotal)}
+                  -{formatCurrency((desconto / 100) * subtotal)}
                 </TableCell>
                 <TableCell />
               </TableRow>

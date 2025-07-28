@@ -1,4 +1,4 @@
-"use client"
+'use client';
 
 import { OrderDetail } from '@/types/order';
 import { formatCurrency } from '@/utils/formatters';
@@ -15,8 +15,7 @@ interface OrderItemsProps {
  * Component to display order items
  */
 export function OrderItems({ order }: OrderItemsProps) {
-
-    const [openDevolution, setOpenDevolution] = useState(false)
+  const [openDevolution, setOpenDevolution] = useState(false);
   if (!order.produtos || order.produtos.length === 0) {
     return (
       <div className="py-4 text-center text-gray-500">
@@ -25,8 +24,6 @@ export function OrderItems({ order }: OrderItemsProps) {
     );
   }
 
-
-  
   // Calcular total
   const subtotal = order.produtos.reduce(
     (sum, produto) =>
@@ -34,7 +31,7 @@ export function OrderItems({ order }: OrderItemsProps) {
     0
   );
   const desconto = order.desconto ?? 0;
-  const total = order.total - desconto;
+  const total = order.total; // O total já vem com desconto aplicado do backend
 
   // Versão para dispositivos móveis (card view)
   const MobileView = () => (
@@ -77,9 +74,9 @@ export function OrderItems({ order }: OrderItemsProps) {
         </div>
         {desconto > 0 && (
           <div className="grid grid-cols-2 text-sm font-medium">
-            <span>Desconto:</span>
+            <span>Desconto ({desconto}%):</span>
             <span className="text-right text-red-600">
-              -{formatCurrency(desconto)}
+              -{formatCurrency((desconto / 100) * subtotal)}
             </span>
           </div>
         )}
@@ -91,16 +88,14 @@ export function OrderItems({ order }: OrderItemsProps) {
     </div>
   );
 
- 
-
   return (
-    <div className='flex gap-12 flex-col '>
+    <div className="flex gap-12 flex-col ">
       <MobileView />
-      <DesktopViewTable order={order}  />
-    
-      <div className='pt-5'>
+      <DesktopViewTable order={order} />
+
+      <div className="pt-5">
         <h2 className="text-1xl font-bold mb-4">Devoluções</h2>
-      <DevoltionsTable/>
+        <DevoltionsTable />
       </div>
     </div>
   );

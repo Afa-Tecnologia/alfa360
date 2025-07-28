@@ -23,7 +23,7 @@ return new class extends Migration
             
             // Índices compostos
             $table->index(['name', 'code', 'brand'], 'produtos_search_index');
-            $table->index(['categoria_id', 'active'], 'produtos_categoria_active');
+            $table->index(['categoria_id', 'quantity'], 'produtos_categoria_quantity');
         });
 
         // Índices para tabela variantes
@@ -84,7 +84,7 @@ return new class extends Migration
 
         // Índices para tabela commissions
         Schema::table('commissions', function (Blueprint $table) {
-            $table->index('user_id', 'commissions_user_id_index');
+            $table->index('vendedor_id', 'commissions_vendedor_id_index');
             $table->index('pedido_id', 'commissions_pedido_id_index');
             $table->index('created_at', 'commissions_created_at_index');
         });
@@ -97,7 +97,6 @@ return new class extends Migration
         // Índices para tabela atributos
         Schema::table('atributos', function (Blueprint $table) {
             $table->index('name', 'atributos_name_index');
-            $table->index('active', 'atributos_active_index');
         });
     }
 
@@ -115,7 +114,7 @@ return new class extends Migration
             $table->dropIndex('produtos_selling_price_index');
             $table->dropIndex('produtos_quantity_index');
             $table->dropIndex('produtos_search_index');
-            $table->dropIndex('produtos_categoria_active');
+            $table->dropIndex('produtos_categoria_quantity');
         });
 
         // Remover índices da tabela variantes
@@ -170,7 +169,7 @@ return new class extends Migration
 
         // Remover índices da tabela commissions
         Schema::table('commissions', function (Blueprint $table) {
-            $table->dropIndex('commissions_user_id_index');
+            $table->dropIndex('commissions_vendedor_id_index');
             $table->dropIndex('commissions_pedido_id_index');
             $table->dropIndex('commissions_created_at_index');
         });

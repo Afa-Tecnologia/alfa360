@@ -89,7 +89,6 @@ services:
     container_name: backend
     volumes:
       - ./data/uploads:/var/www/html/storage/app/public
-      - ./backend/.env:/var/www/html/.env
       - ./backend/storage/logs:/var/www/html/storage/logs
     environment:
       - APP_ENV=${APP_ENV}
@@ -104,6 +103,12 @@ services:
       - DB_PASSWORD=${DB_PASSWORD}
       - JWT_SECRET=${JWT_SECRET}
       - JWT_BLACKLIST_ENABLED=${JWT_BLACKLIST_ENABLED}
+      - CACHE_STORE=redis
+      - SESSION_DRIVER=redis
+      - QUEUE_CONNECTION=redis
+      - REDIS_HOST=redis
+      - REDIS_PASSWORD=null
+      - REDIS_PORT=6379
     depends_on:
       mysql:
         condition: service_healthy
@@ -132,9 +137,6 @@ services:
   mysql:
     image: mysql:8.0
     container_name: mysql
-    volumes:
-      - ./data/mysql:/var/lib/mysql
-      - ./mysql/my.cnf:/etc/mysql/conf.d/my.cnf
     environment:
       - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
       - MYSQL_DATABASE=${DB_DATABASE}

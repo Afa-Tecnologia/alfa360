@@ -50,10 +50,6 @@ COPY backend/docker/php.ini /usr/local/etc/php/conf.d/app.ini
 # Copiar código da aplicação
 COPY ./backend /var/www/html
 
-# Script de otimização para produção
-COPY backend/optimize-production.sh /usr/local/bin/optimize.sh
-RUN chmod +x /usr/local/bin/optimize.sh && \
-    chown ${APP_USER}:${APP_USER} /usr/local/bin/optimize.sh
 
 # Definir permissões corretas
 RUN chown -R ${APP_USER}:${APP_USER} /var/www/html && \

@@ -51,6 +51,14 @@ class PedidoService
 
             //Atualizar o total com desconto
             $total = $this->processarProdutosNoPedido($pedido, $data['produtos']);
+            
+            // Log para debug do total antes do desconto
+            Log::info('Total antes do desconto', [
+                'pedido_id' => $pedido->id,
+                'total_antes_desconto' => $total,
+                'desconto_percentual' => $data['desconto'] ?? 0
+            ]);
+            
             // Aplicar desconto se houver
             $total = $this->aplicarDesconto($total, $data['desconto'] ?? 0);
             $pedido->update(['total' => $total]);
@@ -96,14 +104,15 @@ class PedidoService
         $total = 0;
 
         foreach ($produtos as $produtoData) {
-            $produto = Produto::find($produtoData['id']);
+            $produto = Produto::find($produtoData['produto_id']);
             if (!$produto) {
                 continue; // Ignorar caso o produto não exista
             }
 
-            $quantidade = $produtoData['quantity'];
+            $quantidade = $produtoData['quantidade'];
             $precoUnitario = $produto->selling_price;
-            $vendedor = $produtoData['vendedor_id'];
+            $vendedor = $produtoData['vendedor_id'] ?? $vendedorId;
+            
             // Criar relação com pedidos_produtos
             PedidosProduto::create([
                 'pedido_id' => $pedido->id,
@@ -132,9 +141,23 @@ class PedidoService
 
     public function aplicarDesconto(float $total, float $desconto)
     {
+        // Garantir que os valores sejam float
+        $total = (float) $total;
+        $desconto = (float) $desconto;
+        
         if ($desconto > 0) {
-            $total -= $total * ($desconto / 100);
+            $valorDesconto = $total * ($desconto / 100);
+            $total -= $valorDesconto;
+            
+            // Log para debug
+            Log::info('Aplicando desconto', [
+                'total_original' => $total + $valorDesconto,
+                'desconto_percentual' => $desconto,
+                'valor_desconto' => $valorDesconto,
+                'total_final' => $total
+            ]);
         }
+        
         return round($total, 2);
     }
 
@@ -300,6 +323,10 @@ class PedidoService
                 // Processa os novos produtos
                 $total = $this->processarProdutosEPedidos($pedido, $data['produtos'], $data['vendedor_id'] ?? 0);
                 
+                // Aplicar desconto se houver
+                $total = $this->aplicarDesconto($total, $data['desconto'] ?? $pedido->desconto);
+                $pedido->update(['total' => $total]);
+                
                 // Reduzir estoque para os novos produtos
                 $itensNovoEstoque = [];
                 
@@ -379,5 +406,20 @@ class PedidoService
             ]);
             throw new \Exception("Erro ao excluir pedido: " . $e->getMessage());
         }
+    }
+
+    public function testarCalculoDesconto(float $total, float $desconto)
+    {
+        $totalOriginal = $total;
+        $totalComDesconto = $this->aplicarDesconto($total, $desconto);
+        
+        Log::info('Teste de cálculo de desconto', [
+            'total_original' => $totalOriginal,
+            'desconto_percentual' => $desconto,
+            'total_com_desconto' => $totalComDesconto,
+            'valor_desconto' => $totalOriginal - $totalComDesconto
+        ]);
+        
+        return $totalComDesconto;
     }
 }

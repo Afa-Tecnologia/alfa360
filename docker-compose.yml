@@ -190,11 +190,11 @@ services:
       interval: 10s
       timeout: 5s
       retries: 3
-  deploy:
-    resources:
-      limits:
-        cpus: "0.5"
-        memory: 512M
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 512M
 
 networks:
   alfa:

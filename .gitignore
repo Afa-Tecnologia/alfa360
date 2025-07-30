@@ -22,6 +22,10 @@
 # production
 /build
 
+#generate_new_credentials.php
+generate_new_credentials.php
+.env
+
 # misc
 .DS_Store
 *.pem

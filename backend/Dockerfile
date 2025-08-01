@@ -46,6 +46,7 @@ WORKDIR /var/www/html
 
 # Configurar PHP otimizado para produção
 COPY backend/docker/php.ini /usr/local/etc/php/conf.d/app.ini
+COPY backend/docker/www-simple.conf /usr/local/etc/php-fpm.d/www.conf
 
 # Copiar código da aplicação
 COPY ./backend /var/www/html
@@ -54,6 +55,11 @@ COPY ./backend /var/www/html
 # Definir permissões corretas
 RUN chown -R ${APP_USER}:${APP_USER} /var/www/html && \
     chown -R ${APP_USER}:${APP_USER} /var/www/html/storage /var/www/html/bootstrap/cache
+
+# Scripts de otimização
+COPY backend/optimize-performance.sh /usr/local/bin/optimize-performance.sh
+RUN chmod +x /usr/local/bin/optimize-performance.sh && \
+    chown ${APP_USER}:${APP_USER} /usr/local/bin/optimize-performance.sh
 
 # Instalar dependências
 USER ${APP_USER}

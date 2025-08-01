@@ -8,6 +8,7 @@ use App\Services\Variantes\VariantesService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Services\EstoqueService;
+use App\Services\CacheService;
 use App\Traits\ServiceCacheable;
 use Illuminate\Http\Request;
 
@@ -29,33 +30,41 @@ class ProdutoService
         $query = $request->input('query');
         $categoria_id = $request->input('categoria_id');
 
-        $produtosQuery = Produto::with('variants.atributos');
+        $cacheKey = "produtos_list_{$perPage}_{$query}_{$categoria_id}";
 
-        // Aplicar filtro de busca se fornecido
-        if (!empty($query)) {
-            $produtosQuery->where(function ($q) use ($query) {
-                $q->where('name', 'like', '%' . $query . '%')
-                  ->orWhere('code', 'like', '%' . $query . '%')
-                  ->orWhere('brand', 'like', '%' . $query . '%')
-                  ->orWhereHas('variants', function ($variantQuery) use ($query) {
-                      $variantQuery->where('name', 'like', '%' . $query . '%')
-                                  ->orWhere('code', 'like', '%' . $query . '%');
-                  });
-            });
-        }
+        return CacheService::rememberProduct($cacheKey, function () use ($request, $perPage, $query, $categoria_id) {
+            $produtosQuery = Produto::with('variants.atributos');
 
-        // Aplicar filtro de categoria se fornecido
-        if (!empty($categoria_id) && $categoria_id !== 'all') {
-            $produtosQuery->where('categoria_id', $categoria_id);
-        }
+            // Aplicar filtro de busca se fornecido
+            if (!empty($query)) {
+                $produtosQuery->where(function ($q) use ($query) {
+                    $q->where('name', 'like', '%' . $query . '%')
+                      ->orWhere('code', 'like', '%' . $query . '%')
+                      ->orWhere('brand', 'like', '%' . $query . '%')
+                      ->orWhereHas('variants', function ($variantQuery) use ($query) {
+                          $variantQuery->where('name', 'like', '%' . $query . '%')
+                                      ->orWhere('code', 'like', '%' . $query . '%');
+                      });
+                });
+            }
 
-        return $produtosQuery->paginate($perPage);
+            // Aplicar filtro de categoria se fornecido
+            if (!empty($categoria_id) && $categoria_id !== 'all') {
+                $produtosQuery->where('categoria_id', $categoria_id);
+            }
+
+            return $produtosQuery->paginate($perPage);
+        });
     }
 
 
     public function getById($id)
     {
-        return Produto::with('variants.atributos')->find($id);
+        $cacheKey = "produto_{$id}";
+        
+        return CacheService::rememberProduct($cacheKey, function () use ($id) {
+            return Produto::with('variants.atributos')->find($id);
+        });
     }
 
     public function create(array $data)
@@ -97,6 +106,9 @@ class ProdutoService
 
             $produto->quantity = $stock;
             $produto->save();
+
+            // Invalidar cache de produtos
+            CacheService::flushProducts();
 
             $duration = microtime(true) - $_SERVER['REQUEST_TIME_FLOAT'];
             Log::info('Produto create finalizado', ['duration' => $duration]);
@@ -141,6 +153,9 @@ class ProdutoService
             if (isset($data['variants']) && is_array($data['variants'])) {
                 $this->processarVariantesEmLote($produto->id, $data['variants']);
             }
+
+            // Invalidar cache de produtos
+            CacheService::flushProducts();
 
             $duration = microtime(true) - $_SERVER['REQUEST_TIME_FLOAT'];
             Log::info('Produto update finalizado', ['produto_id' => $id, 'duration' => $duration]);

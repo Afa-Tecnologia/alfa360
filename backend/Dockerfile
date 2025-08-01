@@ -46,7 +46,7 @@ WORKDIR /var/www/html
 
 # Configurar PHP otimizado para produção
 COPY backend/docker/php.ini /usr/local/etc/php/conf.d/app.ini
-COPY backend/docker/www-simple.conf /usr/local/etc/php-fpm.d/www.conf
+COPY backend/docker/www.conf /usr/local/etc/php-fpm.d/www.conf
 
 # Copiar código da aplicação
 COPY ./backend /var/www/html

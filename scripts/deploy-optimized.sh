@@ -7,7 +7,7 @@ echo "=============================="
 echo "💾 Criando backup..."
 DATE=$(date +%Y%m%d_%H%M%S)
 BACKUP_FILE="/backups/backup-pre-deploy-$DATE.sql"
-docker exec alfa360-mysql mysqldump -u root -p"$MYSQL_ROOT_PASSWORD" pdvalfa360 > "$BACKUP_FILE"
+docker exec mysql mysqldump -u root -p"$MYSQL_ROOT_PASSWORD" pdvalfa360 > "$BACKUP_FILE"
 echo "✅ Backup criado: $BACKUP_FILE"
 
 # 2. Parar containers
@@ -28,18 +28,18 @@ sleep 30
 
 # 6. Executar otimizações Laravel
 echo "⚡ Executando otimizações Laravel..."
-docker exec alfa360-backend php artisan config:cache
-docker exec alfa360-backend php artisan route:cache
-docker exec alfa360-backend php artisan view:cache
-docker exec alfa360-backend php artisan optimize
+docker exec backend php artisan config:cache
+docker exec backend php artisan route:cache
+docker exec backend php artisan view:cache
+docker exec backend php artisan optimize
 
 # 7. Executar migrations
 echo "🗄️ Executando migrations..."
-docker exec alfa360-backend php artisan migrate --force
+docker exec backend php artisan migrate --force
 
 # 8. Limpar cache Redis
 echo "🧹 Limpando cache Redis..."
-docker exec alfa360-redis redis-cli FLUSHALL
+docker exec redis redis-cli FLUSHALL
 
 # 9. Verificar saúde dos serviços
 echo "🏥 Verificando saúde dos serviços..."
@@ -51,8 +51,8 @@ docker stats --no-stream
 
 # 11. Testar cache
 echo "🧪 Testando cache Redis..."
-docker exec alfa360-backend php artisan tinker --execute="echo 'Redis: ' . (Cache::store('redis')->get('test') ? 'OK' : 'FAIL');"
+docker exec backend php artisan tinker --execute="echo 'Redis: ' . (Cache::store('redis')->get('test') ? 'OK' : 'FAIL');"
 
 echo "✅ Deploy otimizado concluído!"
 echo "📈 Monitoramento: docker stats"
-echo "📋 Logs: docker logs alfa360-backend" 
+echo "📋 Logs: docker logs backend" 

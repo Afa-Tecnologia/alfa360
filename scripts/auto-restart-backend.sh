@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Verificar uso de CPU do backend
-CPU_USAGE=$(docker stats alfa360-backend --no-stream --format "table {{.CPUPerc}}" | tail -1 | sed 's/%//')
+CPU_USAGE=$(docker stats backend --no-stream --format "table {{.CPUPerc}}" | tail -1 | sed 's/%//')
 
 # Se CPU > 150%, restart do backend
 if (( $(echo "$CPU_USAGE > 150" | bc -l) )); then

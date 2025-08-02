@@ -22,6 +22,7 @@ RUN apk update && apk add --no-cache \
     gcc \
     g++ \
     make \
+    procps \
     && rm -rf /var/cache/apk/*
 
 # Instalar extensões PHP
@@ -48,6 +49,16 @@ WORKDIR /var/www/html
 COPY backend/docker/php.ini /usr/local/etc/php/conf.d/app.ini
 COPY backend/docker/www.conf /usr/local/etc/php-fpm.d/www.conf
 
+# Copiar scripts de inicialização
+COPY backend/docker/simple-start.sh /usr/local/bin/simple-start.sh
+COPY backend/optimize-performance.sh /usr/local/bin/optimize-performance.sh
+COPY backend/monitor-performance.sh /usr/local/bin/monitor-performance.sh
+
+# Dar permissões de execução aos scripts
+RUN chmod +x /usr/local/bin/simple-start.sh && \
+    chmod +x /usr/local/bin/optimize-performance.sh && \
+    chmod +x /usr/local/bin/monitor-performance.sh
+
 # Copiar código da aplicação
 COPY ./backend /var/www/html
 
@@ -55,19 +66,11 @@ COPY ./backend /var/www/html
 RUN chown -R ${APP_USER}:${APP_USER} /var/www/html && \
     chown -R ${APP_USER}:${APP_USER} /var/www/html/storage /var/www/html/bootstrap/cache
 
-# Scripts de otimização
-COPY backend/optimize-performance.sh /usr/local/bin/optimize-performance.sh
-COPY backend/docker/start.sh /usr/local/bin/start.sh
-RUN chmod +x /usr/local/bin/optimize-performance.sh && \
-    chmod +x /usr/local/bin/start.sh && \
-    chown ${APP_USER}:${APP_USER} /usr/local/bin/optimize-performance.sh && \
-    chown ${APP_USER}:${APP_USER} /usr/local/bin/start.sh
-
 # Instalar dependências
 USER ${APP_USER}
 RUN composer install --no-interaction --no-dev --optimize-autoloader
 
 EXPOSE 9000
 
-# Usar script de inicialização
-CMD ["/usr/local/bin/start.sh"]
+# Usar script simples
+CMD ["/usr/local/bin/simple-start.sh"]

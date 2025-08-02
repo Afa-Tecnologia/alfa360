@@ -6,9 +6,7 @@ export type CartItem = Product & {
   discountPercentage: number;
   vendedor_id?: number;
   vendedor_nome?: string;
-  selectedColor?: string;
-  selectedSize?: string;
-  selectedColorId?: number;
+  variante_id?: number;
 };
 
 type CartStore = {
@@ -25,11 +23,11 @@ type CartStore = {
     quantity: number,
     discountPercentage: number
   ) => void;
-  removeItem: (productId: number, colorId?: number) => void;
+  removeItem: (productId: number, varianteId?: number) => void;
   updateQuantity: (
     productId: number,
     quantity: number,
-    colorId?: number
+    varianteId?: number
   ) => void;
   setDiscount: (discount: number) => void;
   clearCart: () => void;
@@ -43,12 +41,12 @@ export const useCartStore = create<CartStore>((set, get) => ({
 
   addItem: (product, quantity = 1, discountPercentage = 0) => {
     set((state) => {
-      // Verificar se já existe um item com o mesmo ID e mesma variante (se aplicável)
+      // Verificar se já existe um item com o mesmo ID e mesma variante
       const existingItemIndex = state.items.findIndex(
         (item) =>
           item.id === product.id &&
-          (product.selectedColorId
-            ? item.selectedColorId === product.selectedColorId
+          (product.variants[0].id
+            ? item.variants[0].id === product.variants[0].id
             : true)
       );
 
@@ -77,23 +75,23 @@ export const useCartStore = create<CartStore>((set, get) => ({
     });
   },
 
-  removeItem: (productId, colorId) => {
+  removeItem: (productId, varianteId) => {
     set((state) => ({
       items: state.items.filter(
         (item) =>
           !(
             item.id === productId &&
-            (colorId ? item.selectedColorId === colorId : true)
+            (varianteId ? item.variante_id === varianteId : true)
           )
       ),
     }));
   },
 
-  updateQuantity: (productId, quantity, colorId) => {
+  updateQuantity: (productId, quantity, varianteId) => {
     set((state) => ({
       items: state.items.map((item) =>
         item.id === productId &&
-        (colorId ? item.selectedColorId === colorId : true)
+        (varianteId ? item.variante_id === varianteId : true)
           ? { ...item, quantity }
           : item
       ),

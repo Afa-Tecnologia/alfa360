@@ -3,6 +3,11 @@ import { apiFetch } from '@/app/api/server-api';
 import { ResponseAtributos } from '@/types/product';
 import { Product } from '@/types/sales';
 
+interface GetProductsParams {
+  page?: number;
+  query?: string;
+}
+
 /**
  * Serviço para gerenciar produtos
  */
@@ -69,15 +74,15 @@ class ProductService {
   }
 
   /**
-   * Busca todos os produtos
+   * Busca todos os produtos com paginação e busca
    */
-  async getProducts(): Promise<any[]> {
+  async getProducts(params: GetProductsParams = {}): Promise<any> {
     try {
-      const response = await api.get('/produtos');
+      const response = await api.get('/produtos', { params });
       return response.data;
     } catch (error) {
       console.error('Erro ao buscar produtos:', error);
-      return [];
+      return { data: [], last_page: 1 };
     }
   }
 

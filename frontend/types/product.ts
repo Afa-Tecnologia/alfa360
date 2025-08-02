@@ -1,5 +1,5 @@
 import { Atributos } from "./estoque";
-
+import { Product as ProductSales } from '@/types/sales';
 export type Product = {
     id: number;
     name: string;
@@ -32,6 +32,28 @@ export interface ProductEstoque {
   atributos?: Atributos[];
   variants: Variant[];
   [key: string]: any;
+}
+
+export interface ResponseProducts{
+  current_page?: string | number
+  data: ProductEstoque[];
+  from?: string | number,
+  last_page?: string | number,
+  per_page?: string | number,
+  prev_page_url?: any,
+  to?: string | number,
+  total?: string | number
+}
+
+export interface ResponseProductsToSalesComponent{
+  current_page?: string | number
+  data: ProductSales[];
+  from?: string | number,
+  last_page?: string | number,
+  per_page?: string | number,
+  prev_page_url?: any,
+  to?: string | number,
+  total?: string | number
 }
 
 export type Variant = {

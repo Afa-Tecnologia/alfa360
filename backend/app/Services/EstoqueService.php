@@ -170,15 +170,17 @@ class EstoqueService
     public function atualizarEstoqueProduto($produtoId): void
     {
         try {
-            DB::transaction(function () use ($produtoId) {
-                $totalQuantidade = Variantes::where('produto_id', $produtoId)
-                    ->where('active', true)
-                    ->sum('quantity');
+            // Query otimizada - sem transação desnecessária
+            $totalQuantidade = DB::table('variantes')
+                ->where('produto_id', $produtoId)
+                ->where('active', true)
+                ->sum('quantity');
+            
+            // Update direto
+            DB::table('produtos')
+                ->where('id', $produtoId)
+                ->update(['quantity' => $totalQuantidade]);
                 
-                Produto::where('id', $produtoId)->update([
-                    'quantity' => $totalQuantidade
-                ]);
-            });
         } catch (\Exception $e) {
             Log::error('Erro ao atualizar estoque do produto: ' . $e->getMessage());
         }

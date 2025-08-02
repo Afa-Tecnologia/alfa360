@@ -32,11 +32,11 @@ interface BasicProductFormProps {
 
 // Função para formatar valor para exibição (ex: 10.5 -> "10,50")
 const formatCurrencyDisplay = (value: string | number): string => {
-  if (value === '' || value === undefined || value === null) return '';
+  if (value === '' || value === undefined || value === null) return '0,00';
 
   const numValue = typeof value === 'string' ? parseFloat(value) : value;
 
-  if (isNaN(numValue)) return '';
+  if (isNaN(numValue)) return '0,00';
 
   return numValue.toFixed(2).replace('.', ',');
 };

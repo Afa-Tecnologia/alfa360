@@ -1,46 +1,56 @@
-
-import VendasPage from "@/components/dashboard-v2/pages/VendasPage";
-import { userService } from "@/lib/services/UserService";
-import { ProductServiceEstoque } from "@/services/products/productEstoqueService";
+import VendasPage from '@/components/dashboard-v2/pages/VendasPage';
+import { userService } from '@/lib/services/UserService';
+import { ProductServiceEstoque } from '@/services/products/productEstoqueService';
 import { Product } from '@/types/sales';
-export default async function Page(){
-  const productService = new ProductServiceEstoque();
-  const fetchProducts = async () => {
-    try {
-      const products = await productService.getProducts();
-      return products as any[];
-    } catch (error) {
-      console.error("Error fetching products:", error);
-      return [];
-    }
-  };
-  const fetchCategories = async () => {
-    try {
-      const response = await productService.getCategories();
-      return response;
-    } catch (error) {
-      console.error("Error fetching categories:", error);
-      return [];
-    }
-  };
-  const fetchSellers = async () => {
-    try {
-      const response = await userService.getVendedores();
-      return response;
-    } catch (error) {
-      console.error("Error fetching sellers:", error);
-      return [];
-    }
-  };
+import { normalizeProduct } from '@/utils/normalizeProduct';
+import { ResponseProductsToSalesComponent } from '@/types/product';
 
-  const products = await fetchProducts();
-  const categories = await fetchCategories();
-  const sellers = await fetchSellers();
-  return (
-    <VendasPage
-      products={products}
-      categories={categories}
-      sellers={sellers}
-    />
-  );
-};
+// Force dynamic rendering to prevent build-time API calls
+export const dynamic = 'force-dynamic';
+
+export default async function Page() {
+  const productService = new ProductServiceEstoque();
+
+  try {
+    const [responseProducts, categories, sellers] = await Promise.all([
+      productService.getProducts(),
+      productService.getCategories(),
+      productService.getVendedores(),
+    ]);
+
+    // Transform ProductEstoque[] to Product[] to match expected type
+    const transformedResponse: ResponseProductsToSalesComponent = {
+      ...responseProducts,
+      data: responseProducts.data.map(normalizeProduct),
+    };
+
+    return (
+      <VendasPage
+        responseProducts={transformedResponse}
+        categories={categories}
+        sellers={sellers}
+      />
+    );
+  } catch (error) {
+    console.error('Error loading sales page data:', error);
+
+    // Return empty data structure on error
+    const emptyResponse: ResponseProductsToSalesComponent = {
+      data: [],
+      current_page: 1,
+      from: 1,
+      last_page: 1,
+      per_page: 10,
+      to: 0,
+      total: 0,
+    };
+
+    return (
+      <VendasPage
+        responseProducts={emptyResponse}
+        categories={[]}
+        sellers={[]}
+      />
+    );
+  }
+}

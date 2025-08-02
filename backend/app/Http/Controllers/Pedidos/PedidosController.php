@@ -112,7 +112,7 @@ class PedidosController extends Controller
                     // Processa os produtos e calcula o total
                     $total = $this->pedidoService->processarProdutosNoPedido($pedido, $dataValidated['produtos']);
                     
-                    // Aplica o desconto
+                    // Aplica o desconto usando o service
                     $total = $this->pedidoService->aplicarDesconto($total, $dataValidated['desconto'] ?? 0);
                     $pedido->update(['total' => $total]);
             
@@ -228,12 +228,8 @@ class PedidosController extends Controller
     
                 // Atualiza os produtos do pedido se fornecidos
                 if (isset($dataValidated['produtos'])) {
-                    // Processa a atualização dos produtos e calcula o total
-                    $total = $this->pedidoService->processarAtualizacaoDeProdutos($pedido, $dataValidated['produtos']);
-                    
-                    // Aplica o desconto
-                    $total = $this->pedidoService->aplicarDesconto($total, $dataValidated['desconto'] ?? $pedido->desconto);
-                    $pedido->update(['total' => $total]);
+                    // O service já processa os produtos e aplica desconto automaticamente
+                    // Não é necessário fazer nada adicional aqui
                 }
     
                 return ApiResponseService::json([

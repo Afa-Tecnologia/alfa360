@@ -14,7 +14,7 @@ import {
 } from '@/components/ui/dialog';
 import { Form } from '@/components/ui/form';
 import { Button } from '@/components/ui/button';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Plus } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { api } from '@/app/api/api';
 import { BarcodeService } from '@/services/barcodeService';
@@ -31,14 +31,18 @@ import { tiposDeProdutosService } from '@/services/TiposDeProdutosService';
 import { TipoDeProduto } from '@/types/configuracoes';
 import { gerarNotificacao } from '@/utils/toast';
 import { AtributoRequest, Atributos } from '@/types/estoque';
-import { AtributoTipoDeNegocio, ProductEstoque, ResponseAtributos } from '@/types/product';
+import {
+  AtributoTipoDeNegocio,
+  ProductEstoque,
+  ResponseAtributos,
+} from '@/types/product';
+import { Badge } from '@/components/ui/badge';
 interface VariantAtributo {
   atributo_id: string | number;
   valor: string;
 }
 
 interface ProductFormDialogProps {
-
   open: boolean;
   onOpenChange: (open: boolean) => void;
   product?: ProductEstoque;
@@ -55,7 +59,7 @@ export function ProductFormDialog({
   onSuccess,
   categories,
   tiposDeProdutos,
-  atributosVariante
+  atributosVariante,
 }: ProductFormDialogProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [currentTab, setCurrentTab] = useState('basic');
@@ -129,10 +133,10 @@ export function ProductFormDialog({
         form.reset({
           name: product.name,
           description: product.description,
-          purchase_price: product.purchase_price.toString(),
-          selling_price: product.selling_price.toString(),
-          quantity: product.quantity.toString(),
-          brand: product.brand,
+          purchase_price: product.purchase_price?.toString() || '0',
+          selling_price: product.selling_price?.toString() || '0',
+          quantity: product.quantity?.toString() || '0',
+          brand: product.brand || '',
           tipo_de_produto_id: product.tipo_de_produto_id?.toString() || '',
           code: product.code || '',
           categoria_id: product.categoria_id?.toString() || '',
@@ -148,7 +152,7 @@ export function ProductFormDialog({
               images: Array.isArray(variant.images) ? variant.images : [],
               atributos: (variant.atributos || []).map((attr: any) => ({
                 atributo_id: attr.id,
-                valor: attr.pivot?.valor || '', 
+                valor: attr.pivot?.valor || '',
               })),
               type: variant.type || '',
             })
@@ -162,9 +166,9 @@ export function ProductFormDialog({
         form.reset({
           name: '',
           description: '',
-          purchase_price: '',
-          selling_price: '',
-          quantity: '',
+          purchase_price: '0',
+          selling_price: '0',
+          quantity: '0',
           brand: '',
           tipo_de_produto_id: '',
           code: '',
@@ -200,7 +204,7 @@ export function ProductFormDialog({
   const handleUpdateVariant = (
     index: number,
     field: keyof VariantFormValues,
-    value: any // ❗ use any aqui, pois pode ser string, array, etc.
+    value: any // ❗ any aqui, pois pode ser string, array, etc.
   ) => {
     setVariants((prev) => {
       const updated = [...prev];
@@ -437,7 +441,14 @@ export function ProductFormDialog({
           </div>
 
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <form
+              id="product-form"
+              onSubmit={form.handleSubmit(onSubmit)}
+              className="space-y-6 pb-24"
+            >
+              {' '}
+              {/* Adiciona padding-bottom para não cobrir conteúdo */}{' '}
+              {/* Adiciona padding-bottom para não cobrir conteúdo */}
               {currentTab === 'basic' && (
                 <BasicProductForm
                   form={form}
@@ -446,41 +457,62 @@ export function ProductFormDialog({
                   generateUniqueBarcode={generateUniqueBarcode}
                 />
               )}
-
               {currentTab === 'variants' && (
-                <VariantsList
-                  atributosVariante={atributosVariante}
-                  variants={variants}
-                  productName={form.getValues('name')}
-                  onAddVariant={handleAddVariant}
-                  onRemoveVariant={handleRemoveVariant}
-                  onUpdateVariant={handleUpdateVariant}
-                  onUpdateVariantImages={handleUpdateVariantImages}
-                />
+                <>
+                  <VariantsList
+                    atributosVariante={atributosVariante}
+                    variants={variants}
+                    productName={form.getValues('name')}
+                    onAddVariant={handleAddVariant}
+                    onRemoveVariant={handleRemoveVariant}
+                    onUpdateVariant={handleUpdateVariant}
+                    onUpdateVariantImages={handleUpdateVariantImages}
+                  />
+                </>
               )}
-
-              <DialogFooter className="gap-2 sm:gap-0 pt-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => onOpenChange(false)}
-                  disabled={isSubmitting}
-                >
-                  Cancelar
-                </Button>
-                <Button type="submit" disabled={isSubmitting}>
-                  {isSubmitting ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      {isEditing ? 'Salvando...' : 'Criando...'}
-                    </>
-                  ) : (
-                    <>{isEditing ? 'Salvar Alterações' : 'Criar Produto'}</>
-                  )}
-                </Button>
-              </DialogFooter>
             </form>
           </Form>
+
+          {/* Footer fixo tipo painel de botões */}
+          <div
+            className="sticky bottom-0 left-0 w-full bg-background z-50 flex flex-col justify-start pt-2 pb-2 border-t gap-2"
+            style={{ boxShadow: '0 -2px 8px rgba(0,0,0,0.04)' }}
+          >
+            <h2 className="text-sm font-medium">Painel de Controle</h2>
+
+            <div className="flex gap-2 w-full justify-end">
+              {currentTab === 'variants' && (
+                <Button type="button" onClick={handleAddVariant}>
+                  <Plus className="h-4 w-4 mr-1" />
+                  Variante
+                </Button>
+              )}
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => onOpenChange(false)}
+                disabled={isSubmitting}
+                className="bg-red-600 hover:bg-red-700 hover:text-white text-white"
+              >
+                Cancelar
+              </Button>
+              <Button
+                type="submit"
+                form="product-form"
+                disabled={isSubmitting}
+                className="bg-green-600 hover:bg-green-700"
+              >
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    {isEditing ? 'Salvando...' : 'Criando...'}
+                  </>
+                ) : (
+                  <>{isEditing ? 'Salvar Alterações' : 'Criar Produto'}</>
+                )}
+              </Button>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
 

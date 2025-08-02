@@ -31,8 +31,8 @@ export default function CardProdutosPopulares() {
       try {
         setIsLoading(true);
         setError(null);
-        const data = await ProductService.getProducts();
-        setProducts(data);
+        const response = await ProductService.getProducts();
+        setProducts(response.data);
       } catch (err) {
         console.error('Erro ao buscar produtos:', err);
         setError('Erro ao buscar produtos');

@@ -58,7 +58,7 @@ export function Header({
   return (
        <motion.header
       className={cn(
-        'sticky top-0 z-30 flex h-16 items-center justify-between  border-b border-opacity-5 bg-background/95 px-4 backdrop-blur transition-shadow duration-200',
+        'sticky top-0 left-0 right-0 z-40 flex h-16 items-center justify-between  border-b border-opacity-5 bg-background/95 px-4 backdrop-blur transition-shadow duration-200',
         isScrolled && 'shadow-md'
       )}
       initial={{ opacity: 0, y: -10 }}

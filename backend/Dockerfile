@@ -17,10 +17,21 @@ RUN apk update && apk add --no-cache \
     libzip-dev \
     icu-dev \
     shadow \
+    redis \
+    autoconf \
+    gcc \
+    g++ \
+    make \
     && rm -rf /var/cache/apk/*
 
 # Instalar extensões PHP
 RUN docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd zip intl
+
+# Instalar Redis extension para PHP
+RUN pecl install redis && docker-php-ext-enable redis
+
+# Verificar se Redis extension foi instalada
+RUN php -m | grep redis
 
 # Instalar Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
@@ -33,11 +44,12 @@ RUN useradd -G www-data,root -u ${APP_UID} -d ${APP_HOME} ${APP_USER} && \
 # Configurar diretório de trabalho
 WORKDIR /var/www/html
 
-# Configurar PHP para produção
+# Configurar PHP otimizado para produção
 COPY backend/docker/php.ini /usr/local/etc/php/conf.d/app.ini
 
 # Copiar código da aplicação
 COPY ./backend /var/www/html
+
 
 # Definir permissões corretas
 RUN chown -R ${APP_USER}:${APP_USER} /var/www/html && \
@@ -48,6 +60,6 @@ USER ${APP_USER}
 RUN composer install --no-interaction --no-dev --optimize-autoloader
 
 EXPOSE 9000
-# Rodar o PHP-FPM
 
+# Rodar o PHP-FPM
 CMD ["php-fpm"]

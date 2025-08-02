@@ -6,6 +6,9 @@ import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { BarcodeScanner } from "@/components/Reusable/BarcodeScanner"
 import type { Category } from "@/types/product"
+import { set } from "date-fns"
+import { useProducts } from "@/hooks/useProductsEstoque"
+import { se } from "date-fns/locale"
 
 interface ProductFiltersProps {
   searchTerm: string
@@ -14,6 +17,7 @@ interface ProductFiltersProps {
   onSearchChange: (value: string) => void
   onCategoryChange: (value: string) => void
   onBarcodeSearch: (result: string) => void
+  setIsKeyDown: (value: boolean) => void
 }
 
 export function ProductFilters({
@@ -23,6 +27,7 @@ export function ProductFilters({
   onSearchChange,
   onCategoryChange,
   onBarcodeSearch,
+  setIsKeyDown
 }: ProductFiltersProps) {
   return (
     <div className="flex flex-col sm:flex-row gap-4 mb-6">
@@ -33,7 +38,10 @@ export function ProductFilters({
           placeholder="Buscar produtos..."
           className="pl-8"
           value={searchTerm}
-          onChange={(e) => onSearchChange(e.target.value)}
+          onChange={(e) => {
+            onSearchChange(e.target.value)
+          }}
+          onKeyDown={(e) => setIsKeyDown(true)}
         />
       </div>
       <div className="w-full sm:w-[180px]">

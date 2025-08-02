@@ -31,6 +31,7 @@ import { BarcodeLabel } from '@/components/estoquenovo/BarcodeLabel';
 import Image from 'next/image';
 import { ProductEstoque } from '@/types/product';
 import { Atributos } from '@/types/estoque';
+import { EtiquetaProduto } from '../etiquetas/types/etiqueta.types';
 
 interface ProductDetailsDialogProps {
   product: ProductEstoque | null;
@@ -80,7 +81,7 @@ export function ProductDetailsDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-3xl overflow-y-auto">
+      <DialogContent className="sm:max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-xl">Detalhes do Produto</DialogTitle>
           <DialogDescription>
@@ -98,9 +99,6 @@ export function ProductDetailsDialog({
             </TabsTrigger>
             <TabsTrigger value="financial" className="flex-1">
               Financeiro
-            </TabsTrigger>
-            <TabsTrigger value="barcode" className="flex-1">
-              Etiquetas
             </TabsTrigger>
           </TabsList>
 
@@ -313,39 +311,6 @@ export function ProductDetailsDialog({
             </div>
           </TabsContent>
 
-          <TabsContent value="barcode" className="mt-4">
-            <div className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Etiqueta para o produto principal */}
-                <div>
-                  <h3 className="font-medium mb-2">Etiqueta do Produto</h3>
-
-                  <BarcodeLabel product={product} />
-                </div>
-
-                {/* Etiquetas para variantes, se existirem @TODO */}
-                {/* {product.variants && product.variants.length > 0 && (
-                  <div>
-                    <h3 className="font-medium mb-2">Etiquetas de Variantes</h3>
-                    <div className="max-h-96 overflow-y-auto pr-2 space-y-4">
-                      {product.variants.map((variant,index) => (
-                        <BarcodeLabel
-                          key={index}
-                          product={{
-                            ...product,
-                            name: variant.name,
-                            code: `${product.code || product.id}`,
-                            selling_price:
-                              variant.selling_price || product.selling_price,
-                          }}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                )} */}
-              </div>
-            </div>
-          </TabsContent>
         </Tabs>
       </DialogContent>
     </Dialog>

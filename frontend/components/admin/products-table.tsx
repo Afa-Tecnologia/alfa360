@@ -154,13 +154,11 @@ export function ProductsTable(props: IProductTable) {
   };
 
   const handleDeleteProduct = (productId: string) => {
-    console.log(productId);
     setProductToDelete(productId);
     setDeleteDialogOpen(true);
   };
 
   const confirmDelete = async () => {
-    console.log(`Deletando produto ${productToDelete}`);
     deleteProduct(productToDelete as string);
     try {
       const response = await api.delete(`/produtos/${productToDelete}`);

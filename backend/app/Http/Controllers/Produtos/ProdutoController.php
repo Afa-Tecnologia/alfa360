@@ -21,9 +21,9 @@ class ProdutoController extends Controller
 
     }
 
-    public function index()
+    public function index(Request $request)
     {
-        return ApiResponseService::json($this->produtoService->getAll(), Response::HTTP_OK);
+        return response()->json($this->produtoService->getAll($request), Response::HTTP_OK);
     }
 
     public function store(StoreProdutoRequest $request)
@@ -155,5 +155,13 @@ class ProdutoController extends Controller
         }
         
         return ApiResponseService::json($produto, Response::HTTP_OK);
+    }
+
+    public function search(Request $request)
+    {
+        $query = $request->input('query');
+
+        $produtos = $this->produtoService->search($query);
+        return ApiResponseService::json($produtos, Response::HTTP_OK);
     }
 }

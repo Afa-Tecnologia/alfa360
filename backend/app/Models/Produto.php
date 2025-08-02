@@ -40,6 +40,7 @@ class Produto extends Model
         // e evitar duplicações.
         static::creating(function ($product) {
             $product->code = BarcodeService::generateVerifiedEAN13($product->categoria_id);
+            $product->purchase_price =  $product->purchase_price > 0 ? $product->purchase_price : 1;
         });
     }
 

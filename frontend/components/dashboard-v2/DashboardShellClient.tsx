@@ -47,6 +47,12 @@ const NAV_ITEMS = [
     roles: ['admin', 'vendedor', 'super_admin', 'gerente'],
   },
   {
+    label: 'Etiquetas',
+    href: '/dashboard/etiquetas',
+
+    roles: ['admin', 'vendedor', 'super_admin', 'gerente'],
+  },
+  {
     label: 'Categorias',
     href: '/dashboard/categorias',
     roles: ['admin', 'gerente', 'super_admin'],
@@ -81,6 +87,7 @@ const NAV_ITEMS = [
 
     roles: ['admin', 'super_admin'],
   },
+  
 ];
 
 interface DashboardShellClientProps {
@@ -151,11 +158,9 @@ const currentPath = pathname; // pega a rota atual
   }
 
   const canAccess = hasAccess(pathname, dataUser.role);
-console.log('canAccess', canAccess);
-console.log('url', pathname);
+
   if (!canAccess) {
     const fallback = getFirstAccessiblePath(dataUser.role);
-    console.log('fallback', fallback);
     if (fallback) {
        router.push('/dashboard/unauthorized?from=' + encodeURIComponent(currentPath));
     } else {
@@ -201,7 +206,7 @@ console.log('url', pathname);
           title={title}
         />
 
-        <main className="flex-1 p-5 pb-8 md:p-6 overflow-y-auto">
+        <main className="flex-1 pt-14 px-5 pb-8 md:p-6 overflow-y-auto">
           {children}
         </main>
       </div>

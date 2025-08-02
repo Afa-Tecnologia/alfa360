@@ -51,15 +51,17 @@ COPY backend/docker/www.conf /usr/local/etc/php-fpm.d/www.conf
 # Copiar código da aplicação
 COPY ./backend /var/www/html
 
-
 # Definir permissões corretas
 RUN chown -R ${APP_USER}:${APP_USER} /var/www/html && \
     chown -R ${APP_USER}:${APP_USER} /var/www/html/storage /var/www/html/bootstrap/cache
 
 # Scripts de otimização
 COPY backend/optimize-performance.sh /usr/local/bin/optimize-performance.sh
+COPY backend/docker/start.sh /usr/local/bin/start.sh
 RUN chmod +x /usr/local/bin/optimize-performance.sh && \
-    chown ${APP_USER}:${APP_USER} /usr/local/bin/optimize-performance.sh
+    chmod +x /usr/local/bin/start.sh && \
+    chown ${APP_USER}:${APP_USER} /usr/local/bin/optimize-performance.sh && \
+    chown ${APP_USER}:${APP_USER} /usr/local/bin/start.sh
 
 # Instalar dependências
 USER ${APP_USER}
@@ -67,5 +69,5 @@ RUN composer install --no-interaction --no-dev --optimize-autoloader
 
 EXPOSE 9000
 
-# Rodar o PHP-FPM
-CMD ["php-fpm"]
+# Usar script de inicialização
+CMD ["/usr/local/bin/start.sh"]

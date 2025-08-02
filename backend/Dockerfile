@@ -69,7 +69,6 @@ RUN chown -R ${APP_USER}:${APP_USER} /var/www/html && \
 # Instalar dependências
 USER ${APP_USER}
 RUN composer install --no-interaction --no-dev --optimize-autoloader
-RUN php artisan queue:work --daemon --tries=3 --timeout=60 --sleep=3 --max-time=600
 
 EXPOSE 9000
 

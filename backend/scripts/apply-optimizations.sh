@@ -2,16 +2,17 @@
 
 echo "🚀 Aplicando otimizações de performance..."
 
-# Parar o container
-echo "🛑 Parando container backend..."
-docker compose stop backend
-
 # Limpar caches
 echo "🧹 Limpando caches..."
 docker compose exec backend php artisan cache:clear || true
 docker compose exec backend php artisan config:clear || true
 docker compose exec backend php artisan route:clear || true
 docker compose exec backend php artisan view:clear || true
+
+# Parar o container
+echo "🛑 Parando container backend..."
+docker compose stop backend
+
 
 # Reconstruir container com otimizações
 echo "🔨 Reconstruindo container..."

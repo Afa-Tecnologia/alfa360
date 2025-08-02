@@ -206,7 +206,7 @@ const currentPath = pathname; // pega a rota atual
           title={title}
         />
 
-        <main className="flex-1 p-5 pb-8 md:p-6 overflow-y-auto">
+        <main className="flex-1 pt-14 px-5 pb-8 md:p-6 overflow-y-auto">
           {children}
         </main>
       </div>

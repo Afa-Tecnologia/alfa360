@@ -7,18 +7,6 @@ cleanup_processes() {
     pkill -f "queue:work" || true
 }
 
-# Função para monitorar CPU
-monitor_cpu() {
-    while true; do
-        CPU_USAGE=$(top -bn1 | grep "Cpu(s)" | awk '{print $2}' | cut -d'%' -f1)
-        if [ "$CPU_USAGE" -gt 80 ]; then
-            echo "⚠️ CPU alto detectado: ${CPU_USAGE}%"
-            cleanup_processes
-        fi
-        sleep 30
-    done
-}
-
 # Limpar processos existentes
 cleanup_processes
 
@@ -26,9 +14,6 @@ cleanup_processes
 echo "🚀 Inicializando Laravel..."
 php artisan config:cache
 php artisan route:cache
-
-# Iniciar monitoramento de CPU em background
-monitor_cpu &
 
 # Iniciar queue worker com configurações otimizadas
 echo "🔄 Iniciando queue worker..."

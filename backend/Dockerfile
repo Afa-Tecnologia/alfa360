@@ -81,8 +81,7 @@ RUN composer install --no-interaction --no-dev --optimize-autoloader
 USER root
 
 # Configurações de segurança adicionais
-RUN echo "security.limit_extensions = .php" >> /usr/local/etc/php-fpm.d/www.conf && \
-    echo "php_admin_value[disable_functions] = exec,passthru,shell_exec,system,proc_open,popen,curl_exec,curl_multi_exec,parse_ini_file,show_source" >> /usr/local/etc/php-fpm.d/www.conf && \
+RUN echo "php_admin_value[disable_functions] = exec,passthru,shell_exec,system,proc_open,popen,curl_exec,curl_multi_exec,parse_ini_file,show_source" >> /usr/local/etc/php-fpm.d/www.conf && \
     echo "php_admin_value[open_basedir] = /var/www/html:/tmp" >> /usr/local/etc/php-fpm.d/www.conf
 
 # Voltar para usuário não-root

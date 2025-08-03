@@ -135,7 +135,6 @@ services:
           memory: 512M
     security_opt:
       - no-new-privileges:true
-    read_only: true
     tmpfs:
       - /tmp
       - /var/tmp

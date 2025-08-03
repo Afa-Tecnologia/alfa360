@@ -53,10 +53,10 @@ class RevenueByPeriodService implements RevenueByPeriodServiceInterface
             $receitas = DB::table('pedidos')
                 ->whereIn('id', $pedidoIds)
                 ->select(
-                    DB::raw("strftime('{$groupFormat}', created_at) as period"),
+                    DB::raw("DATE_FORMAT(created_at, '{$groupFormat}') as period"),
                     DB::raw('SUM(total) as revenue')
                 )
-                ->groupBy(DB::raw("strftime('{$groupFormat}', created_at)"))
+                ->groupBy(DB::raw("DATE_FORMAT(created_at, '{$groupFormat}')"))
                 ->orderBy('period')
                 ->get();
         } else {
@@ -64,10 +64,10 @@ class RevenueByPeriodService implements RevenueByPeriodServiceInterface
             $receitas = DB::table('pedidos')
                 ->whereBetween('created_at', [$dataInicial, $dataFinal])
                 ->select(
-                    DB::raw("strftime('{$groupFormat}', created_at) as period"),
+                    DB::raw("DATE_FORMAT(created_at, '{$groupFormat}') as period"),
                     DB::raw('SUM(total) as revenue')
                 )
-                ->groupBy(DB::raw("strftime('{$groupFormat}', created_at)"))
+                ->groupBy(DB::raw("DATE_FORMAT(created_at, '{$groupFormat}')"))
                 ->orderBy('period')
                 ->get();
         }

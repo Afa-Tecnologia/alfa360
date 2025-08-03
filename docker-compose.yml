@@ -75,8 +75,6 @@ services:
 
   # Backend Laravel
   backend:
-    expose:
-      - "9000"
     ports:
       - "9000:9000"
     build:
@@ -127,6 +125,26 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
+    deploy:
+      resources:
+        limits:
+          cpus: "2.0"
+          memory: 4G
+        reservations:
+          cpus: "0.5"
+          memory: 512M
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /var/tmp
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - SETGID
+      - SETUID
 
   # Banco de Dados MySQL
   mysql:
@@ -194,3 +212,8 @@ services:
 networks:
   alfa:
     driver: bridge
+    driver_opts:
+      com.docker.network.bridge.name: alfa_network
+    ipam:
+      config:
+        - subnet: 172.18.0.0/16

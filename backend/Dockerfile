@@ -62,16 +62,33 @@ RUN chmod +x /usr/local/bin/simple-start.sh && \
 # Copiar código da aplicação
 COPY ./backend /var/www/html
 
-# Definir permissões corretas
+# Definir permissões corretas e configurações de segurança
 RUN chown -R ${APP_USER}:${APP_USER} /var/www/html && \
-    chown -R ${APP_USER}:${APP_USER} /var/www/html/storage /var/www/html/bootstrap/cache
+    chown -R ${APP_USER}:${APP_USER} /var/www/html/storage /var/www/html/bootstrap/cache && \
+    chmod -R 755 /var/www/html && \
+    chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 
-# Instalar dependências
+# Remover arquivos desnecessários para segurança
+RUN find /var/www/html -name "*.log" -delete && \
+    find /var/www/html -name "*.tmp" -delete && \
+    find /var/www/html -name ".env*" -delete
+
+# Instalar dependências como usuário não-root
 USER ${APP_USER}
 RUN composer install --no-interaction --no-dev --optimize-autoloader
+
+# Voltar para root para configurações finais
+USER root
+
+# Configurações de segurança adicionais
+RUN echo "security.limit_extensions = .php" >> /usr/local/etc/php-fpm.d/www.conf && \
+    echo "php_admin_value[disable_functions] = exec,passthru,shell_exec,system,proc_open,popen,curl_exec,curl_multi_exec,parse_ini_file,show_source" >> /usr/local/etc/php-fpm.d/www.conf && \
+    echo "php_admin_value[open_basedir] = /var/www/html:/tmp" >> /usr/local/etc/php-fpm.d/www.conf
+
+# Voltar para usuário não-root
+USER ${APP_USER}
 
 EXPOSE 9000
 
 # Usar script simples
-
 CMD ["/usr/local/bin/simple-start.sh"]

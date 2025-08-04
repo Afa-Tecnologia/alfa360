@@ -25,6 +25,7 @@ class Kernel extends HttpKernel
         \Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull::class,
         \Illuminate\Routing\Middleware\ThrottleRequests::class, // Adicionar throttling
         \App\Http\Middleware\PerformanceOptimizer::class, // Otimização de performance
+        \App\Http\Middleware\SecurityMiddleware::class, // Middleware de segurança
     ];
 
     /**

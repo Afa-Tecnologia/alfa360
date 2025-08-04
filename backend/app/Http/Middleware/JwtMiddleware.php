@@ -23,11 +23,31 @@ class JwtMiddleware
     public function handle(Request $request, Closure $next)
     {
         try {
+            // Validações de segurança para prevenir ataques
+            if ($this->isMaliciousRequest($request)) {
+                Log::warning('Tentativa de ataque detectada', [
+                    'ip' => $request->ip(),
+                    'user_agent' => $request->userAgent(),
+                    'path' => $request->path(),
+                    'headers' => $request->headers->all()
+                ]);
+                return response()->json(['message' => 'Requisição inválida'], 400);
+            }
+
             // Get token from cookie, then from header if cookie isn't present
             $token = $this->getTokenFromRequest($request);
             
             if (!$token) {
                 return response()->json(['message' => 'Token de autenticação não encontrado'], 401);
+            }
+
+            // Validação adicional do token
+            if (!$this->isValidTokenFormat($token)) {
+                Log::warning('Formato de token inválido detectado', [
+                    'ip' => $request->ip(),
+                    'token_preview' => substr($token, 0, 20) . '...'
+                ]);
+                return response()->json(['message' => 'Token de autenticação inválido'], 401);
             }
             
             // Set the token for JWTAuth to validate
@@ -69,6 +89,94 @@ class JwtMiddleware
         }
         
         return $next($request);
+    }
+
+    /**
+     * Verifica se a requisição contém padrões maliciosos
+     */
+    protected function isMaliciousRequest(Request $request): bool
+    {
+        // Verifica URLs data:// que podem conter código malicioso
+        $url = $request->fullUrl();
+        if (str_contains($url, 'data://')) {
+            return true;
+        }
+
+        // Verifica headers suspeitos
+        $headers = $request->headers->all();
+        foreach ($headers as $name => $values) {
+            $headerValue = is_array($values) ? implode(' ', $values) : $values;
+            
+            // Verifica por padrões de injeção de código mais críticos
+            $maliciousPatterns = [
+                'data://',
+                'php://',
+                '<?php',
+                'system(',
+                'exec(',
+                'shell_exec(',
+                'passthru(',
+                'eval(',
+                'base64_decode('
+            ];
+
+            foreach ($maliciousPatterns as $pattern) {
+                if (stripos($headerValue, $pattern) !== false) {
+                    return true;
+                }
+            }
+        }
+
+        // Verifica parâmetros da URL
+        $queryParams = $request->query();
+        foreach ($queryParams as $key => $value) {
+            if (is_string($value)) {
+                foreach (['data://', 'php://', '<?php', 'system(', 'eval('] as $pattern) {
+                    if (stripos($value, $pattern) !== false) {
+                        return true;
+                    }
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Valida o formato básico do token JWT
+     */
+    protected function isValidTokenFormat(string $token): bool
+    {
+        // Verifica se o token não contém caracteres suspeitos
+        $maliciousPatterns = [
+            'data://',
+            'php://',
+            '<?php',
+            'system(',
+            'eval(',
+            'base64_decode('
+        ];
+
+        foreach ($maliciousPatterns as $pattern) {
+            if (stripos($token, $pattern) !== false) {
+                return false;
+            }
+        }
+
+        // Verifica se o token tem formato básico de JWT (3 partes separadas por ponto)
+        $parts = explode('.', $token);
+        if (count($parts) !== 3) {
+            return false;
+        }
+
+        // Verifica se cada parte contém apenas caracteres válidos para base64
+        foreach ($parts as $part) {
+            if (!preg_match('/^[A-Za-z0-9+\/]+={0,2}$/', $part)) {
+                return false;
+            }
+        }
+
+        return true;
     }
     
     /**

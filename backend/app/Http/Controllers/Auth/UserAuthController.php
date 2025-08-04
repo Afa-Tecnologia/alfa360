@@ -227,6 +227,16 @@ private function isTokenStructurallyValid(string $token): bool
     public function me(Request $request): JsonResponse
     {
         try {
+            // Validações de segurança adicionais
+            if ($this->isMaliciousRequest($request)) {
+                Log::warning('Tentativa de ataque detectada no endpoint /me', [
+                    'ip' => $request->ip(),
+                    'user_agent' => $request->userAgent(),
+                    'headers' => $request->headers->all()
+                ]);
+                return response()->json(['message' => 'Requisição inválida'], 400);
+            }
+
             $user = Auth::guard('api')->user();
 
             if (!$user) {
@@ -236,9 +246,53 @@ private function isTokenStructurallyValid(string $token): bool
             return response()->json(['user' => new UserResource($user)], 200);
 
         } catch (\Throwable $e) {
-            Log::error('Erro ao buscar usuário: ' . $e->getMessage());
+            Log::error('Erro ao buscar usuário: ' . $e->getMessage(), [
+                'ip' => $request->ip(),
+                'user_agent' => $request->userAgent(),
+                'stack_trace' => $e->getTraceAsString()
+            ]);
             return response()->json(['message' => 'Erro interno ao buscar usuário'], 500);
         }
+    }
+
+    /**
+     * Verifica se a requisição contém padrões maliciosos
+     */
+    private function isMaliciousRequest(Request $request): bool
+    {
+        // Verifica URLs data:// que podem conter código malicioso
+        $url = $request->fullUrl();
+        if (str_contains($url, 'data://')) {
+            return true;
+        }
+
+        // Verifica headers suspeitos
+        $headers = $request->headers->all();
+        foreach ($headers as $name => $values) {
+            $headerValue = is_array($values) ? implode(' ', $values) : $values;
+            
+            // Verifica por padrões de injeção de código
+            $maliciousPatterns = [
+                'data://',
+                'php://',
+                'file://',
+                '<?php',
+                'system(',
+                'exec(',
+                'shell_exec(',
+                'passthru(',
+                'eval(',
+                'base64_decode('
+            ];
+
+            foreach ($maliciousPatterns as $pattern) {
+                if (stripos($headerValue, $pattern) !== false) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     /**

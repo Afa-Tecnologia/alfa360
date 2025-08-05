@@ -144,7 +144,6 @@ public function refresh(Request $request): JsonResponse
     }
 
     try {
-        // Define o token como refresh token
         JWTAuth::setToken($refreshToken);
         
         // Tenta decodificar o payload sem verificar expiração primeiro
@@ -224,18 +223,9 @@ private function isTokenStructurallyValid(string $token): bool
     /**
      * Retorna o usuário autenticado
      */
-    public function me(Request $request): JsonResponse
+ public function me(Request $request): JsonResponse
     {
         try {
-            // Validações de segurança adicionais
-            if ($this->isMaliciousRequest($request)) {
-                Log::warning('Tentativa de ataque detectada no endpoint /me', [
-                    'ip' => $request->ip(),
-                    'user_agent' => $request->userAgent(),
-                    'headers' => $request->headers->all()
-                ]);
-                return response()->json(['message' => 'Requisição inválida'], 400);
-            }
 
             $user = Auth::guard('api')->user();
 
@@ -246,11 +236,8 @@ private function isTokenStructurallyValid(string $token): bool
             return response()->json(['user' => new UserResource($user)], 200);
 
         } catch (\Throwable $e) {
-            Log::error('Erro ao buscar usuário: ' . $e->getMessage(), [
-                'ip' => $request->ip(),
-                'user_agent' => $request->userAgent(),
-                'stack_trace' => $e->getTraceAsString()
-            ]);
+            Log::error('Erro ao buscar usuário: ' . $e->getMessage());
+
             return response()->json(['message' => 'Erro interno ao buscar usuário'], 500);
         }
     }

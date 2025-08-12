@@ -39,8 +39,7 @@ export function clearAuthAndRedirect(returnUrl?: string): void {
     // Limpar cookies de autenticação
     document.cookie =
       'jwt_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
-    document.cookie =
-      'jwt_refresh_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+    // Refresh token removido
 
     // Limpar localStorage se estiver sendo usado
     localStorage.removeItem('auth_tokens');

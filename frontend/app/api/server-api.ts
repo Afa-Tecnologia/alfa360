@@ -1,4 +1,5 @@
-import { getAuthToken } from './auth';
+import { redirect } from 'next/navigation';
+import { deleteServerCookie, getAuthToken } from './auth';
 
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api';
@@ -21,6 +22,14 @@ export const apiFetch = async (url: string, options: RequestInit = {}) => {
     },
     body: options.body ? JSON.stringify(options.body) : undefined,
   });
+
+  if (response.status === 401) {
+    // Limpa cookies HttpOnly no servidor e redireciona
+    try {
+      await deleteServerCookie();
+    } catch {}
+    redirect('/login');
+  }
 
   if (!response.ok) {
     throw new Error(`HTTP error! status: ${response.status}`);

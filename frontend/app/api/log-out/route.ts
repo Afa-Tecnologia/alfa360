@@ -4,7 +4,8 @@ export async function POST() {
   const response = NextResponse.json({ success: true });
 
   const isProduction =
-    process.env.NEXT_PUBLIC_API_URL === 'https://alfa360.alfatecnologia.tech/api';
+    process.env.NEXT_PUBLIC_API_URL ===
+    'https://alfa360.alfatecnologia.tech/api';
 
   const cookieOptions = {
     path: '/',
@@ -16,7 +17,6 @@ export async function POST() {
   };
 
   response.cookies.set('jwt_token', 'deleted', cookieOptions);
-  response.cookies.set('jwt_refresh_token', 'deleted', cookieOptions);
 
   return response;
 }

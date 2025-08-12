@@ -1,37 +1,4 @@
-import { api } from '@/app/api/api';
-
-interface TokenResponse {
-  access_token: string;
-  refresh_token: string;
-}
-
-/**
- * Serviço responsável por gerenciar tokens de autenticação
- */
-export async function refreshAccessToken(
-  refreshToken: string
-): Promise<TokenResponse | null> {
-  try {
-    // Cria uma instância separada do axios para evitar loops de interceptors
-    const response = await api.post<TokenResponse>(
-      '/refresh',
-      { refresh_token: refreshToken },
-      {
-        headers: { 'Content-Type': 'application/json' },
-        withCredentials: true,
-      }
-    );
-
-    return response.data;
-  } catch (error) {
-    console.error('Falha ao renovar token:', error);
-    return null;
-  }
-}
-
-/**
- * Verifica se um token JWT está expirado
- */
+// Refresh token removido; mantemos utilitário para checar expiração do access token
 export function isTokenExpired(token: string): boolean {
   try {
     const base64Url = token.split('.')[1];

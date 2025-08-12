@@ -6,7 +6,6 @@ import { redirect } from 'next/navigation';
 export const deleteServerCookie = async () => {
   const cookieStore = await cookies();
   cookieStore.delete('jwt_token'); // Limpar token persistido
-  cookieStore.delete('jwt_refresh_token');
   redirect('/login');
 };
 
@@ -19,18 +18,11 @@ export async function getServerCookie() {
 }
 
 export async function getAuthToken() {
-
-    const cookieStore = await cookies();
-    return cookieStore.get('jwt_token')?.value || null;
- 
+  const cookieStore = await cookies();
+  return cookieStore.get('jwt_token')?.value || null;
 }
 
-export async function getRefreshToken() {
- 
-    const cookieStore = await cookies();
-    return cookieStore.get('jwt_refresh_token')?.value || null;
- 
-}
+// Refresh token removido
 
 export async function setAuthToken(token: string, name: string) {
   try {
@@ -60,13 +52,4 @@ export async function removeAuthToken() {
     return false;
   }
 }
-export async function removeRefreshToken() {
-  try {
-    const cookieStore = await cookies();
-    cookieStore.delete('jwt_refresh_token');
-    return true;
-  } catch (error) {
-    console.error('Erro ao remover cookie:', error);
-    return false;
-  }
-}
+// Refresh token removido

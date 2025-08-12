@@ -32,8 +32,6 @@ Route::get('/user', function (Request $request) {
 })->middleware('auth:api', TenantResolver::class);
 
 Route::post('login', [UserAuthController::class, 'login']);
-Route::post('refresh', [UserAuthController::class, 'refresh']);
-Route::post('/logout-cookies', [UserAuthController::class, 'logoutNotTokenHeader']);
 Route::post('logout', [UserAuthController::class, 'logout']);
 Route::middleware('auth:api', TenantResolver::class)->group(function () {
     Route::post('signup', [UserAuthController::class, 'signup']);
@@ -101,7 +99,6 @@ Route::get('/debug-tenant', function() {
         'produtos_sem_scope' => \App\Models\Produto::withoutGlobalScopes()->count(),
         'produtos_com_scope' => \App\Models\Produto::count(),
         'sql_query' => \App\Models\Produto::toSql(),
-        'roles' => Auth::check() ? Auth::user()->getRoleNames() : [],
     ];
 })->middleware('auth:api', TenantResolver::class, \App\Http\Middleware\TenantResolver::class);
 

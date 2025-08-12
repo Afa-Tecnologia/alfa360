@@ -7,7 +7,6 @@ export interface User {
 
 export interface LoginResponse {
   access_token: string | any;
-  refresh_token: string | any;  
   user: User;
 }
 
@@ -23,4 +22,3 @@ export interface loginData {
   email: string;
   password: string;
 }
-

@@ -22,8 +22,8 @@ class VariantesObserver
      */
     public function updated(Variantes $variante): void
     {
-        // Apenas se o quantity foi alterado
-        if ($variante->isDirty('quantity')) {
+        // Recalcula se quantity ou active foram alterados
+        if ($variante->wasChanged('quantity') || $variante->wasChanged('active')) {
             $this->atualizarEstoqueProduto($variante->produto_id);
         }
     }

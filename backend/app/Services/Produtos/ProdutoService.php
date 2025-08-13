@@ -152,6 +152,8 @@ class ProdutoService
 
             if (isset($data['variants']) && is_array($data['variants'])) {
                 $this->processarVariantesEmLote($produto->id, $data['variants']);
+                // Recalcular a quantidade total do produto após atualizações em lote das variantes
+                $this->estoqueService->atualizarEstoqueProduto($produto->id);
             }
 
             // Invalidar cache de produtos

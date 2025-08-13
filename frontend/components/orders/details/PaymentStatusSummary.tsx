@@ -43,12 +43,12 @@ export function PaymentStatusSummary({
             {(order?.desconto ?? 0) > 0 && (
               <div className="flex items-center gap-2">
                 <div className="h-8 w-8 rounded-full bg-red-50 flex items-center justify-center">
-                  <Percent className="h-4 w-4 text-red-500" />
+                  <DollarSign className="h-4 w-4 text-red-500" />
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Desconto</p>
                   <p className="font-medium text-red-600">
-                    -{formatCurrency(order?.desconto ?? 0)}
+                    -{formatCurrency(order.produtos.reduce((acc, item) => acc + item.pivot.quantidade * item.selling_price, 0) - order.total)}
                   </p>
                 </div>
               </div>

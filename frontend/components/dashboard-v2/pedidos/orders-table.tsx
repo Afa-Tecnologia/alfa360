@@ -22,6 +22,7 @@ import {
   AlertCircle,
   MoreHorizontal,
   Eye,
+  Trash2,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -37,6 +38,7 @@ interface OrdersTableProps {
   loading: boolean;
   onSelect: (order: Order) => void;
   onStatusUpdate?: (orderId: number, status: OrderStatus) => void;
+  onDeleteOrder?: (order: Order) => void;
 }
 
 export function OrdersTable({
@@ -44,6 +46,7 @@ export function OrdersTable({
   loading,
   onSelect,
   onStatusUpdate,
+  onDeleteOrder,
 }: OrdersTableProps) {
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-BR', {
@@ -304,6 +307,19 @@ export function OrdersTable({
                               </DropdownMenuItem>
                             )
                           )}
+
+                        {onDeleteOrder && (
+                          <DropdownMenuItem
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onDeleteOrder(order);
+                            }}
+                            className="cursor-pointer text-red-600 focus:text-red-600 focus:bg-red-50"
+                          >
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            Excluir pedido
+                          </DropdownMenuItem>
+                        )}
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </TableCell>

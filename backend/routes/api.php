@@ -105,12 +105,14 @@ Route::get('/debug-tenant', function() {
 Route::prefix('pedidos')->middleware('auth:api', TenantResolver::class)->group(function () {
     Route::get('/', [PedidosController::class, 'index']);
     Route::get('{id}', [PedidosController::class, 'show']);
-    Route::get('/categoria/{id}', [PedidosController::class, 'findByCategory']);
-    Route::get('/tipo/{tipo}', [PedidosController::class, 'findByType']);
-    Route::post('/', [PedidosController::class, 'store'])->middleware(ComissionsMiddleware::class);
     //Admin e super admin
     Route::put('/{id}', [PedidosController::class, 'update'])->middleware(['role:admin|super_admin']);
     Route::delete('{id}', [PedidosController::class, 'delete'])->middleware(['role:admin|super_admin']);
+    //Gerente e vendedor
+    Route::get('/categoria/{id}', [PedidosController::class, 'findByCategory']);
+    Route::get('/tipo/{tipo}', [PedidosController::class, 'findByType']);
+    Route::post('/', [PedidosController::class, 'store'])->middleware(ComissionsMiddleware::class);
+    Route::post('/verificar-estoque', [PedidosController::class, 'verificarEstoque']);
 });
 
 Route::prefix('pagamentos')->middleware('auth:api', TenantResolver::class)->group(function () {

@@ -463,13 +463,15 @@ export function FinalizeSaleDialog({
               <CardContent className="space-y-3">
                 <div className="flex justify-between text-sm">
                   <span>Subtotal</span>
-                  <span>{formatCurrency(total)}</span>
+                  <span>{formatCurrency(total)} R$</span>
                 </div>
 
                 {discount > 0 && (
                   <div className="flex justify-between text-sm text-destructive">
                     <span>Desconto</span>
-                    <span>-{formatCurrency(discount)}</span>
+                    <span className="font-bold text-green-600">
+                      {formatCurrency(totalWithDiscount - total)} R$
+                    </span>
                   </div>
                 )}
 
@@ -477,7 +479,7 @@ export function FinalizeSaleDialog({
 
                 <div className="flex justify-between font-medium text-lg">
                   <span>Total</span>
-                  <span>{formatCurrency(totalWithDiscount)}</span>
+                  <span>{formatCurrency(totalWithDiscount)} R$</span>
                 </div>
               </CardContent>
             </Card>

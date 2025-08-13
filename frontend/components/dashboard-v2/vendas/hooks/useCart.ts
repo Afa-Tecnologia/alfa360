@@ -30,7 +30,19 @@ export function useCart() {
 
   const total = () =>
     items.reduce((sum, item) => sum + item.sellingPrice * item.quantity, 0);
-  const totalWithDiscount = () => total() - discount;
+  const totalWithDiscount = () => {
+    const totalValue = total();
+    if (discount > 0) {
+      // Se o desconto for um percentual (0-100), aplicar como percentual
+      if (discount <= 100) {
+        const discountValue = (totalValue * discount) / 100;
+        return totalValue - discountValue;
+      }
+      // Se for maior que 100, assumir que é um valor absoluto (para compatibilidade)
+      return totalValue - discount;
+    }
+    return totalValue;
+  };
 
   return {
     items,

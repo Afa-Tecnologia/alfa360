@@ -219,19 +219,9 @@ class PedidosController extends Controller
             }
             
             return DB::transaction(function () use ($pedido, $dataValidated, $id) {
-                // Estornar estoque dos produtos anteriores
-                $itensEstornar = $this->estoqueHelper->prepararItensParaEstorno($pedido->produtos);
-                $this->estoqueHelper->estornarEstoqueItens($itensEstornar);
-                
-                // Atualiza o pedido
+                // Atualização e estorno tratados no service
                 $pedido = $this->pedidoService->update($id, $dataValidated);
-    
-                // Atualiza os produtos do pedido se fornecidos
-                if (isset($dataValidated['produtos'])) {
-                    // O service já processa os produtos e aplica desconto automaticamente
-                    // Não é necessário fazer nada adicional aqui
-                }
-    
+
                 return ApiResponseService::json([
                     'message' => 'Pedido atualizado com sucesso',
                     'pedido' => $pedido->load('produtos')
@@ -270,16 +260,10 @@ class PedidosController extends Controller
                 );
             }
             
-            // Estornar estoque dos produtos (se tiver variantes)
-            $itensEstornar = $this->estoqueHelper->prepararItensParaEstorno($pedido->produtos);
-            
-            return DB::transaction(function () use ($itensEstornar, $id) {
-                // Estornar estoque se necessário
-                $this->estoqueHelper->estornarEstoqueItens($itensEstornar);
-                
-                // Deletar o pedido
+            return DB::transaction(function () use ($id) {
+                // Exclusão e estorno tratados no service
                 $this->pedidoService->delete($id);
-                
+
                 return ApiResponseService::json(
                     ['message' => 'Pedido deletado com sucesso e estoque restaurado'],
                     Response::HTTP_OK
@@ -292,6 +276,15 @@ class PedidosController extends Controller
                 Response::HTTP_INTERNAL_SERVER_ERROR
             );
         }
+    }
+
+    public function verificarEstoque(Request $request)
+    {
+        $data = $request->validate([
+            'produtos' => 'required|array'
+        ]);
+        $disponivel = $this->pedidoService->verificarDisponibilidadeEstoqueProdutos($data['produtos']);
+        return response()->json(['disponivel' => $disponivel]);
     }
 }
 

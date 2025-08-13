@@ -17,6 +17,7 @@ class PedidosProduto extends Model
         'vendedor_id',
         'quantidade',
         'preco_unitario',
+        'variante_id',
         
 
     ];

@@ -59,6 +59,8 @@ export function CartPanel({
       : '0'
   );
 
+  const [aplicado, setAplicado] = useState(false);
+
   // Calcular o total
   const getTotalValue = () => {
     return typeof total === 'function' ? total() : total;
@@ -74,14 +76,14 @@ export function CartPanel({
   // Aplicar desconto em percentual
   const handleApplyPercentageDiscount = () => {
     const parsedPercentage = parseFloat(percentageInput);
+    setAplicado(true);
     if (
       !isNaN(parsedPercentage) &&
       parsedPercentage >= 0 &&
       parsedPercentage <= 100
     ) {
-      const totalValue = getTotalValue();
-      const discountValue = (totalValue * parsedPercentage) / 100;
-      onApplyDiscount(discountValue);
+      // Enviar o percentual diretamente para o backend, não o valor calculado
+      onApplyDiscount(parsedPercentage);
     }
   };
 
@@ -272,12 +274,14 @@ export function CartPanel({
             </Button>
           </div>
 
-          {discount > 0 && (
+          {aplicado && (
             <div className="flex items-center justify-between text-sm text-destructive">
               <span>
-                Desconto ({((discount / getTotalValue()) * 100).toFixed(1)}%)
+                Desconto ({percentageInput}%)
               </span>
-              <span>-{formatCurrency(discount)}</span>
+              <span className="font-bold text-green-600">
+                -{formatCurrency(getTotalValue() * (+percentageInput / 100))}
+              </span>
             </div>
           )}
 

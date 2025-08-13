@@ -236,6 +236,23 @@ class OrdersService {
       throw error;
     }
   }
+
+  /**
+   * Deleta um pedido permanentemente
+   */
+  async deleteOrder(orderId: number): Promise<void> {
+    try {
+      await api.delete(`/pedidos/${orderId}`);
+      gerarNotificacao('Pedido excluído com sucesso', 'sucesso');
+    } catch (error: any) {
+      console.error(`Erro ao excluir o pedido ${orderId}:`, error);
+      gerarNotificacao(
+        error.response?.data?.message || 'Erro ao excluir o pedido',
+        'error'
+      );
+      throw error;
+    }
+  }
 }
 
 export const ordersService = new OrdersService();

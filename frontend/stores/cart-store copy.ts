@@ -116,6 +116,17 @@ export const useCartStore = create<CartStore>((set, get) => ({
 
   totalWithDiscount: () => {
     const subtotal = get().total();
-    return subtotal - get().discount;
+    const discount = get().discount;
+
+    if (discount > 0) {
+      // Se o desconto for um percentual (0-100), aplicar como percentual
+      if (discount <= 100) {
+        const discountValue = (subtotal * discount) / 100;
+        return subtotal - discountValue;
+      }
+      // Se for maior que 100, assumir que é um valor absoluto (para compatibilidade)
+      return subtotal - discount;
+    }
+    return subtotal;
   },
 }));

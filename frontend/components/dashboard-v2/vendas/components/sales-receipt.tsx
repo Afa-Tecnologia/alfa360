@@ -211,14 +211,14 @@ export function SalesReceipt({ open, onOpenChange, sale }: SalesReceiptProps) {
             <div className="flex justify-between">
               <span className="text-sm">Subtotal:</span>
               <span className="text-sm">
-                {formatCurrency(sale.total + sale.desconto)}
+                {formatCurrency(sale.items.reduce((acc, item) => acc + item.total, 0))}
               </span>
             </div>
             {sale.desconto > 0 && (
               <div className="flex justify-between text-red-600">
                 <span className="text-sm">Desconto:</span>
                 <span className="text-sm">
-                  -{formatCurrency(sale.desconto)}
+                  -{formatCurrency(sale.items.reduce((acc, item) => acc + item.total, 0) - sale.total)}
                 </span>
               </div>
             )}

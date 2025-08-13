@@ -5,8 +5,11 @@ import { motion } from 'framer-motion';
 import { useOrdersManagement } from '@/hooks/useOrdersManagement';
 import { OrderDetailModal } from '@/components/orders/OrderDetailModal';
 import { OrdersContent } from '@/components/dashboard-v2/pedidos/orders-content';
+import { DeleteOrderConfirmDialog } from '@/components/dashboard-v2/pedidos/delete-order-confirm-dialog';
 import { ShoppingBag, RefreshCcw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { ordersService } from '@/services/pedidos/OrdersService';
+import { Order } from '@/types/order';
 
 export default function PedidosPage() {
   const {
@@ -34,10 +37,39 @@ export default function PedidosPage() {
 
   const [detailModalOpen, setDetailModalOpen] = useState(false);
 
+  // Estados para o modal de exclusão
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [orderToDelete, setOrderToDelete] = useState<Order | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
   // Selecionar um pedido e abrir o modal
   const handleSelectOrder = (order: any) => {
     selectOrder(order);
     setDetailModalOpen(true);
+  };
+
+  // Abrir modal de exclusão
+  const handleDeleteOrder = (order: Order) => {
+    setOrderToDelete(order);
+    setDeleteModalOpen(true);
+  };
+
+  // Confirmar exclusão
+  const handleConfirmDelete = async () => {
+    if (!orderToDelete) return;
+
+    setIsDeleting(true);
+    try {
+      await ordersService.deleteOrder(orderToDelete.id);
+      setDeleteModalOpen(false);
+      setOrderToDelete(null);
+      // Atualizar a lista de pedidos
+      fetchOrders();
+    } catch (error) {
+      console.error('Erro ao excluir pedido:', error);
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   // Refresh orders
@@ -80,6 +112,7 @@ export default function PedidosPage() {
         onUpdateFilters={updateFilters}
         onSetPage={setPage}
         onRefresh={fetchOrders}
+        onDeleteOrder={handleDeleteOrder}
       />
 
       {/* Modal de detalhes do pedido */}
@@ -94,6 +127,15 @@ export default function PedidosPage() {
           }}
         />
       )}
+
+      {/* Modal de confirmação de exclusão */}
+      <DeleteOrderConfirmDialog
+        open={deleteModalOpen}
+        onOpenChange={setDeleteModalOpen}
+        onConfirm={handleConfirmDelete}
+        orderNumber={orderToDelete?.id?.toString()}
+        isDeleting={isDeleting}
+      />
     </motion.div>
   );
 }

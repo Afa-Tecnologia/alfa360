@@ -5,10 +5,11 @@ namespace App\Models;
 use App\Services\Barcode\BarcodeService;
 use App\Traits\TenantAware;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Produto extends Model
 {
-    use TenantAware;
+    use TenantAware, HasFactory;
     
     protected $fillable = [
         'name',

@@ -50,18 +50,21 @@ class PedidoService
             ]);
 
             //Atualizar o total com desconto
-            $total = $this->processarProdutosNoPedido($pedido, $data['produtos']);
+            $subtotal = $this->processarProdutosNoPedido($pedido, $data['produtos']);
             
             // Log para debug do total antes do desconto
             Log::info('Total antes do desconto', [
                 'pedido_id' => $pedido->id,
-                'total_antes_desconto' => $total,
+                'subtotal' => $subtotal,
                 'desconto_percentual' => $data['desconto'] ?? 0
             ]);
             
             // Aplicar desconto se houver
-            $total = $this->aplicarDesconto($total, $data['desconto'] ?? 0);
-            $pedido->update(['total' => $total]);
+            $total = $this->aplicarDesconto($subtotal, $data['desconto'] ?? 0);
+            $pedido->update([
+                'subtotal' => $subtotal,
+                'total' => $total
+            ]);
             
             // NOVO: Reduzir estoque para os produtos com variantes
             $itensEstoque = [];
@@ -120,18 +123,9 @@ class PedidoService
                 'vendedor_id'=> $vendedor,
                 'quantidade' => $quantidade,
                 'preco_unitario' => $precoUnitario,
+                'variante_id' => $produtoData['variante_id'] ?? null,
             ]);
 
-            // Criar comissão
-            $comissaoValor = $precoUnitario * 0.05 * $quantidade;
-            Commission::create([
-                'pedido_id' => $pedido->id,
-                'vendedor_id' => $vendedor,
-                'produto_id' => $produto->id,
-                'valor' => round($comissaoValor, 2),
-                'quantity' => $quantidade,
-                'percentual' => 5,
-            ]);
 
             $total += $precoUnitario * $quantidade;
         }
@@ -161,6 +155,8 @@ class PedidoService
         return round($total, 2);
     }
 
+
+
     public function processarProdutosNoPedido(Pedido $pedido, array $produtos)
     {
         $total = 0;
@@ -181,9 +177,10 @@ class PedidoService
             PedidosProduto::create([
                 'pedido_id' => $pedido->id,
                 'produto_id' => $produto->id,
-                'vendedor_id' => $vendedorId, // Adicione o vendedor_id aqui
+                'vendedor_id' => $vendedorId, 
                 'quantidade' => $quantidade,
                 'preco_unitario' => $precoUnitario,
+                'variante_id' => $produtoData['variante_id'] ?? null,
             ]);
     
             // Criar comissão
@@ -320,12 +317,18 @@ class PedidoService
                     $this->estoqueService->estornarEstoque($itensEstornar);
                 }
                 
+                // Remover vínculos antigos do pedido com produtos antes de adicionar os novos
+                $pedido->produtos()->detach();
+
                 // Processa os novos produtos
-                $total = $this->processarProdutosEPedidos($pedido, $data['produtos'], $data['vendedor_id'] ?? 0);
+                $subtotal = $this->processarProdutosEPedidos($pedido, $data['produtos'], $data['vendedor_id'] ?? 0);
                 
                 // Aplicar desconto se houver
-                $total = $this->aplicarDesconto($total, $data['desconto'] ?? $pedido->desconto);
-                $pedido->update(['total' => $total]);
+                $total = $this->aplicarDesconto($subtotal, $data['desconto'] ?? $pedido->desconto);
+                $pedido->update([
+                    'subtotal' => $subtotal,
+                    'total' => $total
+                ]);
                 
                 // Reduzir estoque para os novos produtos
                 $itensNovoEstoque = [];
@@ -365,7 +368,7 @@ class PedidoService
 
     public function delete($id)
     {
-        $pedido = Pedido::with('produtos')->find($id);
+        $pedido = Pedido::with(['produtos', 'pagamentos.metodo'])->find($id);
         if (!$pedido) {
             return null;
         }
@@ -384,6 +387,60 @@ class PedidoService
                         'quantity' => $produto->pivot->quantidade
                     ];
                 }
+            }
+            // Verificar se o pedido possui pagamentos e criar movimentações de estorno
+            $pagamentosCapturados = $pedido->pagamentos()
+                ->where('status', 'CAPTURED')
+                ->get();
+            
+            if ($pagamentosCapturados->isNotEmpty()) {
+                $caixaAberto = $this->caixaService->statusCaixa();
+                
+                if ($caixaAberto) {
+                    foreach ($pagamentosCapturados as $pagamento) {
+                        $this->movimentacaoCaixaService->createMovimentacao(
+                            $caixaAberto,
+                            'saida', // Tipo saída para representar o estorno
+                            $pagamento->total,
+                            "Estorno - Pedido #{$pedido->id} excluído - Pagamento #{$pagamento->id}",
+                            $pagamento->metodo->code ?? 'PIX',
+                            [
+                                'pedido_excluido_id' => $pedido->id,
+                                'pagamento_estornado_id' => $pagamento->id,
+                                'motivo' => 'Exclusão de pedido',
+                                'valor_original_pagamento' => $pagamento->total,
+                                'metodo_pagamento' => $pagamento->metodo->nome ?? 'Não informado',
+                                'data_exclusao' => now()->toDateTimeString()
+                            ],
+                            $pedido->local ?? 'loja'
+                        );
+                        
+                        Log::info('Movimentação de estorno criada para pagamento do pedido excluído', [
+                            'pedido_id' => $pedido->id,
+                            'pagamento_id' => $pagamento->id,
+                            'valor_estornado' => $pagamento->total,
+                            'metodo_pagamento' => $pagamento->metodo->nome ?? 'Não informado',
+                            'caixa_id' => $caixaAberto->id
+                        ]);
+                    }
+                    
+                    $totalEstornado = $pagamentosCapturados->sum('total');
+                    Log::info('Estorno completo do pedido realizado', [
+                        'pedido_id' => $pedido->id,
+                        'total_estornado' => $totalEstornado,
+                        'quantidade_pagamentos' => $pagamentosCapturados->count(),
+                        'caixa_id' => $caixaAberto->id
+                    ]);
+                } else {
+                    Log::warning('Pedido com pagamentos sendo excluído mas não há caixa aberto para estorno', [
+                        'pedido_id' => $pedido->id,
+                        'total_pagamentos' => $pagamentosCapturados->sum('total')
+                    ]);
+                }
+            } else {
+                Log::info('Pedido excluído sem pagamentos capturados - nenhum estorno necessário', [
+                    'pedido_id' => $pedido->id
+                ]);
             }
             
             // Estornar estoque dos produtos

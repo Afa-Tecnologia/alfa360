@@ -87,6 +87,22 @@ class EstoqueService
        Log::info("Estoque reduzido. Novo estoque: {$produto->quantity}");
        return true;
     }
+
+    /**
+     * Estorna estoque de um produto simples (sem variantes)
+     */
+    public function estornarEstoqueProduto(int $produtoId, int $quantidade): bool
+    {
+        $produto = Produto::find($produtoId);
+        if (!$produto) {
+            Log::error("Produto {$produtoId} não encontrado para estorno");
+            return false;
+        }
+        $produto->quantity += $quantidade;
+        $produto->save();
+        Log::info("Estoque estornado para produto {$produto->id}. Novo estoque: {$produto->quantity}");
+        return true;
+    }
     
     /**
      * Estorna o estoque das variantes

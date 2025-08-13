@@ -37,7 +37,7 @@ class ProductionSeeder extends Seeder
                     'subdominio' => 'alfatecnologiabrasil',
                     'active' => true,
                     'tenant_id' => $tenantId, // Gerando UUID para o tenant_id
-                    'assinatura_expira_em' => now()->addYear()
+                    'assinatura_expira_em' => now()->addMonths(12)
                 ]
             );
 
@@ -81,7 +81,7 @@ class ProductionSeeder extends Seeder
                 'slug' => Str::slug('Alfa Tecnologia Brasil'),
                 'ativo' => true,
                 'trial_expira_em' => now()->addDays(30),
-                'assinatura_expira_em' => now()->addYear(10),
+                'assinatura_expira_em' => now()->addMonths(120),
                 'plano_id' => $plano->id,
                 'owner_id' => $owner->id, // Inicialmente sem owner_id
             ]
@@ -95,7 +95,8 @@ class ProductionSeeder extends Seeder
                 'subdominio' => 'lesamis',
                 // 'empresa_id' => $empresa->id,
                 'active' => true,
-                'assinatura_expira_em' => now()->addYear(),
+                'is_vip' => true,
+                'assinatura_expira_em' => now()->addMonths(12),
             ]
         );
 
@@ -106,7 +107,7 @@ class ProductionSeeder extends Seeder
                 'subdominio' => 'amcell',
                 // 'empresa_id' => $empresa->id,
                 'active' => true,
-                'assinatura_expira_em' => now()->addYear(),
+                'assinatura_expira_em' => now()->addMonths(12),
             ]
         );
 

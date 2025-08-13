@@ -23,6 +23,7 @@ interface OrdersContentProps {
   onUpdateFilters: (filters: Partial<OrderFilters>) => void;
   onSetPage: (page: number) => void;
   onRefresh: () => void;
+  onDeleteOrder?: (order: Order) => void;
 }
 
 export function OrdersContent({
@@ -36,6 +37,7 @@ export function OrdersContent({
   onUpdateFilters,
   onSetPage,
   onRefresh,
+  onDeleteOrder,
 }: OrdersContentProps) {
   const [filtersVisible, setFiltersVisible] = useState(false);
   const [activeTab, setActiveTab] = useState('all');
@@ -178,6 +180,7 @@ export function OrdersContent({
                 orders={orders}
                 loading={loading}
                 onSelect={onSelectOrder}
+                onDeleteOrder={onDeleteOrder}
               />
             ) : (
               <OrdersCards

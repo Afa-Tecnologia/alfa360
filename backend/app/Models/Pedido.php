@@ -24,6 +24,7 @@ class Pedido extends Model
         'produto_id',
         'type',
         'total',
+        'subtotal',
         'desconto',
         'status',
     ];

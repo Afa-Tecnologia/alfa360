@@ -4,10 +4,11 @@ namespace App\Models;
 
 use App\Traits\TenantAware;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Variantes extends Model
 {
-    use TenantAware;
+    use TenantAware, HasFactory;
     
         protected $fillable = [
             'produto_id', 'name', 'type', 'quantity', 'active', 'images', 'code'

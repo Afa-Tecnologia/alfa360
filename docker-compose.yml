@@ -156,8 +156,6 @@ services:
       - MYSQL_PASSWORD=${DB_PASSWORD}
     ports:
       - "3306:3306"
-    volumes:
-      - ./data/mysql:/var/lib/mysql
     networks:
       - alfa
     restart: always

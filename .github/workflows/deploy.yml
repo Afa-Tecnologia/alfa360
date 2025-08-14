@@ -16,62 +16,73 @@ jobs:
         with:
           ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
-      - name: Deploy backend and frontend with rollback
+      - name: Deploy backend and frontend with rollback and MySQL backup
         run: |
-          ssh deploy@161.97.93.119 "
+          ssh -o StrictHostKeyChecking=no deploy@161.97.93.119 "
             set -e  # Para o deploy se algum comando falhar
             cd /srv/alfa360
+
+            echo '--- Fetching latest code ---'
             git fetch origin main
             git reset --hard origin/main
-            TIMESTAMP=$(date +'%Y%m%d%H%M%S')
-            
-            # --- Backend ---
+
+            TIMESTAMP=\$(date +'%Y%m%d%H%M%S')
+
+            # --- Backup MySQL ---
+            echo '--- Creating MySQL backup ---'
+            mkdir -p /srv/backups
+            docker exec mysql \
+              mysqldump -u root -p'${{ secrets.MYSQL_ROOT_PASSWORD }}' pdvalfa360 > /srv/backups/mysql-backup-\$TIMESTAMP.sql
+            echo 'MySQL backup created: /srv/backups/mysql-backup-'"\$TIMESTAMP.sql"
+
+            # --- Backend Deploy ---
             if git diff --name-only HEAD~1 HEAD | grep '^backend/'; then
-              echo 'Backend changed, creating backup image...'
-              docker tag alfa360_backend:latest alfa360_backend:backup-$TIMESTAMP
-              
-              echo 'Building and deploying backend...'
+              echo '--- Backend changes detected ---'
+              docker tag alfa360_backend:latest alfa360_backend:backup-\$TIMESTAMP
+
               docker-compose build backend
               docker-compose up -d backend
 
-              # Check container status
+              echo '--- Checking backend health ---'
               if ! docker ps --filter 'name=backend' --filter 'status=running' | grep backend; then
-                echo 'Backend failed to start, rolling back...'
-                docker tag alfa360_backend:backup-$TIMESTAMP alfa360_backend:latest
+                echo 'Backend failed to start! Rolling back...'
+                docker tag alfa360_backend:backup-\$TIMESTAMP alfa360_backend:latest
                 docker-compose up -d backend
                 exit 1
               fi
 
-              echo 'Running migrations and caching...'
+              echo '--- Running Laravel optimizations ---'
               docker-compose exec backend php artisan migrate --force
               docker-compose exec backend php artisan config:cache
               docker-compose exec backend php artisan route:cache
               docker-compose exec backend php artisan view:cache
             else
-              echo 'No backend changes, skipping backend deploy.'
+              echo 'No backend changes detected.'
             fi
 
-            # --- Frontend ---
+            # --- Frontend Deploy ---
             if git diff --name-only HEAD~1 HEAD | grep '^frontend/'; then
-              echo 'Frontend changed, creating backup image...'
-              docker tag alfa360_frontend:latest alfa360_frontend:backup-$TIMESTAMP
+              echo '--- Frontend changes detected ---'
+              docker tag alfa360_frontend:latest alfa360_frontend:backup-\$TIMESTAMP
 
-              echo 'Building and deploying frontend...'
               docker-compose build frontend
               docker-compose up -d frontend
 
-              # Check container status
+              echo '--- Checking frontend health ---'
               if ! docker ps --filter 'name=frontend' --filter 'status=running' | grep frontend; then
-                echo 'Frontend failed to start, rolling back...'
-                docker tag alfa360_frontend:backup-$TIMESTAMP alfa360_frontend:latest
+                echo 'Frontend failed to start! Rolling back...'
+                docker tag alfa360_frontend:backup-\$TIMESTAMP alfa360_frontend:latest
                 docker-compose up -d frontend
                 exit 1
               fi
             else
-              echo 'No frontend changes, skipping frontend deploy.'
+              echo 'No frontend changes detected.'
             fi
 
             # --- Tag release ---
-            git tag -a deploy-$TIMESTAMP -m 'Deploy $TIMESTAMP'
-            git push origin deploy-$TIMESTAMP
+            echo '--- Tagging release ---'
+            git tag -a deploy-\$TIMESTAMP -m 'Deploy \$TIMESTAMP'
+            git push origin deploy-\$TIMESTAMP
+
+            echo '--- Deploy completed successfully ---'
           "

@@ -21,6 +21,7 @@ use App\Http\Controllers\TipoDeNegocios\TipoDeNegociosController;
 use App\Http\Controllers\ConfigDoNegocio\ConfigDoNegocioController;
 use App\Http\Controllers\Devolucao\DevolucaoController; 
 use App\Http\Controllers\Empresa\EmpresaController;
+use App\Http\Controllers\Health\HealthController;
 use App\Http\Controllers\Tenant\TenantController;
 use App\Models\Tenant;
 use Illuminate\Support\Facades\Auth;
@@ -79,6 +80,10 @@ Route::prefix('produtos')->middleware('auth:api', TenantResolver::class)->group(
     Route::delete('{id}', [ProdutoController::class, 'delete'])->middleware('role:admin|super_admin|gerente');
     Route::delete('/', [ProdutoController::class, 'batchDelete'])->middleware('role:admin|super_admin|gerente');
 });
+
+
+//Rota pra checar a saúde da aplicação
+Route::get('/health', [HealthController::class, 'check']);
 
 Route::prefix('atributos')->middleware(['auth:api'])->group(function () {
     Route::get('/', [AtributosController::class, 'index'])->middleware('role:admin|super_admin|gerente|vendedor');
